@@ -6,6 +6,18 @@ import { pool } from './database';
 
 dotenv.config();
 
+// Validate environment variables
+const requiredEnvVars = ['DATABASE_URL', 'JWT_SECRET'];
+const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
+
+if (missingEnvVars.length > 0) {
+  console.error('❌ Missing required environment variables:', missingEnvVars.join(', '));
+  console.error('Please set these in Railway dashboard → Variables');
+  process.exit(1);
+}
+
+console.log('✓ All required environment variables present');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
