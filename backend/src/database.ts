@@ -1,8 +1,12 @@
 import { Pool, PoolConfig } from "pg";
 import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
+import dns from "dns";
+import { promisify } from "util";
 
 dotenv.config();
+
+const resolve4 = promisify(dns.resolve4);
 
 // Parse DATABASE_URL to force IPv4 connection
 const databaseUrl = process.env.DATABASE_URL;
@@ -12,8 +16,25 @@ if (!databaseUrl) {
 
 const url = new URL(databaseUrl);
 
-const poolConfig: PoolConfig = {
-  host: url.hostname,
+// Force IPv4 resolution
+async function getIPv4Address(hostname: string): Promise<string> {
+  try {
+    console.log(`Resolving ${hostname} to IPv4...`);
+    const addresses = await resolve4(hostname);
+    if (addresses.length > 0) {
+      console.log(`Resolved to IPv4: ${addresses[0]}`);
+      return addresses[0];
+    }
+    console.warn(`No IPv4 addresses found for ${hostname}, using hostname`);
+    return hostname;
+  } catch (error) {
+    console.error(`DNS resolution failed for ${hostname}:`, error);
+    return hostname;
+  }
+}
+
+let poolConfig: PoolConfig = {
+  host: url.hostname, // Will be replaced with IPv4
   port: parseInt(url.port) || 5432,
   database: url.pathname.slice(1),
   user: url.username,
@@ -26,21 +47,35 @@ const poolConfig: PoolConfig = {
   connectionTimeoutMillis: 10000,
 };
 
-export const pool = new Pool(poolConfig);
+// Initialize pool after DNS resolution
+let pool: Pool;
 
-// Connection error handling
-pool.on('error', (err) => {
-  console.error('Unexpected database pool error:', err);
-});
-
-// Test connection on startup
-pool.query('SELECT NOW()')
-  .then(() => {
+async function initializePool() {
+  const ipv4Address = await getIPv4Address(url.hostname);
+  poolConfig.host = ipv4Address;
+  
+  pool = new Pool(poolConfig);
+  
+  // Connection error handling
+  pool.on('error', (err) => {
+    console.error('Unexpected database pool error:', err);
+  });
+  
+  // Test connection
+  try {
+    await pool.query('SELECT NOW()');
     console.log('Database connected successfully');
-    // Auto-run migrations
-    runInitialMigrations();
-  })
-  .catch((err) => console.error('Database connection failed:', err));
+    await runInitialMigrations();
+  } catch (err) {
+    console.error('Database connection failed:', err);
+  }
+}
+
+// Export pool (will be initialized async)
+export { pool };
+
+// Initialize immediately
+initializePool();
 
 // Run initial migrations
 async function runInitialMigrations() {
