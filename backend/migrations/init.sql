@@ -1,4 +1,4 @@
--- Users table for authentication
+-- Users table for dashboard authentication (separate from license system)
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
@@ -9,10 +9,11 @@ CREATE TABLE users (
     updated_at TIMESTAMP DEFAULT NOW()
 );
 
+-- Applications table (owner_email is just a string, not a foreign key)
 CREATE TABLE applications (
     app_id VARCHAR(32) PRIMARY KEY,
     app_secret VARCHAR(64) NOT NULL,
-    owner_email VARCHAR(255) REFERENCES users(email),
+    owner_email VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT NOW()
 );
 
