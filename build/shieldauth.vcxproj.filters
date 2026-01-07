@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="C:\Users\littl\Documents\ShieldVM\sdk\cpp\src\shieldauth.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\littl\Documents\ShieldVM\sdk\cpp\src\hwid.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\littl\Documents\ShieldVM\sdk\cpp\src\http.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\littl\Documents\ShieldVM\sdk\cpp\CMakeLists.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{46EC0350-E0F6-3DCC-A6B2-C88632CEF1D4}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
