@@ -1,4 +1,4 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, Outlet } from "react-router-dom";
 
 /**
  * ProtectedRoute wrapper component
@@ -15,5 +15,6 @@ export default function ProtectedRoute({ children }) {
   }
 
   // If token exists, show the protected page
-  return children;
+  // Use Outlet for nested routes, or children if provided
+  return children || <Outlet />;
 }

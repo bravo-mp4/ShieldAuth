@@ -5,6 +5,9 @@ import {
   getHWIDs,
   bindHWID,
   createSession,
+  createUser,
+  getUserByEmail,
+  verifyPassword,
   pool,
 } from "./database";
 import crypto from "crypto";
@@ -36,30 +39,96 @@ const authenticateToken = (req: Request, res: Response, next: any) => {
 router.post("/auth/login", async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
-  // Demo credentials (in production, hash passwords and check database)
-  if (email === "admin@shieldlabs.com" && password === "admin123") {
-    const token = jwt.sign({ email, role: "admin" }, JWT_SECRET, {
-      expiresIn: "24h",
-    });
+  if (!email || !password) {
+    return res.status(400).json({ message: "Email and password are required" });
+  }
+
+  try {
+    // Get user from database
+    const user = await getUserByEmail(email);
+    
+    if (!user) {
+      return res.status(401).json({ message: "Invalid email or password" });
+    }
+
+    // Verify password
+    const isValid = await verifyPassword(password, user.password_hash);
+    
+    if (!isValid) {
+      return res.status(401).json({ message: "Invalid email or password" });
+    }
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { id: user.id, email: user.email, role: user.role },
+      JWT_SECRET,
+      { expiresIn: "24h" }
+    );
 
     return res.json({
       token,
       user: {
-        email,
-        role: "admin",
-        name: "Admin User",
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
       },
     });
+  } catch (error) {
+    console.error("Login error:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
-
-  return res.status(401).json({ message: "Invalid email or password" });
 });
 
-// Auth: Register (placeholder)
+// Auth: Register
 router.post("/auth/register", async (req: Request, res: Response) => {
-  const { email, password } = req.body;
-  // TODO: Implement user registration
-  res.status(501).json({ message: "Registration not yet implemented" });
+  const { email, password, name } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ message: "Email and password are required" });
+  }
+
+  // Validate email format
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ message: "Invalid email format" });
+  }
+
+  // Validate password strength (min 6 characters)
+  if (password.length < 6) {
+    return res.status(400).json({ message: "Password must be at least 6 characters" });
+  }
+
+  try {
+    // Check if user already exists
+    const existingUser = await getUserByEmail(email);
+    if (existingUser) {
+      return res.status(409).json({ message: "User already exists" });
+    }
+
+    // Create new user
+    const user = await createUser(email, password, name);
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { id: user.id, email: user.email, role: user.role },
+      JWT_SECRET,
+      { expiresIn: "24h" }
+    );
+
+    return res.status(201).json({
+      token,
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.error("Registration error:", error);
+    return res.status(500).json({ message: "Internal server error" });
+  }
 });
 
 // Auth: Logout
