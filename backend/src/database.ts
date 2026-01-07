@@ -4,11 +4,21 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+// Parse connection string and force IPv4
+const connectionString = process.env.DATABASE_URL || '';
+const url = new URL(connectionString);
+
 export const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  host: url.hostname,
+  port: parseInt(url.port) || 5432,
+  database: url.pathname.slice(1),
+  user: url.username,
+  password: url.password,
   ssl: {
     rejectUnauthorized: false
-  }
+  },
+  // Force IPv4 to avoid ENETUNREACH errors
+  family: 4
 });
 
 // --- User Authentication Functions ---
