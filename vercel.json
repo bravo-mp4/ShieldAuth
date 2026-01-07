@@ -1,6 +1,0 @@
-{
-  "buildCommand": "chmod +x node_modules/.bin/* && npm run build",
-  "outputDirectory": "dist",
-  "installCommand": "npm install",
-  "framework": null
-}
