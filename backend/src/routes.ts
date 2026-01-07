@@ -35,7 +35,7 @@ const authenticateToken = (req: Request, res: Response, next: any) => {
   });
 };
 
-// Auth: Login
+// Auth: Login (using database)
 router.post("/auth/login", async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
@@ -44,21 +44,18 @@ router.post("/auth/login", async (req: Request, res: Response) => {
   }
 
   try {
-    // Get user from database
     const user = await getUserByEmail(email);
     
     if (!user) {
-      return res.status(401).json({ message: "Invalid email or password" });
+      return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // Verify password
     const isValid = await verifyPassword(password, user.password_hash);
     
     if (!isValid) {
-      return res.status(401).json({ message: "Invalid email or password" });
+      return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // Generate JWT token
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
       JWT_SECRET,
@@ -88,28 +85,23 @@ router.post("/auth/register", async (req: Request, res: Response) => {
     return res.status(400).json({ message: "Email and password are required" });
   }
 
-  // Validate email format
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
     return res.status(400).json({ message: "Invalid email format" });
   }
 
-  // Validate password strength (min 6 characters)
   if (password.length < 6) {
     return res.status(400).json({ message: "Password must be at least 6 characters" });
   }
 
   try {
-    // Check if user already exists
     const existingUser = await getUserByEmail(email);
     if (existingUser) {
       return res.status(409).json({ message: "User already exists" });
     }
 
-    // Create new user
     const user = await createUser(email, password, name);
 
-    // Generate JWT token
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
       JWT_SECRET,
