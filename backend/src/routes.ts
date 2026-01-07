@@ -44,15 +44,19 @@ router.post("/auth/login", async (req: Request, res: Response) => {
   }
 
   try {
+    console.log(`Login attempt for: ${email}`);
+    
     const user = await getUserByEmail(email);
     
     if (!user) {
+      console.log(`User not found: ${email}`);
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
     const isValid = await verifyPassword(password, user.password_hash);
     
     if (!isValid) {
+      console.log(`Invalid password for: ${email}`);
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
@@ -62,6 +66,7 @@ router.post("/auth/login", async (req: Request, res: Response) => {
       { expiresIn: "24h" }
     );
 
+    console.log(`Login successful: ${email}`);
     return res.json({
       token,
       user: {
@@ -71,9 +76,16 @@ router.post("/auth/login", async (req: Request, res: Response) => {
         role: user.role,
       },
     });
-  } catch (error) {
-    console.error("Login error:", error);
-    return res.status(500).json({ message: "Internal server error" });
+  } catch (error: any) {
+    console.error("Login error:", {
+      message: error.message,
+      code: error.code,
+      stack: error.stack
+    });
+    return res.status(500).json({ 
+      message: "Database connection error. Please try again.",
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 
@@ -95,8 +107,11 @@ router.post("/auth/register", async (req: Request, res: Response) => {
   }
 
   try {
+    console.log(`Registration attempt: ${email}`);
+    
     const existingUser = await getUserByEmail(email);
     if (existingUser) {
+      console.log(`User already exists: ${email}`);
       return res.status(409).json({ message: "User already exists" });
     }
 
