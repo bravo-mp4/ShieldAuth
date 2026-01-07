@@ -10,58 +10,57 @@ if (!databaseUrl) {
   throw new Error('DATABASE_URL environment variable is required');
 }
 
-const url = new URL(databaseUrl);
+console.log('Connecting to database...');
 
-// Use Supabase connection pooler for IPv6 compatibility
-// Replace direct connection with pooler endpoint
-let host = url.hostname;
-let port = parseInt(url.port) || 5432;
-
-// If using Supabase, switch to connection pooler on port 6543
-if (host.includes('supabase.co')) {
-  port = 6543; // Supabase connection pooler (Session mode)
-  console.log(`Using Supabase connection pooler: ${host}:${port}`);
-}
-
+// Create pool with optimized settings for Railway + Supabase
 const poolConfig: PoolConfig = {
-  host: host,
-  port: port,
-  database: url.pathname.slice(1),
-  user: url.username,
-  password: url.password,
+  connectionString: databaseUrl,
   ssl: {
     rejectUnauthorized: false
   },
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 10000,
+  max: 10,
+  min: 2,
+  idleTimeoutMillis: 20000,
+  connectionTimeoutMillis: 30000,
+  allowExitOnIdle: false,
 };
 
 export const pool = new Pool(poolConfig);
 
 // Connection error handling
 pool.on('error', (err) => {
-  console.error('Unexpected database pool error:', err);
+  console.error('Database pool error:', err);
 });
 
-// Test connection on startup
-pool.query('SELECT NOW()')
-  .then(() => {
-    console.log('Database connected successfully');
-    runInitialMigrations();
-  })
-  .catch((err) => {
-    console.error('Database connection failed:', err);
-    console.error('Retrying in 5 seconds...');
-    setTimeout(() => {
-      pool.query('SELECT NOW()')
-        .then(() => {
-          console.log('Database connected successfully on retry');
-          runInitialMigrations();
-        })
-        .catch(err => console.error('Database connection retry failed:', err));
-    }, 5000);
-  });
+pool.on('connect', () => {
+  console.log('New database connection established');
+});
+
+// Test connection with retries
+async function testConnection(retries = 3): Promise<void> {
+  for (let i = 0; i < retries; i++) {
+    try {
+      const result = await pool.query('SELECT NOW() as time, version() as version');
+      console.log('✓ Database connected:', result.rows[0].time);
+      console.log('✓ PostgreSQL version:', result.rows[0].version.split(',')[0]);
+      await runInitialMigrations();
+      return;
+    } catch (err: any) {
+      console.error(`Database connection attempt ${i + 1}/${retries} failed:`, err.message);
+      if (i < retries - 1) {
+        const delay = (i + 1) * 5000;
+        console.log(`Retrying in ${delay/1000} seconds...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      } else {
+        console.error('❌ All database connection attempts failed');
+        console.error('Please check your DATABASE_URL environment variable');
+        console.error('Current connection string host:', databaseUrl.split('@')[1]?.split('/')[0] || 'unknown');
+      }
+    }
+  }
+}
+
+testConnection();
 
 // Run initial migrations
 async function runInitialMigrations() {
