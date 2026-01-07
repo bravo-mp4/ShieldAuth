@@ -1,7 +1,18 @@
+-- Users table for authentication
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    name VARCHAR(255),
+    role VARCHAR(50) DEFAULT 'user',
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
+
 CREATE TABLE applications (
     app_id VARCHAR(32) PRIMARY KEY,
     app_secret VARCHAR(64) NOT NULL,
-    owner_email VARCHAR(255) NOT NULL,
+    owner_email VARCHAR(255) REFERENCES users(email),
     created_at TIMESTAMP DEFAULT NOW()
 );
 

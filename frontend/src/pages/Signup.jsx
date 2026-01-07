@@ -21,16 +21,19 @@ export default function Signup() {
       return;
     }
 
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters");
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters");
       return;
     }
 
     setLoading(true);
 
     try {
-      await auth.register(name, email, password);
-      navigate("/verify-email");
+      const response = await auth.register(email, password, name);
+      
+      // Save token and redirect to dashboard
+      localStorage.setItem("token", response.data.token);
+      navigate("/dashboard");
     } catch (err) {
       setError(
         err.response?.data?.message || "Registration failed. Please try again."
