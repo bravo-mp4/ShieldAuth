@@ -1,7 +1,7 @@
 {
   "scripts": {
     "dev": "nodemon src/index.ts",
-    "build": "tsc",
+    "build": "echo 'Using ts-node - no build needed'",
     "start": "node --require ts-node/register --require dotenv/config src/index.ts",
     "migrate": "node --require ts-node/register --require dotenv/config migrations/run.ts"
   },

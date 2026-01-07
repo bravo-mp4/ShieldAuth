@@ -35,8 +35,46 @@ pool.on('error', (err) => {
 
 // Test connection on startup
 pool.query('SELECT NOW()')
-  .then(() => console.log('Database connected successfully'))
+  .then(() => {
+    console.log('Database connected successfully');
+    // Auto-run migrations
+    runInitialMigrations();
+  })
   .catch((err) => console.error('Database connection failed:', err));
+
+// Run initial migrations
+async function runInitialMigrations() {
+  try {
+    // Check if users table exists
+    const result = await pool.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables 
+        WHERE table_schema = 'public' 
+        AND table_name = 'users'
+      );
+    `);
+    
+    if (!result.rows[0].exists) {
+      console.log('Running initial database setup...');
+      const fs = require('fs');
+      const path = require('path');
+      
+      // Run init.sql
+      const initSQL = fs.readFileSync(path.join(__dirname, '../migrations/init.sql'), 'utf8');
+      await pool.query(initSQL);
+      console.log('✓ Database tables created');
+      
+      // Run seed.sql
+      const seedSQL = fs.readFileSync(path.join(__dirname, '../migrations/seed.sql'), 'utf8');
+      await pool.query(seedSQL);
+      console.log('✓ Initial data seeded');
+    } else {
+      console.log('Database already initialized');
+    }
+  } catch (error) {
+    console.error('Migration error:', error);
+  }
+}
 
 // --- User Authentication Functions ---
 
