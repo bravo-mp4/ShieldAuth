@@ -1,0 +1,11 @@
+[build]
+builder = "nixpacks"
+buildCommand = "cd backend && rm -f package-lock.json && npm install"
+
+[deploy]
+startCommand = "cd backend && npm start"
+restartPolicyType = "on_failure"
+restartPolicyMaxRetries = 3
+
+[env]
+NODE_ENV = "production"

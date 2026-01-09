@@ -1,0 +1,47 @@
+# Git files
+.git
+.gitignore
+
+# Node modules (will be installed during build)
+node_modules
+backend/node_modules
+frontend/node_modules
+
+# Environment files (use Railway env vars)
+.env
+.env.*
+!.env.example
+
+# Build artifacts
+dist
+build
+*.log
+npm-debug.log*
+
+# Testing
+coverage
+.nyc_output
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Frontend (not needed for backend build)
+frontend/
+
+# Documentation
+*.md
+!backend/README.md
+
+# Git cleanup scripts
+cleanup-git-lock.*
+
+# Testing plan
+TESTING_PLAN.md
