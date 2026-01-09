@@ -326,7 +326,7 @@ router.get(
   async (req: Request, res: Response) => {
     try {
       const userEmail = (req as any).user.email;
-      console.log("[/admin/applications] User email from JWT:", userEmail);
+      console.log("[/admin/applications] Fetching apps for user:", userEmail);
       
       const result = await pool.query(`
       SELECT 
@@ -339,8 +339,8 @@ router.get(
       ORDER BY created_at DESC
     `, [userEmail]);
 
-      console.log("[/admin/applications] Query returned", result.rows.length, "rows");
-      console.log("[/admin/applications] Raw rows:", result.rows);
+      console.log("[/admin/applications] Found", result.rows.length, "applications");
+      console.log("[/admin/applications] Raw data:", result.rows);
 
       const apps = result.rows.map((app: any) => ({
         id: app.id,
@@ -352,7 +352,7 @@ router.get(
         validation_count: 0,
       }));
 
-      console.log("[/admin/applications] Sending response:", apps);
+      console.log("[/admin/applications] Returning:", apps);
       res.json(apps);
     } catch (err) {
       console.error("Failed to fetch applications:", err);

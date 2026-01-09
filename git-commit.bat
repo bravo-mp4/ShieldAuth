@@ -6,7 +6,7 @@ REM Add all changes
 git add .
 
 REM Commit with message
-git commit -m "Add backend logging for application endpoint debugging"
+git commit -m "Update backend logging - trigger redeploy"
 
 REM Push to GitHub
 git push
