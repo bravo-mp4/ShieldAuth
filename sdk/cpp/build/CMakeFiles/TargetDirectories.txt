@@ -1,0 +1,3 @@
+C:/Users/littl/Documents/ShieldVM/sdk/cpp/build/CMakeFiles/shieldauth.dir
+C:/Users/littl/Documents/ShieldVM/sdk/cpp/build/CMakeFiles/edit_cache.dir
+C:/Users/littl/Documents/ShieldVM/sdk/cpp/build/CMakeFiles/rebuild_cache.dir

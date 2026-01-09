@@ -1,0 +1,14 @@
+# Nixpacks configuration for Railway
+providers = ["node"]
+
+[phases.setup]
+nixPkgs = ["nodejs_20"]
+
+[phases.install]
+cmds = ["cd backend && rm -f package-lock.json && npm install"]
+
+[phases.build]
+cmds = ["echo 'Using ts-node - no build step needed'"]
+
+[start]
+cmd = "cd backend && npm start"

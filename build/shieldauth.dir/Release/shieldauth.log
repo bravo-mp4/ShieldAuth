@@ -1,0 +1,8 @@
+﻿  Building Custom Rule C:/Users/littl/Documents/ShieldVM/sdk/cpp/CMakeLists.txt
+  shieldauth.cpp
+  hwid.cpp
+  http.cpp
+  Generating Code...
+C:\Users\littl\Documents\ShieldVM\sdk\cpp\src\http.cpp(59,24): warning C4267: 'argument': conversion from 'size_t' to 'DWORD', possible loss of data
+C:\Users\littl\Documents\ShieldVM\sdk\cpp\src\http.cpp(58,24): warning C4267: 'argument': conversion from 'size_t' to 'DWORD', possible loss of data
+  shieldauth.vcxproj -> C:\Users\littl\Documents\ShieldVM\build\Release\shieldauth.lib
