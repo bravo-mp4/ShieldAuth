@@ -353,14 +353,14 @@ router.get("/logs", authenticateToken, async (req: Request, res: Response) => {
     const result = await pool.query(`
       SELECT 
         s.session_id as id,
-        s.created_at as timestamp,
+        s.last_heartbeat as timestamp,
         'auth' as type,
         'License validation' as message,
         l.license_key as username,
         '' as ip
       FROM sessions s
       JOIN licenses l ON s.license_key = l.license_key
-      ORDER BY s.created_at DESC
+      ORDER BY s.last_heartbeat DESC
       LIMIT 100
     `);
 
@@ -377,14 +377,14 @@ router.get("/admin/logs", authenticateToken, async (req: Request, res: Response)
     const result = await pool.query(`
       SELECT 
         s.session_id as id,
-        s.created_at as timestamp,
+        s.last_heartbeat as timestamp,
         'auth' as type,
         'License validation' as message,
         l.license_key as username,
         '' as ip
       FROM sessions s
       JOIN licenses l ON s.license_key = l.license_key
-      ORDER BY s.created_at DESC
+      ORDER BY s.last_heartbeat DESC
       LIMIT 100
     `);
 
@@ -421,12 +421,12 @@ router.get("/admin/analytics", authenticateToken, async (req: Request, res: Resp
     // Get recent validations by day (last 7 days)
     const validationsByDay = await pool.query(`
       SELECT 
-        DATE(created_at) as date,
+        DATE(last_heartbeat) as date,
         COUNT(*) as successful,
         0 as failed
       FROM sessions
-      WHERE created_at >= NOW() - INTERVAL '7 days'
-      GROUP BY DATE(created_at)
+      WHERE last_heartbeat >= NOW() - INTERVAL '7 days'
+      GROUP BY DATE(last_heartbeat)
       ORDER BY date DESC
       LIMIT 7
     `);
