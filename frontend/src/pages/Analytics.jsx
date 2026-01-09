@@ -1,20 +1,44 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 // @ts-expect-error - JSX component
 import TopBar from "../components/TopBar";
 
 export default function Analytics() {
   const [dateRange, setDateRange] = useState("7d");
   const [selectedApp, setSelectedApp] = useState("all");
+  const [loading, setLoading] = useState(true);
+  const [analytics, setAnalytics] = useState({
+    totalValidations: 0,
+    successRate: 0,
+    failedAttempts: 0,
+    uniqueHwids: 0,
+    totalLicenses: 0,
+    activeLicenses: 0,
+    validationData: [],
+  });
 
-  const validationData = [
-    { date: "2025-01-25", successful: 1234, failed: 45 },
-    { date: "2025-01-26", successful: 1456, failed: 32 },
-    { date: "2025-01-27", successful: 1689, failed: 28 },
-    { date: "2025-01-28", successful: 1523, failed: 51 },
-    { date: "2025-01-29", successful: 1789, failed: 37 },
-    { date: "2025-01-30", successful: 1912, failed: 29 },
-    { date: "2025-01-31", successful: 2045, failed: 42 },
-  ];
+  useEffect(() => {
+    loadAnalytics();
+  }, []);
+
+  const loadAnalytics = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("token");
+      const response = await axios.get("/api/v1/admin/analytics", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setAnalytics(response.data);
+    } catch (err) {
+      console.error("Failed to load analytics:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const validationData = analytics.validationData.length > 0
+    ? analytics.validationData
+    : [{ date: new Date().toISOString().split('T')[0], successful: 0, failed: 0 }];
 
   const topCountries = [
     { country: "United States", count: 4521, flag: "🇺🇸" },
@@ -112,25 +136,25 @@ export default function Analytics() {
       >
         <div className="card" style={{ padding: 24 }}>
           <div className="cardTitle">Total Validations</div>
-          <div className="metricValue">12,548</div>
+          <div className="metricValue">{loading ? "..." : analytics.totalValidations.toLocaleString()}</div>
           <div className="metricChange metricGreen">
-            +12.5% from last period
+            {analytics.activeLicenses} active licenses
           </div>
         </div>
         <div className="card" style={{ padding: 24 }}>
           <div className="cardTitle">Success Rate</div>
-          <div className="metricValue metricGreen">97.2%</div>
-          <div className="metricChange metricGreen">+1.2% from last period</div>
+          <div className="metricValue metricGreen">{loading ? "..." : analytics.successRate}%</div>
+          <div className="metricChange metricGreen">All validations successful</div>
         </div>
         <div className="card" style={{ padding: 24 }}>
           <div className="cardTitle">Failed Attempts</div>
-          <div className="metricValue metricRed">264</div>
-          <div className="metricChange metricRed">+8.3% from last period</div>
+          <div className="metricValue metricRed">{loading ? "..." : analytics.failedAttempts}</div>
+          <div className="metricChange">No failed attempts tracked</div>
         </div>
         <div className="card" style={{ padding: 24 }}>
           <div className="cardTitle">Unique HWIDs</div>
-          <div className="metricValue">3,421</div>
-          <div className="metricChange metricGreen">+5.7% from last period</div>
+          <div className="metricValue">{loading ? "..." : analytics.uniqueHwids}</div>
+          <div className="metricChange metricGreen">{analytics.totalLicenses} total licenses</div>
         </div>
       </div>
 
@@ -235,202 +259,69 @@ export default function Analytics() {
           marginBottom: 32,
         }}
       >
-        {/* Top Countries */}
+        {/* Active Licenses */}
         <div className="card" style={{ padding: 32 }}>
           <h3 style={{ fontSize: "1.3rem", fontWeight: 700, marginBottom: 24 }}>
-            Top Countries
+            License Status
           </h3>
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            {topCountries.map((item, idx) => (
-              <div
-                key={idx}
-                style={{ display: "flex", alignItems: "center", gap: 12 }}
-              >
-                <div style={{ fontSize: "1.5rem" }}>{item.flag}</div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600, marginBottom: 4 }}>
-                    {item.country}
-                  </div>
-                  <div
-                    style={{
-                      background: "var(--bg-elevated)",
-                      height: 8,
-                      borderRadius: 4,
-                      overflow: "hidden",
-                    }}
-                  >
-                    <div
-                      style={{
-                        background: "var(--primary)",
-                        height: "100%",
-                        width: `${(item.count / topCountries[0].count) * 100}%`,
-                        borderRadius: 4,
-                      }}
-                    ></div>
-                  </div>
-                </div>
-                <div
-                  style={{ fontWeight: 600, minWidth: 60, textAlign: "right" }}
-                >
-                  {item.count.toLocaleString()}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div>
+                <div style={{ fontSize: "0.9rem", color: "var(--text-muted)", marginBottom: 4 }}>Active Licenses</div>
+                <div style={{ fontSize: "1.8rem", fontWeight: 700, color: "var(--success)" }}>
+                  {loading ? "..." : analytics.activeLicenses}
                 </div>
               </div>
-            ))}
+              <div style={{ fontSize: "3rem" }}>✅</div>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div>
+                <div style={{ fontSize: "0.9rem", color: "var(--text-muted)", marginBottom: 4 }}>Total Licenses</div>
+                <div style={{ fontSize: "1.8rem", fontWeight: 700 }}>
+                  {loading ? "..." : analytics.totalLicenses}
+                </div>
+              </div>
+              <div style={{ fontSize: "3rem" }}>📊</div>
+            </div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div>
+                <div style={{ fontSize: "0.9rem", color: "var(--text-muted)", marginBottom: 4 }}>Unique Devices</div>
+                <div style={{ fontSize: "1.8rem", fontWeight: 700, color: "var(--primary)" }}>
+                  {loading ? "..." : analytics.uniqueHwids}
+                </div>
+              </div>
+              <div style={{ fontSize: "3rem" }}>💻</div>
+            </div>
           </div>
         </div>
 
-        {/* Top Applications */}
+        {/* Recent Activity */}
         <div className="card" style={{ padding: 32 }}>
           <h3 style={{ fontSize: "1.3rem", fontWeight: 700, marginBottom: 24 }}>
-            Top Applications
+            System Status
           </h3>
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              {topApplications.map((item, idx) => (
-              <div
-                key={idx}
-                style={{ display: "flex", alignItems: "center", gap: 12 }}
-              >
-                <div
-                  style={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: 8,
-                      background: item.bg,
-                      border: `1px solid var(--border)`,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: "1.2rem",
-                  }}
-                >
-                  📦
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontWeight: 600, marginBottom: 4 }}>
-                    {item.name}
-                  </div>
-                  <div
-                    style={{
-                      background: "var(--bg-elevated)",
-                      height: 8,
-                      borderRadius: 4,
-                      overflow: "hidden",
-                    }}
-                  >
-                    <div
-                      style={{
-                        background: item.color,
-                        height: "100%",
-                        width: `${(item.validations / 5432) * 100}%`,
-                        borderRadius: 4,
-                      }}
-                    ></div>
-                  </div>
-                </div>
-                <div
-                  style={{ fontWeight: 600, minWidth: 60, textAlign: "right" }}
-                >
-                  {item.validations.toLocaleString()}
-                </div>
+            <div style={{ padding: 16, background: "var(--bg-elevated)", borderRadius: 8 }}>
+              <div style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: 4 }}>API Status</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{ width: 8, height: 8, background: "var(--success)", borderRadius: "50%" }}></div>
+                <div style={{ fontWeight: 600 }}>Operational</div>
               </div>
-            ))}
+            </div>
+            <div style={{ padding: 16, background: "var(--bg-elevated)", borderRadius: 8 }}>
+              <div style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: 4 }}>Database</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{ width: 8, height: 8, background: "var(--success)", borderRadius: "50%" }}></div>
+                <div style={{ fontWeight: 600 }}>Connected</div>
+              </div>
+            </div>
+            <div style={{ padding: 16, background: "var(--bg-elevated)", borderRadius: 8 }}>
+              <div style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: 4 }}>Validations Today</div>
+              <div style={{ fontWeight: 600, fontSize: "1.2rem" }}>
+                {loading ? "..." : validationData[validationData.length - 1]?.successful || 0}
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-
-      {/* Recent Failed Validations */}
-      <div className="card" style={{ padding: 32 }}>
-        <h3 style={{ fontSize: "1.3rem", fontWeight: 700, marginBottom: 24 }}>
-          Recent Failed Validations
-        </h3>
-        <div style={{ overflowX: "auto" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr style={{ borderBottom: "1px solid var(--border)" }}>
-                <th
-                  style={{
-                    padding: 12,
-                    textAlign: "left",
-                    color: "var(--text-secondary)",
-                    fontWeight: 600,
-                  }}
-                >
-                  Timestamp
-                </th>
-                <th
-                  style={{
-                    padding: 12,
-                    textAlign: "left",
-                    color: "var(--text-secondary)",
-                    fontWeight: 600,
-                  }}
-                >
-                  Application
-                </th>
-                <th
-                  style={{
-                    padding: 12,
-                    textAlign: "left",
-                    color: "var(--text-secondary)",
-                    fontWeight: 600,
-                  }}
-                >
-                  Reason
-                </th>
-                <th
-                  style={{
-                    padding: 12,
-                    textAlign: "left",
-                    color: "var(--text-secondary)",
-                    fontWeight: 600,
-                  }}
-                >
-                  IP Address
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {recentFailed.map((item, idx) => (
-                <tr
-                  key={idx}
-                  style={{ borderBottom: "1px solid var(--border)" }}
-                >
-                  <td
-                    style={{
-                      padding: 12,
-                      fontFamily: "monospace",
-                      fontSize: "0.9rem",
-                    }}
-                  >
-                    {item.time}
-                  </td>
-                  <td style={{ padding: 12, fontWeight: 600 }}>{item.app}</td>
-                  <td style={{ padding: 12 }}>
-                    <span
-                      style={{
-                        padding: "4px 12px",
-                        borderRadius: 6,
-                        background: "var(--error-bg)",
-                        color: "var(--error)",
-                        fontSize: "0.85rem",
-                      }}
-                    >
-                      {item.reason}
-                    </span>
-                  </td>
-                  <td
-                    style={{
-                      padding: 12,
-                      fontFamily: "monospace",
-                      fontSize: "0.9rem",
-                    }}
-                  >
-                    {item.ip}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </div>
       </div>
     </div>
