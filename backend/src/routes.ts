@@ -271,10 +271,10 @@ router.get("/users", authenticateToken, async (req: Request, res: Response) => {
         l.created_at,
         l.is_banned,
         (
-          SELECT h.hwid 
-          FROM hwid_bindings h 
+          SELECT h.hwid_hash 
+          FROM hwid_slots h 
           WHERE h.license_key = l.license_key 
-          ORDER BY h.bound_at DESC 
+          ORDER BY h.last_seen DESC 
           LIMIT 1
         ) as hwid
       FROM licenses l
