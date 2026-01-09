@@ -126,9 +126,12 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div className="grid2">
-        <div className="card">
-          <div className="cardTitle">Users</div>
+      <div className="grid2" style={{ gap: "16px", marginBottom: "24px" }}>
+        <div style={{ 
+          padding: "24px 0",
+          borderBottom: "1px solid var(--border)"
+        }}>
+          <div style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "12px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>Users</div>
           <div className="metricRow">
             <div className="metric">
               <div className="metricValue">{users.length}</div>
@@ -141,8 +144,11 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="card">
-          <div className="cardTitle">API Configuration</div>
+        <div style={{ 
+          padding: "24px 0",
+          borderBottom: "1px solid var(--border)"
+        }}>
+          <div style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "12px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>API Configuration</div>
           <div className="muted">Base Path</div>
           <div className="codePill">/api/v1</div>
           <div className="muted" style={{ marginTop: 8 }}>
@@ -153,10 +159,15 @@ export default function Dashboard() {
       </div>
 
       {(showAddForm || showCheckForm) && (
-        <div className="grid2" style={{ marginTop: 16 }}>
+        <div className="grid2" style={{ marginTop: 16, gap: 16 }}>
           {showAddForm && (
-            <div className="card">
-              <div className="cardTitle">Create User</div>
+            <div style={{ 
+              padding: "24px",
+              background: "var(--bg-card)",
+              border: "1px solid var(--border)",
+              borderRadius: "12px"
+            }}>
+              <div style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "16px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>Create User</div>
               <form className="form" onSubmit={handleAddUser}>
                 <div className="field">
                   <label>Username</label>
@@ -198,8 +209,13 @@ export default function Dashboard() {
           )}
 
           {showCheckForm && (
-            <div className="card">
-              <div className="cardTitle">Validate HWID</div>
+            <div style={{ 
+              padding: "24px",
+              background: "var(--bg-card)",
+              border: "1px solid var(--border)",
+              borderRadius: "12px"
+            }}>
+              <div style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "16px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>Validate HWID</div>
               <form className="form" onSubmit={handleCheckHWID}>
                 <div className="field">
                   <label>HWID</label>
@@ -245,8 +261,14 @@ export default function Dashboard() {
         </div>
       )}
 
-      <div className="card" style={{ marginTop: 16 }}>
-        <div className="cardTitle">Registered Users</div>
+      <div style={{ 
+        marginTop: "24px",
+        padding: "24px",
+        background: "var(--bg-card)",
+        border: "1px solid var(--border)",
+        borderRadius: "12px"
+      }}>
+        <div style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "16px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>Registered Users</div>
 
         {loading ? (
           <div className="loading">Loading...</div>
