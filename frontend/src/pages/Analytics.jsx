@@ -31,11 +31,24 @@ export default function Analytics() {
         headers: { Authorization: `Bearer ${token}` },
       });
       console.log("Analytics loaded:", response.data);
-      console.log("ValidationData:", response.data.validationData);
+      console.log("Type check:", typeof response.data, "Is object:", typeof response.data === 'object');
+      
+      // Check if response is valid JSON object (not HTML)
+      if (typeof response.data === 'string' || !response.data || typeof response.data !== 'object') {
+        console.error("Invalid analytics data - received non-JSON response");
+        return;
+      }
+      
       const data = {
-        ...response.data,
+        totalValidations: response.data.totalValidations || 0,
+        successRate: response.data.successRate || 0,
+        failedAttempts: response.data.failedAttempts || 0,
+        uniqueHwids: response.data.uniqueHwids || 0,
+        totalLicenses: response.data.totalLicenses || 0,
+        activeLicenses: response.data.activeLicenses || 0,
         validationData: Array.isArray(response.data.validationData) ? response.data.validationData : []
       };
+      console.log("Processed analytics:", data);
       setAnalytics(data);
     } catch (err) {
       console.error("Failed to load analytics:", err);
@@ -145,7 +158,7 @@ export default function Analytics() {
       >
         <div className="card" style={{ padding: 24 }}>
           <div className="cardTitle">Total Validations</div>
-          <div className="metricValue">{loading ? "..." : analytics.totalValidations.toLocaleString()}</div>
+          <div className="metricValue">{loading ? "..." : (analytics.totalValidations || 0).toLocaleString()}</div>
           <div className="metricChange metricGreen">
             {analytics.activeLicenses} active licenses
           </div>
