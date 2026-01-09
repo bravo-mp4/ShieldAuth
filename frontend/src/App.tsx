@@ -55,6 +55,7 @@ import Support from "./pages/Support";
 import Users from "./pages/Users";
 import Logs from "./pages/Logs";
 import SettingsPage from "./pages/Settings";
+import Licenses from "./pages/Licenses";
 import "./App.css";
 
 export default function App() {
@@ -90,11 +91,9 @@ export default function App() {
         <Route element={<Layout />}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/applications" element={<Applications />} />
-          <Route
-            path="/applications/:id"
-            element={<ApplicationDetail />}
-          />
+          <Route path="/applications/:id" element={<ApplicationDetail />} />
           <Route path="/users" element={<Users />} />
+          <Route path="/licenses" element={<Licenses />} />
           <Route path="/logs" element={<Logs />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/api-keys" element={<APIKeys />} />

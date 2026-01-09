@@ -487,31 +487,79 @@ router.post("/admin/app/create", authenticateToken, async (req: Request, res: Re
 });
 
 // Admin: Generate license
-router.post("/admin/license/create", async (req: Request, res: Response) => {
-  const { app_id, days, max_hwid_slots } = req.body;
+router.post("/admin/license/create", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { app_id, username, email, days, max_hwid_slots } = req.body;
 
-  const licenseKey = generateLicenseKey();
-  const expiresAt = new Date();
-  expiresAt.setDate(expiresAt.getDate() + (days || 30));
+    const licenseKey = generateLicenseKey();
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + (days || 30));
 
-  await pool.query(
-    "INSERT INTO licenses (license_key, app_id, expires_at, max_hwid_slots) VALUES ($1, $2, $3, $4)",
-    [licenseKey, app_id, expiresAt, max_hwid_slots || 1]
-  );
+    await pool.query(
+      "INSERT INTO licenses (license_key, app_id, username, email, expires_at, max_hwid_slots, is_active) VALUES ($1, $2, $3, $4, $5, $6, true)",
+      [licenseKey, app_id, username, email, expiresAt, max_hwid_slots || 1]
+    );
 
-  res.json({ license_key: licenseKey, expires_at: expiresAt });
+    res.json({ license_key: licenseKey, expires_at: expiresAt });
+  } catch (err) {
+    console.error("Failed to create license:", err);
+    res.status(500).json({ message: "Failed to create license" });
+  }
+});
+
+// Admin: List all licenses
+router.get("/admin/licenses", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const result = await pool.query(
+      `SELECT 
+        l.license_key,
+        l.app_id,
+        l.username,
+        l.email,
+        l.hwid,
+        l.expires_at,
+        l.created_at,
+        l.is_active
+       FROM licenses l
+       ORDER BY l.created_at DESC`
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Failed to fetch licenses:", err);
+    res.status(500).json({ message: "Failed to fetch licenses" });
+  }
 });
 
 // Admin: List licenses for app
-router.get("/admin/licenses/:app_id", async (req: Request, res: Response) => {
-  const { app_id } = req.params;
+router.get("/admin/licenses/:app_id", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { app_id } = req.params;
 
-  const result = await pool.query(
-    "SELECT license_key, expires_at, is_banned, created_at FROM licenses WHERE app_id = $1",
-    [app_id]
-  );
+    const result = await pool.query(
+      "SELECT license_key, username, email, hwid, expires_at, is_active, created_at FROM licenses WHERE app_id = $1 ORDER BY created_at DESC",
+      [app_id]
+    );
 
-  res.json(result.rows);
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Failed to fetch licenses:", err);
+    res.status(500).json({ message: "Failed to fetch licenses" });
+  }
+});
+
+// Admin: Delete license
+router.delete("/admin/license/:license_key", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { license_key } = req.params;
+
+    await pool.query("DELETE FROM licenses WHERE license_key = $1", [license_key]);
+
+    res.json({ message: "License deleted successfully" });
+  } catch (err) {
+    console.error("Failed to delete license:", err);
+    res.status(500).json({ message: "Failed to delete license" });
+  }
 });
 
 // Admin: Ban license
