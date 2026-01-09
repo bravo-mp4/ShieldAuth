@@ -267,14 +267,17 @@ router.get("/users", authenticateToken, async (req: Request, res: Response) => {
       SELECT 
         l.license_key as id,
         l.license_key as username,
-        '' as email,
         l.expires_at,
         l.created_at,
         l.is_banned,
-        COALESCE(array_agg(h.hwid) FILTER (WHERE h.hwid IS NOT NULL), ARRAY[]::text[]) as hwids
+        (
+          SELECT h.hwid 
+          FROM hwid_bindings h 
+          WHERE h.license_key = l.license_key 
+          ORDER BY h.bound_at DESC 
+          LIMIT 1
+        ) as hwid
       FROM licenses l
-      LEFT JOIN hwid_bindings h ON l.license_key = h.license_key
-      GROUP BY l.license_key, l.expires_at, l.created_at, l.is_banned
       ORDER BY l.created_at DESC
       LIMIT 100
     `);
@@ -282,10 +285,10 @@ router.get("/users", authenticateToken, async (req: Request, res: Response) => {
     const users = result.rows.map((user: any) => ({
       id: user.id,
       username: user.username,
-      email: user.email,
+      email: "",
       expires_at: user.expires_at,
       created_at: user.created_at,
-      hwid: user.hwids[0] || "",
+      hwid_hash: user.hwid || "",
       status: user.is_banned
         ? "banned"
         : new Date(user.expires_at) > new Date()
@@ -295,7 +298,7 @@ router.get("/users", authenticateToken, async (req: Request, res: Response) => {
 
     res.json(users);
   } catch (err) {
-    console.error(err);
+    console.error("Failed to fetch users:", err);
     res.status(500).json({ message: "Failed to fetch users" });
   }
 });
@@ -314,22 +317,56 @@ router.delete(
   }
 );
 
+// Applications endpoints (protected)
+router.get("/admin/applications", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        app_id as id,
+        owner_email,
+        created_at,
+        (SELECT COUNT(*) FROM licenses WHERE app_id = a.app_id) as license_count
+      FROM applications a
+      ORDER BY created_at DESC
+    `);
+
+    const apps = result.rows.map((app: any) => ({
+      id: app.id,
+      name: app.owner_email || "Application",
+      version: "1.0.0",
+      status: "active",
+      users: parseInt(app.license_count) || 0,
+      created: app.created_at,
+      validation_count: 0,
+    }));
+
+    res.json(apps);
+  } catch (err) {
+    console.error("Failed to fetch applications:", err);
+    res.status(500).json({ message: "Failed to fetch applications" });
+  }
+});
+
 // Logs endpoints (protected)
 router.get("/logs", authenticateToken, async (req: Request, res: Response) => {
   try {
-    // TODO: Implement proper logging table
-    // For now, return mock data
-    res.json([
-      {
-        id: "1",
-        timestamp: new Date().toISOString(),
-        type: "auth",
-        message: "Successful authentication",
-        username: "user123",
-        ip: "192.168.1.100",
-      },
-    ]);
+    const result = await pool.query(`
+      SELECT 
+        s.session_id as id,
+        s.created_at as timestamp,
+        'auth' as type,
+        'License validation' as message,
+        l.license_key as username,
+        '' as ip
+      FROM sessions s
+      JOIN licenses l ON s.license_key = l.license_key
+      ORDER BY s.created_at DESC
+      LIMIT 100
+    `);
+
+    res.json(result.rows);
   } catch (err) {
+    console.error("Failed to fetch logs:", err);
     res.status(500).json({ message: "Failed to fetch logs" });
   }
 });

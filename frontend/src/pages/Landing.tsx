@@ -10,18 +10,12 @@ export default function Landing() {
   const [liveValidations, setLiveValidations] = useState(47923);
   
   useEffect(() => {
-    // If user is logged in, redirect to dashboard
-    const token = localStorage.getItem("token");
-    if (token) {
-      navigate("/dashboard");
-    }
-    
     // Live validations counter
     const interval = setInterval(() => {
       setLiveValidations(prev => prev + Math.floor(Math.random() * 3));
     }, 2000);
     return () => clearInterval(interval);
-  }, [navigate]);
+  }, []);
   return (
     <>
       <PublicNav />
