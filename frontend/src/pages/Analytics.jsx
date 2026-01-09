@@ -24,19 +24,28 @@ export default function Analytics() {
   const loadAnalytics = async () => {
     try {
       setLoading(true);
+      console.log("Loading analytics...");
       const token = localStorage.getItem("token");
+      console.log("Token:", token ? "Present" : "Missing");
       const response = await axios.get("/api/v1/admin/analytics", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setAnalytics(response.data);
+      console.log("Analytics loaded:", response.data);
+      console.log("ValidationData:", response.data.validationData);
+      const data = {
+        ...response.data,
+        validationData: Array.isArray(response.data.validationData) ? response.data.validationData : []
+      };
+      setAnalytics(data);
     } catch (err) {
       console.error("Failed to load analytics:", err);
+      console.error("Error details:", err.response?.data || err.message);
     } finally {
       setLoading(false);
     }
   };
 
-  const validationData = analytics.validationData.length > 0
+  const validationData = (analytics.validationData?.length || 0) > 0
     ? analytics.validationData
     : [{ date: new Date().toISOString().split('T')[0], successful: 0, failed: 0 }];
 
