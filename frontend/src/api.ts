@@ -2,6 +2,15 @@ import axios from 'axios';
 
 const API_BASE = '/api/v1';
 
+// Add axios interceptor for auth token
+axios.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token && config.url?.startsWith(API_BASE)) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 export interface User {
   id: number;
   username: string;

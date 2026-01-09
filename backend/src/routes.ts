@@ -371,6 +371,81 @@ router.get("/logs", authenticateToken, async (req: Request, res: Response) => {
   }
 });
 
+// Alias for admin logs
+router.get("/admin/logs", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        s.session_id as id,
+        s.created_at as timestamp,
+        'auth' as type,
+        'License validation' as message,
+        l.license_key as username,
+        '' as ip
+      FROM sessions s
+      JOIN licenses l ON s.license_key = l.license_key
+      ORDER BY s.created_at DESC
+      LIMIT 100
+    `);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Failed to fetch logs:", err);
+    res.status(500).json({ message: "Failed to fetch logs" });
+  }
+});
+
+// Analytics endpoint
+router.get("/admin/analytics", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    // Get total validations (sessions)
+    const totalValidations = await pool.query(
+      "SELECT COUNT(*) as count FROM sessions"
+    );
+
+    // Get unique HWIDs
+    const uniqueHwids = await pool.query(
+      "SELECT COUNT(DISTINCT hwid_hash) as count FROM hwid_slots"
+    );
+
+    // Get total licenses
+    const totalLicenses = await pool.query(
+      "SELECT COUNT(*) as count FROM licenses"
+    );
+
+    // Get active licenses (not expired)
+    const activeLicenses = await pool.query(
+      "SELECT COUNT(*) as count FROM licenses WHERE expires_at > NOW()"
+    );
+
+    // Get recent validations by day (last 7 days)
+    const validationsByDay = await pool.query(`
+      SELECT 
+        DATE(created_at) as date,
+        COUNT(*) as successful,
+        0 as failed
+      FROM sessions
+      WHERE created_at >= NOW() - INTERVAL '7 days'
+      GROUP BY DATE(created_at)
+      ORDER BY date DESC
+      LIMIT 7
+    `);
+
+    res.json({
+      totalValidations: parseInt(totalValidations.rows[0].count),
+      successRate: 100, // No failed tracking yet
+      failedAttempts: 0,
+      uniqueHwids: parseInt(uniqueHwids.rows[0].count),
+      totalLicenses: parseInt(totalLicenses.rows[0].count),
+      activeLicenses: parseInt(activeLicenses.rows[0].count),
+      validationData: validationsByDay.rows.reverse(),
+    });
+  } catch (err) {
+    console.error("Failed to fetch analytics:", err);
+    res.status(500).json({ message: "Failed to fetch analytics" });
+  }
+});
+
 // Admin: Create application
 router.post("/admin/app/create", async (req: Request, res: Response) => {
   const { owner_email } = req.body;
