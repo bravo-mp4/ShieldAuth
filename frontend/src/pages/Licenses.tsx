@@ -49,9 +49,15 @@ export default function Licenses() {
       const response = await axios.get("/api/v1/admin/licenses", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setLicenses(response.data);
+      console.log("Licenses loaded:", response.data);
+      console.log("Data type:", typeof response.data, "Is array:", Array.isArray(response.data));
+      
+      // Ensure data is an array
+      const licensesArray = Array.isArray(response.data) ? response.data : [];
+      setLicenses(licensesArray);
     } catch (err) {
       console.error("Failed to load licenses:", err);
+      setLicenses([]); // Set empty array on error
     } finally {
       setLoading(false);
     }
@@ -63,9 +69,14 @@ export default function Licenses() {
       const response = await axios.get("/api/v1/admin/applications", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setApplications(response.data);
+      console.log("Applications loaded:", response.data);
+      
+      // Ensure data is an array
+      const appsArray = Array.isArray(response.data) ? response.data : [];
+      setApplications(appsArray);
     } catch (err) {
       console.error("Failed to load applications:", err);
+      setApplications([]); // Set empty array on error
     }
   };
 
