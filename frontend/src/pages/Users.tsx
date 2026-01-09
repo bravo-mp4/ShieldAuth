@@ -20,11 +20,16 @@ export default function Users() {
   const loadUsers = async () => {
     try {
       setLoading(true);
+      console.log("Loading users...");
       const data = await api.getUsers();
-      setUsers(data);
+      console.log("Users loaded:", data);
+      console.log("Data type:", typeof data, "Is array:", Array.isArray(data));
+      const usersArray = Array.isArray(data) ? data : [];
+      setUsers(usersArray);
       setError("");
-    } catch (err) {
-      setError("Failed to load users");
+    } catch (err: any) {
+      console.error("Failed to load users:", err);
+      setError(`Failed to load users: ${err.response?.data?.message || err.message || "Unknown error"}`);
     } finally {
       setLoading(false);
     }
