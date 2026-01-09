@@ -325,6 +325,8 @@ router.get(
   authenticateToken,
   async (req: Request, res: Response) => {
     try {
+      const userEmail = (req as any).user.email;
+      
       const result = await pool.query(`
       SELECT 
         app_id as id,
@@ -332,8 +334,9 @@ router.get(
         created_at,
         (SELECT COUNT(*) FROM licenses WHERE app_id = a.app_id) as license_count
       FROM applications a
+      WHERE owner_email = $1
       ORDER BY created_at DESC
-    `);
+    `, [userEmail]);
 
       const apps = result.rows.map((app: any) => ({
         id: app.id,
