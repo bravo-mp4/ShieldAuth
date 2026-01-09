@@ -6,7 +6,7 @@ REM Add all changes
 git add .
 
 REM Commit with message
-git commit -m "Update backend logging - trigger redeploy"
+git commit -m "Fix Railway start command - wrap cd in sh -c"
 
 REM Push to GitHub
 git push
