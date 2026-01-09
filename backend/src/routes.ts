@@ -45,16 +45,16 @@ router.post("/auth/login", async (req: Request, res: Response) => {
 
   try {
     console.log(`Login attempt for: ${email}`);
-    
+
     const user = await getUserByEmail(email);
-    
+
     if (!user) {
       console.log(`User not found: ${email}`);
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
     const isValid = await verifyPassword(password, user.password_hash);
-    
+
     if (!isValid) {
       console.log(`Invalid password for: ${email}`);
       return res.status(401).json({ message: "Invalid credentials" });
@@ -80,11 +80,11 @@ router.post("/auth/login", async (req: Request, res: Response) => {
     console.error("Login error:", {
       message: error.message,
       code: error.code,
-      stack: error.stack
+      stack: error.stack,
     });
-    return res.status(500).json({ 
+    return res.status(500).json({
       message: "Database connection error. Please try again.",
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
     });
   }
 });
@@ -103,12 +103,14 @@ router.post("/auth/register", async (req: Request, res: Response) => {
   }
 
   if (password.length < 6) {
-    return res.status(400).json({ message: "Password must be at least 6 characters" });
+    return res
+      .status(400)
+      .json({ message: "Password must be at least 6 characters" });
   }
 
   try {
     console.log(`Registration attempt: ${email}`);
-    
+
     const existingUser = await getUserByEmail(email);
     if (existingUser) {
       console.log(`User already exists: ${email}`);
@@ -318,9 +320,12 @@ router.delete(
 );
 
 // Applications endpoints (protected)
-router.get("/admin/applications", authenticateToken, async (req: Request, res: Response) => {
-  try {
-    const result = await pool.query(`
+router.get(
+  "/admin/applications",
+  authenticateToken,
+  async (req: Request, res: Response) => {
+    try {
+      const result = await pool.query(`
       SELECT 
         app_id as id,
         owner_email,
@@ -330,22 +335,23 @@ router.get("/admin/applications", authenticateToken, async (req: Request, res: R
       ORDER BY created_at DESC
     `);
 
-    const apps = result.rows.map((app: any) => ({
-      id: app.id,
-      name: app.owner_email || "Application",
-      version: "1.0.0",
-      status: "active",
-      users: parseInt(app.license_count) || 0,
-      created: app.created_at,
-      validation_count: 0,
-    }));
+      const apps = result.rows.map((app: any) => ({
+        id: app.id,
+        name: app.owner_email || "Application",
+        version: "1.0.0",
+        status: "active",
+        users: parseInt(app.license_count) || 0,
+        created: app.created_at,
+        validation_count: 0,
+      }));
 
-    res.json(apps);
-  } catch (err) {
-    console.error("Failed to fetch applications:", err);
-    res.status(500).json({ message: "Failed to fetch applications" });
+      res.json(apps);
+    } catch (err) {
+      console.error("Failed to fetch applications:", err);
+      res.status(500).json({ message: "Failed to fetch applications" });
+    }
   }
-});
+);
 
 // Logs endpoints (protected)
 router.get("/logs", authenticateToken, async (req: Request, res: Response) => {
@@ -372,9 +378,12 @@ router.get("/logs", authenticateToken, async (req: Request, res: Response) => {
 });
 
 // Alias for admin logs
-router.get("/admin/logs", authenticateToken, async (req: Request, res: Response) => {
-  try {
-    const result = await pool.query(`
+router.get(
+  "/admin/logs",
+  authenticateToken,
+  async (req: Request, res: Response) => {
+    try {
+      const result = await pool.query(`
       SELECT 
         s.session_id as id,
         s.last_heartbeat as timestamp,
@@ -388,38 +397,42 @@ router.get("/admin/logs", authenticateToken, async (req: Request, res: Response)
       LIMIT 100
     `);
 
-    res.json(result.rows);
-  } catch (err) {
-    console.error("Failed to fetch logs:", err);
-    res.status(500).json({ message: "Failed to fetch logs" });
+      res.json(result.rows);
+    } catch (err) {
+      console.error("Failed to fetch logs:", err);
+      res.status(500).json({ message: "Failed to fetch logs" });
+    }
   }
-});
+);
 
 // Analytics endpoint
-router.get("/admin/analytics", authenticateToken, async (req: Request, res: Response) => {
-  try {
-    // Get total validations (sessions)
-    const totalValidations = await pool.query(
-      "SELECT COUNT(*) as count FROM sessions"
-    );
+router.get(
+  "/admin/analytics",
+  authenticateToken,
+  async (req: Request, res: Response) => {
+    try {
+      // Get total validations (sessions)
+      const totalValidations = await pool.query(
+        "SELECT COUNT(*) as count FROM sessions"
+      );
 
-    // Get unique HWIDs
-    const uniqueHwids = await pool.query(
-      "SELECT COUNT(DISTINCT hwid_hash) as count FROM hwid_slots"
-    );
+      // Get unique HWIDs
+      const uniqueHwids = await pool.query(
+        "SELECT COUNT(DISTINCT hwid_hash) as count FROM hwid_slots"
+      );
 
-    // Get total licenses
-    const totalLicenses = await pool.query(
-      "SELECT COUNT(*) as count FROM licenses"
-    );
+      // Get total licenses
+      const totalLicenses = await pool.query(
+        "SELECT COUNT(*) as count FROM licenses"
+      );
 
-    // Get active licenses (not expired)
-    const activeLicenses = await pool.query(
-      "SELECT COUNT(*) as count FROM licenses WHERE expires_at > NOW()"
-    );
+      // Get active licenses (not expired)
+      const activeLicenses = await pool.query(
+        "SELECT COUNT(*) as count FROM licenses WHERE expires_at > NOW()"
+      );
 
-    // Get recent validations by day (last 7 days)
-    const validationsByDay = await pool.query(`
+      // Get recent validations by day (last 7 days)
+      const validationsByDay = await pool.query(`
       SELECT 
         DATE(last_heartbeat) as date,
         COUNT(*) as successful,
@@ -431,34 +444,46 @@ router.get("/admin/analytics", authenticateToken, async (req: Request, res: Resp
       LIMIT 7
     `);
 
-    res.json({
-      totalValidations: parseInt(totalValidations.rows[0].count),
-      successRate: 100, // No failed tracking yet
-      failedAttempts: 0,
-      uniqueHwids: parseInt(uniqueHwids.rows[0].count),
-      totalLicenses: parseInt(totalLicenses.rows[0].count),
-      activeLicenses: parseInt(activeLicenses.rows[0].count),
-      validationData: validationsByDay.rows.reverse(),
-    });
-  } catch (err) {
-    console.error("Failed to fetch analytics:", err);
-    res.status(500).json({ message: "Failed to fetch analytics" });
+      res.json({
+        totalValidations: parseInt(totalValidations.rows[0].count),
+        successRate: 100, // No failed tracking yet
+        failedAttempts: 0,
+        uniqueHwids: parseInt(uniqueHwids.rows[0].count),
+        totalLicenses: parseInt(totalLicenses.rows[0].count),
+        activeLicenses: parseInt(activeLicenses.rows[0].count),
+        validationData: validationsByDay.rows.reverse(),
+      });
+    } catch (err) {
+      console.error("Failed to fetch analytics:", err);
+      res.status(500).json({ message: "Failed to fetch analytics" });
+    }
   }
-});
+);
 
 // Admin: Create application
-router.post("/admin/app/create", async (req: Request, res: Response) => {
-  const { owner_email } = req.body;
+router.post("/admin/app/create", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { name, version } = req.body;
+    const userEmail = (req as any).user.email;
 
-  const appId = crypto.randomBytes(16).toString("hex");
-  const appSecret = crypto.randomBytes(32).toString("hex");
+    const appId = crypto.randomBytes(16).toString("hex");
+    const appSecret = crypto.randomBytes(32).toString("hex");
 
-  await pool.query(
-    "INSERT INTO applications (app_id, app_secret, owner_email) VALUES ($1, $2, $3)",
-    [appId, appSecret, owner_email]
-  );
+    await pool.query(
+      "INSERT INTO applications (app_id, app_secret, owner_email) VALUES ($1, $2, $3)",
+      [appId, appSecret, userEmail]
+    );
 
-  res.json({ app_id: appId, app_secret: appSecret });
+    res.json({ 
+      app_id: appId, 
+      app_secret: appSecret,
+      name,
+      version 
+    });
+  } catch (err) {
+    console.error("Failed to create application:", err);
+    res.status(500).json({ message: "Failed to create application" });
+  }
 });
 
 // Admin: Generate license
