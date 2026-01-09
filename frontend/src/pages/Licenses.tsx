@@ -69,13 +69,17 @@ export default function Licenses() {
       const response = await axios.get("/api/v1/admin/applications", {
         headers: { Authorization: `Bearer ${token}` },
       });
-      console.log("Applications loaded:", response.data);
+      console.log("Applications API Response:", response.data);
+      console.log("Applications type:", typeof response.data, "Is array:", Array.isArray(response.data));
+      console.log("Applications length:", response.data?.length);
       
       // Ensure data is an array
       const appsArray = Array.isArray(response.data) ? response.data : [];
+      console.log("Setting applications state with:", appsArray);
       setApplications(appsArray);
     } catch (err) {
       console.error("Failed to load applications:", err);
+      console.error("Error details:", err.response?.data);
       setApplications([]); // Set empty array on error
     }
   };
