@@ -3,12 +3,13 @@ providers = ["node"]
 
 [phases.setup]
 nixPkgs = ["nodejs_20"]
+paths = ["/backend"]
 
 [phases.install]
-cmds = ["cd backend && rm -f package-lock.json && npm install"]
+cmds = ["npm install --prefix backend"]
 
 [phases.build]
 cmds = ["echo 'Using ts-node - no build step needed'"]
 
 [start]
-cmd = "cd backend && npm start"
+cmd = "npm start --prefix backend"

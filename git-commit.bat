@@ -6,7 +6,7 @@ REM Add all changes
 git add .
 
 REM Commit with message
-git commit -m "Fix Railway start command - wrap cd in sh -c"
+git commit -m "Fix Railway config - use npm --prefix instead of cd"
 
 REM Push to GitHub
 git push

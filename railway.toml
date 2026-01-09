@@ -1,9 +1,9 @@
 [build]
 builder = "nixpacks"
-buildCommand = "sh -c 'cd backend && rm -f package-lock.json && npm install'"
+buildCommand = "npm install"
 
 [deploy]
-startCommand = "sh -c 'cd backend && npm start'"
+startCommand = "npm start"
 restartPolicyType = "on_failure"
 restartPolicyMaxRetries = 3
 
