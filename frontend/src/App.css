@@ -144,6 +144,32 @@ a.muted:hover {
   font-weight: 500;
 }
 
+/* Sidebar Navigation */
+.sidebarLink {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.sidebarLink:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
+.sidebarLinkActive {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: white !important;
+  font-weight: 600;
+  box-shadow: 0 4px 12px var(--primary-glow);
+}
+
 /* Main Content */
 .mainContent {
   max-width: 1400px;

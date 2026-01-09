@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 // @ts-expect-error - JSX component
 import PublicNav from "../components/PublicNav";
@@ -6,14 +6,22 @@ import PublicNav from "../components/PublicNav";
 import PublicFooter from "../components/PublicFooter";
 
 export default function Landing() {
+  const navigate = useNavigate();
   const [liveValidations, setLiveValidations] = useState(47923);
   
   useEffect(() => {
+    // If user is logged in, redirect to dashboard
+    const token = localStorage.getItem("token");
+    if (token) {
+      navigate("/dashboard");
+    }
+    
+    // Live validations counter
     const interval = setInterval(() => {
       setLiveValidations(prev => prev + Math.floor(Math.random() * 3));
     }, 2000);
     return () => clearInterval(interval);
-  }, []);
+  }, [navigate]);
   return (
     <>
       <PublicNav />
