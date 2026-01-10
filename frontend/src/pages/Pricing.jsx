@@ -1,12 +1,44 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import axios from "axios";
 // @ts-expect-error - JSX component
 import PublicNav from "../components/PublicNav";
 // @ts-expect-error - JSX component
 import PublicFooter from "../components/PublicFooter";
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+
 export default function Pricing() {
   const [billingInterval, setBillingInterval] = useState("monthly");
+  const [testimonials, setTestimonials] = useState([]);
+  const [faqs, setFaqs] = useState([]);
+
+  useEffect(() => {
+    loadTestimonials();
+    loadFaqs();
+  }, []);
+
+  const loadTestimonials = async () => {
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL}/api/v1/public/testimonials?featured=true&limit=3`
+      );
+      setTestimonials(response.data);
+    } catch (error) {
+      console.error("Failed to load testimonials:", error);
+    }
+  };
+
+  const loadFaqs = async () => {
+    try {
+      const response = await axios.get(
+        `${API_BASE_URL}/api/v1/public/faqs?category=Billing & Pricing&limit=10`
+      );
+      setFaqs(response.data);
+    } catch (error) {
+      console.error("Failed to load FAQs:", error);
+    }
+  };
 
   const plans = [
     {
@@ -391,61 +423,42 @@ export default function Pricing() {
               gap: 24,
             }}
           >
-            {[
-              {
-                name: "Alex Chen",
-                role: "Game Developer",
-                company: "PixelForge Studios",
-                quote:
-                  "ShieldLabs cut our piracy rate by 87% in the first month. The HWID locking is bulletproof and the integration took literally 10 minutes.",
-                avatar: "👨‍💻",
-              },
-              {
-                name: "Sarah Martinez",
-                role: "CTO",
-                company: "DataSync Pro",
-                quote:
-                  "We switched from Auth0 and saved $2,400/year while getting better features. The binary protection alone is worth 10x the price.",
-                avatar: "👩‍💼",
-              },
-              {
-                name: "Mike Johnson",
-                role: "Indie Developer",
-                company: "Solo Creator",
-                quote:
-                  "As a solo dev, I needed something that just works. ShieldLabs dashboard is so intuitive I never have to check the docs anymore.",
-                avatar: "🧑‍🎨",
-              },
-            ].map((testimonial, idx) => (
-              <div key={idx} className="card" style={{ padding: 28 }}>
-                <div
-                  style={{
-                    marginBottom: 16,
-                    fontSize: "0.95rem",
-                    lineHeight: 1.7,
-                    fontStyle: "italic",
-                  }}
-                >
-                  "{testimonial.quote}"
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <div style={{ fontSize: "2.5rem" }}>{testimonial.avatar}</div>
-                  <div>
-                    <div style={{ fontWeight: 600, marginBottom: 2 }}>
-                      {testimonial.name}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: "0.85rem",
-                        color: "var(--text-muted)",
-                      }}
-                    >
-                      {testimonial.role} at {testimonial.company}
+            {testimonials.length === 0 ? (
+              <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: 40 }}>
+                <div className="muted">Loading testimonials...</div>
+              </div>
+            ) : (
+              testimonials.map((testimonial, idx) => (
+                <div key={idx} className="card" style={{ padding: 28 }}>
+                  <div
+                    style={{
+                      marginBottom: 16,
+                      fontSize: "0.95rem",
+                      lineHeight: 1.7,
+                      fontStyle: "italic",
+                    }}
+                  >
+                    "{testimonial.quote}"
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <div style={{ fontSize: "2.5rem" }}>{testimonial.author_avatar_url}</div>
+                    <div>
+                      <div style={{ fontWeight: 600, marginBottom: 2 }}>
+                        {testimonial.author_name}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "0.85rem",
+                          color: "var(--text-muted)",
+                        }}
+                      >
+                        {testimonial.author_role} at {testimonial.author_company}
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
 
