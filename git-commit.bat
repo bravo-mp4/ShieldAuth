@@ -6,7 +6,7 @@ REM Add all changes
 git add .
 
 REM Commit with message
-git commit -m "Add debug logging to Create License button"
+git commit -m "Fix Modal - add missing isOpen prop"
 
 REM Push to GitHub
 git push
