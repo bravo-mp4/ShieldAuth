@@ -136,6 +136,10 @@ export default function Licenses() {
 
   if (loading) return <Loader />;
 
+  console.log("Licenses page render - applications:", applications);
+  console.log("Applications length:", applications.length);
+  console.log("Show create modal:", showCreateModal);
+
   return (
     <div className="page">
       <TopBar
@@ -144,7 +148,10 @@ export default function Licenses() {
         actions={
           <button
             className="btn btnPrimary"
-            onClick={() => setShowCreateModal(true)}
+            onClick={() => {
+              console.log("Create License button clicked!");
+              setShowCreateModal(true);
+            }}
             disabled={applications.length === 0}
           >
             Create License
