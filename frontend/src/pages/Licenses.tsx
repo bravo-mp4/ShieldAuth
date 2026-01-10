@@ -10,16 +10,16 @@ import Loader from "../components/Loader";
 interface License {
   license_key: string;
   app_id: string;
-  username: string;
-  email: string;
-  hwid: string | null;
   expires_at: string;
+  max_hwid_slots: number;
+  is_banned: boolean;
   created_at: string;
-  is_active: boolean;
+  hwid_count: number;
+  app_owner: string;
 }
 
 interface Application {
-  app_id: string;
+  id: string;
   name?: string;
 }
 
@@ -32,8 +32,6 @@ export default function Licenses() {
   
   // Form state
   const [selectedAppId, setSelectedAppId] = useState("");
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
   const [daysValid, setDaysValid] = useState("30");
   const [maxHwidSlots, setMaxHwidSlots] = useState("1");
 
@@ -95,8 +93,6 @@ export default function Licenses() {
         "/api/v1/admin/license/create",
         {
           app_id: selectedAppId,
-          username,
-          email,
           days: parseInt(daysValid),
           max_hwid_slots: parseInt(maxHwidSlots),
         },
@@ -106,8 +102,6 @@ export default function Licenses() {
       );
 
       // Reset form
-      setUsername("");
-      setEmail("");
       setDaysValid("30");
       setMaxHwidSlots("1");
       setShowCreateModal(false);
@@ -191,9 +185,8 @@ export default function Licenses() {
             <thead>
               <tr>
                 <th>License Key</th>
-                <th>Username</th>
-                <th>Email</th>
-                <th>HWID</th>
+                <th>HWID Slots</th>
+                <th>Used Slots</th>
                 <th>Expires</th>
                 <th>Status</th>
                 <th>Actions</th>
@@ -202,7 +195,7 @@ export default function Licenses() {
             <tbody>
               {licenses.length === 0 ? (
                 <tr>
-                  <td colSpan={7} style={{ textAlign: "center", padding: 40, color: "var(--text-muted)" }}>
+                  <td colSpan={6} style={{ textAlign: "center", padding: 40, color: "var(--text-muted)" }}>
                     No licenses yet. Create your first license to get started.
                   </td>
                 </tr>
@@ -228,19 +221,14 @@ export default function Licenses() {
                         Copy
                       </button>
                     </td>
-                    <td>{license.username}</td>
-                    <td>{license.email}</td>
-                    <td>
-                      {license.hwid ? (
-                        <code style={{ fontSize: 11 }}>{license.hwid.substring(0, 15)}...</code>
-                      ) : (
-                        <span style={{ color: "var(--text-muted)" }}>Not bound</span>
-                      )}
-                    </td>
+                    <td>{license.max_hwid_slots}</td>
+                    <td>{license.hwid_count} / {license.max_hwid_slots}</td>
                     <td>{new Date(license.expires_at).toLocaleDateString()}</td>
                     <td>
-                      {license.is_active && new Date(license.expires_at) > new Date() ? (
+                      {!license.is_banned && new Date(license.expires_at) > new Date() ? (
                         <span className="badge badgeSuccess">Active</span>
+                      ) : license.is_banned ? (
+                        <span className="badge badgeDanger">Banned</span>
                       ) : (
                         <span className="badge badgeDanger">Expired</span>
                       )}
@@ -279,35 +267,11 @@ export default function Licenses() {
               >
                 <option value="">Select Application</option>
                 {applications.map((app) => (
-                  <option key={app.app_id} value={app.app_id}>
-                    {app.name || app.app_id}
+                  <option key={app.id} value={app.id}>
+                    {app.name || app.id}
                   </option>
                 ))}
               </select>
-            </div>
-
-            <div className="formGroup">
-              <label>Username</label>
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Enter username"
-                required
-                className="input"
-              />
-            </div>
-
-            <div className="formGroup">
-              <label>Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="user@example.com"
-                required
-                className="input"
-              />
             </div>
 
             <div className="formGroup">

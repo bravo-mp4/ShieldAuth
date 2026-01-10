@@ -6,7 +6,7 @@ REM Add all changes
 git add .
 
 REM Commit with message
-git commit -m "Fix license endpoints to match actual database schema"
+git commit -m "Fix Licenses page to match database schema - remove username/email fields"
 
 REM Push to GitHub
 git push
