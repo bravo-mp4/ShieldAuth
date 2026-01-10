@@ -1361,7 +1361,6 @@ router.post("/admin/webhooks/:webhook_id/test", authenticateToken, async (req: R
     };
 
     try {
-      const fetch = (await import("node-fetch")).default;
       const response = await fetch(webhook.url, {
         method: "POST",
         headers: {
@@ -1575,7 +1574,6 @@ async function triggerWebhook(ownerEmail: string, eventType: string, payload: an
 
 async function deliverWebhook(webhookId: string, url: string, secret: string, payload: any) {
   try {
-    const fetch = (await import("node-fetch")).default;
     const response = await fetch(url, {
       method: "POST",
       headers: {
@@ -1584,7 +1582,7 @@ async function deliverWebhook(webhookId: string, url: string, secret: string, pa
         "X-Webhook-ID": webhookId
       },
       body: JSON.stringify(payload),
-      timeout: 10000
+      signal: AbortSignal.timeout(10000)
     });
 
     const responseBody = await response.text();
