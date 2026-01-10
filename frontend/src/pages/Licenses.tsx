@@ -260,6 +260,7 @@ export default function Licenses() {
       {/* Create License Modal */}
       {showCreateModal && (
         <Modal
+          isOpen={showCreateModal}
           title="Create New License"
           onClose={() => setShowCreateModal(false)}
         >
