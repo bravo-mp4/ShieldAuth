@@ -226,6 +226,9 @@ ShieldAuth_IS_TOP_LEVEL:STATIC=ON
 //Value Computed by CMake
 ShieldAuth_SOURCE_DIR:STATIC=C:/Users/littl/Documents/ShieldVM/sdk/cpp
 
+//Dependencies for the target
+shieldauth_LIB_DEPENDS:STATIC=general;winhttp;general;iphlpapi;
+
 
 ########################
 # INTERNAL cache entries

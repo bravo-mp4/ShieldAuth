@@ -6,5 +6,5 @@ CXX_DEFINES =
 
 CXX_INCLUDES = -IC:\Users\littl\Documents\ShieldVM\sdk\cpp\include
 
-CXX_FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /MD /O2 /Ob2 /DNDEBUG -std:c++17
+CXX_FLAGS = /DWIN32 /D_WINDOWS /W3 /GR /EHsc /std:c++17 /permissive- /EHsc /MD /O2 /Ob2 /DNDEBUG /MT -std:c++17
 
