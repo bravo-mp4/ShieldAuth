@@ -6,7 +6,7 @@ REM Add all changes
 git add .
 
 REM Commit with message
-git commit -m "Fix Railway config - use npm --prefix instead of cd"
+git commit -m "Fix Vercel proxy - route /api/v1 to Railway backend"
 
 REM Push to GitHub
 git push
