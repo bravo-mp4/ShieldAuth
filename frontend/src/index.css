@@ -4,7 +4,7 @@
   box-sizing: border-box;
 }
 
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap");
 
 body {
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI",
@@ -16,6 +16,15 @@ body {
   min-height: 100vh;
   line-height: 1.6;
   position: relative;
+  font-weight: 300;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 body::before {
@@ -24,21 +33,65 @@ body::before {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background: radial-gradient(
-      800px circle at 50% 30%,
-      rgba(34, 197, 94, 0.03),
-      transparent 60%
-    ),
-    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+  background: 
+    radial-gradient(800px circle at var(--mx) var(--my), rgba(0, 255, 65, 0.04), transparent 60%),
+    linear-gradient(rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
   background-size: auto, 64px 64px, 64px 64px;
   background-position: center;
+  animation: noise 8s steps(10) infinite;
 }
 
+body::after {
+  content: "";
 :root {
   --mx: 50vw;
   --my: 20vh;
-  --bg: #0a0a0f;
+  --bg: #0a0a0a;
+  --bg-elevated: #121212;
+  --bg-card: #1a1a1a;
+  --bg-hover: #2a2a2a;
+  --primary: #00ff41;
+  --primary-dark: #00dc37;
+  --primary-muted: #1a4d2e;
+  --primary-glow: rgba(0, 255, 65, 0.15);
+  --primary-bg: rgba(0, 255, 65, 0.08);
+  --text: #e4e4e7;
+  --text-secondary: #a1a1aa;
+  --text-muted: #888888;
+  --border: #2a2a2a;
+  --border-light: #3a3a3a;
+  --border-green: rgba(0, 255, 65, 0.2);
+  --success: #00ff88;
+  --success-bg: rgba(0, 255, 136, 0.08);
+  --error: #ff3333;
+  --error-bg: rgba(255, 51, 51, 0.08);
+  --warning: #ffaa00;
+  --warning-bg: rgba(255, 170, 0, 0.08);
+  --info: #00dcff;
+  --info-bg: rgba(0, 220, 255, 0.08);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.6);
+::selection {
+  background: var(--primary);
+  color: #000;
+}
+
+code, pre, .mono {
+  font-family: "JetBrains Mono", "Fira Code", monospace;
+  font-feature-settings: "liga" 0, "calt" 0;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.tabular {
+  font-feature-settings: "tnum";
+  font-variant-numeric: tabular-nums;
+} --bg: #0a0a0f;
   --bg-elevated: #131318;
   --bg-card: #18181d;
   --bg-hover: #1f1f26;

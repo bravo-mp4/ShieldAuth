@@ -6,13 +6,17 @@
 			{
 				"fragment" : "/machine:x64",
 				"role" : "flags"
+			},
+			{
+				"fragment" : "/LTCG:OFF",
+				"role" : "flags"
 			}
 		]
 	},
 	"artifacts" : 
 	[
 		{
-			"path" : "Release/shieldauth.lib"
+			"path" : "MinSizeRel/shieldauth.lib"
 		}
 	],
 	"backtrace" : 1,
@@ -21,6 +25,7 @@
 		"commands" : 
 		[
 			"add_library",
+			"target_compile_options",
 			"target_include_directories"
 		],
 		"files" : 
@@ -35,13 +40,19 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 7,
+				"line" : 15,
 				"parent" : 0
 			},
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 13,
+				"line" : 25,
+				"parent" : 0
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 21,
 				"parent" : 0
 			}
 		]
@@ -52,13 +63,17 @@
 			"compileCommandFragments" : 
 			[
 				{
-					"fragment" : "/DWIN32 /D_WINDOWS /W3 /GR /EHsc /MD /O2 /Ob2 /DNDEBUG -std:c++17"
+					"fragment" : "/DWIN32 /D_WINDOWS /W3 /GR /EHsc /std:c++17 /permissive- /EHsc /MD /O1 /Ob1 /DNDEBUG -std:c++17"
+				},
+				{
+					"backtrace" : 2,
+					"fragment" : "/W3"
 				}
 			],
 			"includes" : 
 			[
 				{
-					"backtrace" : 2,
+					"backtrace" : 3,
 					"path" : "C:/Users/littl/Documents/ShieldVM/sdk/cpp/include"
 				}
 			],

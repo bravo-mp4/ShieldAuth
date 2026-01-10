@@ -14,6 +14,9 @@
 # EXTERNAL cache entries
 ########################
 
+//Build example executable
+BUILD_EXAMPLE:BOOL=OFF
+
 //Path to a program.
 CMAKE_AR:FILEPATH=C:/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/lib.exe
 
@@ -214,6 +217,9 @@ ShieldAuth_IS_TOP_LEVEL:STATIC=ON
 
 //Value Computed by CMake
 ShieldAuth_SOURCE_DIR:STATIC=C:/Users/littl/Documents/ShieldVM/sdk/cpp
+
+//Dependencies for the target
+shieldauth_LIB_DEPENDS:STATIC=general;winhttp;general;iphlpapi;
 
 
 ########################

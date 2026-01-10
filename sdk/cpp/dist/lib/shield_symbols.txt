@@ -1,0 +1,92 @@
+2B0 00000000 SECTA2 notype ()    External     | ?HttpPost@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@ABV23@00@Z (class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > __cdecl ShieldAuth::HttpPost(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &,class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &,class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &))
+2F5 0000001D SECTA3 notype ()    Static       | __ehhandler$?HttpPost@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@ABV23@00@Z
+2F9 00000000 SECTA3 notype ()    Static       | __unwindfunclet$?HttpPost@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@ABV23@00@Z$0
+2FA 00000008 SECTA3 notype ()    Static       | __unwindfunclet$?HttpPost@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@ABV23@00@Z$1
+2FB 00000010 SECTA3 notype ()    Static       | __unwindfunclet$?HttpPost@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@ABV23@00@Z$3
+309 00000018 SECT11F notype       Static      | __ehfuncinfo$?HttpPost@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@ABV23@00@Z
+30A 00000000 SECT11F notype       Static      | __unwindtable$?HttpPost@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@ABV23@00@Z
+29A 00000000 SECTA1 notype ()    External     | ?SHA256@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@ABV23@@Z (class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > __cdecl ShieldAuth::SHA256(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &))
+2B4 00000000 SECT99 notype ()    External     | ?GetCPUID@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ (class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > __cdecl ShieldAuth::GetCPUID(void))
+2B5 00000000 SECT9D notype ()    External     | ?GetMacAddress@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ (class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > __cdecl ShieldAuth::GetMacAddress(void))
+2B6 00000000 SECT9F notype ()    External     | ?GetVolumeSerial@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ (class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > __cdecl ShieldAuth::GetVolumeSerial(void))
+2B7 00000000 SECT9B notype ()    External     | ?GetHWID@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ (class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > __cdecl ShieldAuth::GetHWID(void))
+2F9 00000036 SECTA2 notype ()    Static       | __ehhandler$?SHA256@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@ABV23@@Z
+2FC 00000000 SECTA2 notype ()    Static       | __unwindfunclet$?SHA256@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@ABV23@@Z$2
+2FD 0000001A SECTA2 notype ()    Static       | __unwindfunclet$?SHA256@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@ABV23@@Z$3
+2FE 00000026 SECTA2 notype ()    Static       | __unwindfunclet$?SHA256@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@ABV23@@Z$0
+30A 00000036 SECT9A notype ()    Static       | __ehhandler$?GetCPUID@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ
+30B 00000000 SECT9A notype ()    Static       | __unwindfunclet$?GetCPUID@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ$2
+30C 0000001A SECT9A notype ()    Static       | __unwindfunclet$?GetCPUID@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ$3
+30D 00000026 SECT9A notype ()    Static       | __unwindfunclet$?GetCPUID@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ$0
+30F 00000010 SECT9E notype ()    Static       | __ehhandler$?GetMacAddress@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ
+310 00000000 SECT9E notype ()    Static       | __unwindfunclet$?GetMacAddress@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ$1
+311 00000036 SECTA0 notype ()    Static       | __ehhandler$?GetVolumeSerial@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ
+312 00000000 SECTA0 notype ()    Static       | __unwindfunclet$?GetVolumeSerial@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ$2
+313 0000001A SECTA0 notype ()    Static       | __unwindfunclet$?GetVolumeSerial@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ$3
+314 00000026 SECTA0 notype ()    Static       | __unwindfunclet$?GetVolumeSerial@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ$0
+316 000000E3 SECT9C notype ()    Static       | __ehhandler$?GetHWID@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ
+318 00000000 SECT9C notype ()    Static       | __unwindfunclet$?GetHWID@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ$8
+319 00000023 SECT9C notype ()    Static       | __unwindfunclet$?GetHWID@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ$9
+31A 0000002F SECT9C notype ()    Static       | __unwindfunclet$?GetHWID@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ$6
+31B 0000003A SECT9C notype ()    Static       | __unwindfunclet$?GetHWID@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ$0
+31C 00000042 SECT9C notype ()    Static       | __unwindfunclet$?GetHWID@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ$1
+31D 0000004A SECT9C notype ()    Static       | __unwindfunclet$?GetHWID@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ$16
+31E 0000006D SECT9C notype ()    Static       | __unwindfunclet$?GetHWID@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ$17
+31F 00000079 SECT9C notype ()    Static       | __unwindfunclet$?GetHWID@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ$14
+320 00000084 SECT9C notype ()    Static       | __unwindfunclet$?GetHWID@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ$2
+321 0000008C SECT9C notype ()    Static       | __unwindfunclet$?GetHWID@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ$3
+322 00000097 SECT9C notype ()    Static       | __unwindfunclet$?GetHWID@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ$4
+323 0000009F SECT9C notype ()    Static       | __unwindfunclet$?GetHWID@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ$30
+324 000000C7 SECT9C notype ()    Static       | __unwindfunclet$?GetHWID@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ$31
+325 000000D3 SECT9C notype ()    Static       | __unwindfunclet$?GetHWID@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ$28
+332 00000018 SECT114 notype       Static      | __ehfuncinfo$?SHA256@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@ABV23@@Z
+333 00000000 SECT114 notype       Static      | __unwindtable$?SHA256@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@ABV23@@Z
+33E 00000018 SECT117 notype       Static      | __ehfuncinfo$?GetCPUID@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ
+33F 00000000 SECT117 notype       Static      | __unwindtable$?GetCPUID@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ
+345 00000008 SECT119 notype       Static      | __ehfuncinfo$?GetMacAddress@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ
+346 00000000 SECT119 notype       Static      | __unwindtable$?GetMacAddress@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ
+349 00000018 SECT11A notype       Static      | __ehfuncinfo$?GetVolumeSerial@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ
+34A 00000000 SECT11A notype       Static      | __unwindtable$?GetVolumeSerial@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ
+34D 00000000 SECT11B notype       Static      | __ehfuncinfo$?GetHWID@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ
+34E 00000024 SECT11B notype       Static      | __unwindtable$?GetHWID@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ
+340 00000000 SECTD4 notype ()    External     | ?Initialize@ShieldAuth@@YA_NABV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@Z (bool __cdecl ShieldAuth::Initialize(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &))
+341 00000000 SECTDA notype ()    External     | ?Validate@ShieldAuth@@YA_NABV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@Z (bool __cdecl ShieldAuth::Validate(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &))
+342 00000000 SECTD2 notype ()    External     | ?Heartbeat@ShieldAuth@@YA_NXZ (bool __cdecl ShieldAuth::Heartbeat(void))
+343 00000000 SECTD0 notype ()    External     | ?GetSessionID@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ (class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > __cdecl ShieldAuth::GetSessionID(void))
+344 00000000 UNDEF  notype ()    External     | ?GetHWID@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@XZ (class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > __cdecl ShieldAuth::GetHWID(void))
+345 00000000 SECTD6 notype ()    External     | ?IsValid@ShieldAuth@@YA_NXZ (bool __cdecl ShieldAuth::IsValid(void))
+363 00000000 UNDEF  notype ()    External     | ?HttpPost@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@ABV23@00@Z (class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > __cdecl ShieldAuth::HttpPost(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &,class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &,class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &))
+364 00000000 SECTC4 notype ()    Static       | ??__Eg_app_id@ShieldAuth@@YAXXZ (void __cdecl ShieldAuth::`dynamic initializer for 'g_app_id''(void))
+365 00000000 SECTCA notype ()    Static       | ??__Fg_app_id@ShieldAuth@@YAXXZ (void __cdecl ShieldAuth::`dynamic atexit destructor for 'g_app_id''(void))
+366 00000000 SECTC6 notype ()    Static       | ??__Eg_session_id@ShieldAuth@@YAXXZ (void __cdecl ShieldAuth::`dynamic initializer for 'g_session_id''(void))
+367 00000000 SECTCC notype ()    Static       | ??__Fg_session_id@ShieldAuth@@YAXXZ (void __cdecl ShieldAuth::`dynamic atexit destructor for 'g_session_id''(void))
+368 00000000 SECTC2 notype ()    Static       | ??__EAPI_URL@ShieldAuth@@YAXXZ (void __cdecl ShieldAuth::`dynamic initializer for 'API_URL''(void))
+369 00000000 SECTC8 notype ()    Static       | ??__FAPI_URL@ShieldAuth@@YAXXZ (void __cdecl ShieldAuth::`dynamic atexit destructor for 'API_URL''(void))
+36A 00000000 SECTD8 notype ()    External     | ?ParseValidField@ShieldAuth@@YA_NABV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@Z (bool __cdecl ShieldAuth::ParseValidField(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &))
+36C 00000000 SECTCE notype ()    External     | ?ExtractField@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@ABV23@0@Z (class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > __cdecl ShieldAuth::ExtractField(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &,class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &))
+3DC 00000038 SECTDB notype ()    Static       | __ehhandler$?Validate@ShieldAuth@@YA_NABV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@Z
+3E0 00000000 SECTDB notype ()    Static       | __unwindfunclet$?Validate@ShieldAuth@@YA_NABV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@Z$0
+3E1 00000008 SECTDB notype ()    Static       | __unwindfunclet$?Validate@ShieldAuth@@YA_NABV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@Z$1
+3E2 00000013 SECTDB notype ()    Static       | __unwindfunclet$?Validate@ShieldAuth@@YA_NABV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@Z$2
+3E3 0000001B SECTDB notype ()    Static       | __unwindfunclet$?Validate@ShieldAuth@@YA_NABV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@Z$3
+3E4 00000023 SECTDB notype ()    Static       | __unwindfunclet$?Validate@ShieldAuth@@YA_NABV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@Z$4
+3E5 0000002B SECTDB notype ()    Static       | __unwindfunclet$?Validate@ShieldAuth@@YA_NABV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@Z$5
+3E6 00000020 SECTD3 notype ()    Static       | __ehhandler$?Heartbeat@ShieldAuth@@YA_NXZ
+3E8 00000000 SECTD3 notype ()    Static       | __unwindfunclet$?Heartbeat@ShieldAuth@@YA_NXZ$0
+3E9 0000000B SECTD3 notype ()    Static       | __unwindfunclet$?Heartbeat@ShieldAuth@@YA_NXZ$1
+3EA 00000013 SECTD3 notype ()    Static       | __unwindfunclet$?Heartbeat@ShieldAuth@@YA_NXZ$2
+3EF 0000000D SECTCF notype ()    Static       | __ehhandler$?ExtractField@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@ABV23@0@Z
+3F1 00000000 SECTCF notype ()    Static       | __unwindfunclet$?ExtractField@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@ABV23@0@Z$0
+416 00000000 SECT16B notype       Static      | __ehfuncinfo$?Validate@ShieldAuth@@YA_NABV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@Z
+417 00000024 SECT16B notype       Static      | __unwindtable$?Validate@ShieldAuth@@YA_NABV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@Z
+41A 00000018 SECT16C notype       Static      | __ehfuncinfo$?Heartbeat@ShieldAuth@@YA_NXZ
+41B 00000000 SECT16C notype       Static      | __unwindtable$?Heartbeat@ShieldAuth@@YA_NXZ
+41E 00000008 SECT16D notype       Static      | __ehfuncinfo$?ExtractField@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@ABV23@0@Z
+41F 00000000 SECT16D notype       Static      | __unwindtable$?ExtractField@ShieldAuth@@YA?AV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@ABV23@0@Z
+473 00000000 SECT185 notype       Static      | ?g_app_id@ShieldAuth@@3V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@A (class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > ShieldAuth::g_app_id)
+474 00000018 SECT185 notype       Static      | ?g_session_id@ShieldAuth@@3V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@A (class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > ShieldAuth::g_session_id)
+477 00000018 SECT186 notype       Static      | ?g_is_valid@ShieldAuth@@3_NA (bool ShieldAuth::g_is_valid)
+478 00000000 SECT186 notype       Static      | ?API_URL@ShieldAuth@@3V?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@A (class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > ShieldAuth::API_URL)
+55D 00000000 SECT1D2 notype       Static      | ?g_app_id$initializer$@ShieldAuth@@3P6AXXZA (void (__cdecl* ShieldAuth::g_app_id$initializer$)(void))
+55E 00000004 SECT1D2 notype       Static      | ?g_session_id$initializer$@ShieldAuth@@3P6AXXZA (void (__cdecl* ShieldAuth::g_session_id$initializer$)(void))
+55F 00000008 SECT1D2 notype       Static      | ?API_URL$initializer$@ShieldAuth@@3P6AXXZA (void (__cdecl* ShieldAuth::API_URL$initializer$)(void))

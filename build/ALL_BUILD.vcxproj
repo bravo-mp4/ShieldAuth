@@ -174,10 +174,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
-    <ProjectReference Include="C:\Users\littl\Documents\ShieldVM\build\example.vcxproj">
-      <Project>{1E95BFEE-3E28-3F25-8773-9BC05330984E}</Project>
-      <Name>example</Name>
-    </ProjectReference>
     <ProjectReference Include="C:\Users\littl\Documents\ShieldVM\build\shieldauth.vcxproj">
       <Project>{D616083C-13AB-34A1-A684-CF296DCBF794}</Project>
       <Name>shieldauth</Name>
