@@ -497,15 +497,26 @@ router.post("/admin/app/create", authenticateToken, async (req: Request, res: Re
 // Admin: Generate license
 router.post("/admin/license/create", authenticateToken, async (req: Request, res: Response) => {
   try {
-    const { app_id, username, email, days, max_hwid_slots } = req.body;
+    const { app_id, days, max_hwid_slots } = req.body;
+    const userEmail = (req as any).user.email;
+
+    // Verify the app belongs to the user
+    const appCheck = await pool.query(
+      "SELECT app_id FROM applications WHERE app_id = $1 AND owner_email = $2",
+      [app_id, userEmail]
+    );
+
+    if (appCheck.rows.length === 0) {
+      return res.status(403).json({ message: "Application not found or access denied" });
+    }
 
     const licenseKey = generateLicenseKey();
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + (days || 30));
 
     await pool.query(
-      "INSERT INTO licenses (license_key, app_id, username, email, expires_at, max_hwid_slots, is_active) VALUES ($1, $2, $3, $4, $5, $6, true)",
-      [licenseKey, app_id, username, email, expiresAt, max_hwid_slots || 1]
+      "INSERT INTO licenses (license_key, app_id, expires_at, max_hwid_slots, is_banned) VALUES ($1, $2, $3, $4, false)",
+      [licenseKey, app_id, expiresAt, max_hwid_slots || 1]
     );
 
     res.json({ license_key: licenseKey, expires_at: expiresAt });
@@ -525,12 +536,12 @@ router.get("/admin/licenses", authenticateToken, async (req: Request, res: Respo
       `SELECT 
         l.license_key,
         l.app_id,
-        l.username,
-        l.email,
-        l.hwid,
         l.expires_at,
+        l.max_hwid_slots,
+        l.is_banned,
         l.created_at,
-        l.is_active
+        (SELECT COUNT(*) FROM hwid_slots WHERE license_key = l.license_key) as hwid_count,
+        a.owner_email as app_owner
        FROM licenses l
        JOIN applications a ON l.app_id = a.app_id
        WHERE a.owner_email = $1
