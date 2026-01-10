@@ -6,7 +6,7 @@ REM Add all changes
 git add .
 
 REM Commit with message
-git commit -m "Fix /admin/licenses - filter by user and add error logging"
+git commit -m "Fix license endpoints to match actual database schema"
 
 REM Push to GitHub
 git push
