@@ -494,6 +494,28 @@ router.post("/admin/app/create", authenticateToken, async (req: Request, res: Re
   }
 });
 
+// Admin: Get all applications for user
+router.get("/admin/applications", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const userEmail = (req as any).user.email;
+    console.log("[/admin/applications] Fetching applications for user:", userEmail);
+    
+    const result = await pool.query(
+      `SELECT app_id as id, app_id, app_secret, owner_email, created_at
+       FROM applications
+       WHERE owner_email = $1
+       ORDER BY created_at DESC`,
+      [userEmail]
+    );
+
+    console.log("[/admin/applications] Found", result.rows.length, "applications");
+    res.json(result.rows);
+  } catch (err) {
+    console.error("[/admin/applications] Error fetching applications:", err);
+    res.status(500).json({ message: "Failed to fetch applications", error: String(err) });
+  }
+});
+
 // Admin: Generate license
 router.post("/admin/license/create", authenticateToken, async (req: Request, res: Response) => {
   try {
