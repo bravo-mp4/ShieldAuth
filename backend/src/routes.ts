@@ -152,42 +152,122 @@ router.post(
 
 router.post("/validate", async (req: Request, res: Response) => {
   const { app_id, license_key, hwid }: ValidateRequest = req.body;
+  const ip_address = req.headers["x-forwarded-for"] as string || req.socket.remoteAddress || "";
+  const user_agent = req.headers["user-agent"] || "";
 
-  // Get license
-  const license = await getLicense(license_key);
+  let result = "success";
+  let error_message = "";
 
-  if (
-    !license ||
-    license.is_banned ||
-    new Date(license.expires_at) < new Date()
-  ) {
-    return res.json({ valid: false, message: "Invalid or expired license" });
-  }
+  try {
+    // Get license
+    const license = await getLicense(license_key);
 
-  // Check HWID
-  const hwids = await getHWIDs(license_key);
+    if (!license) {
+      result = "invalid";
+      error_message = "License not found";
+      
+      // Log validation attempt
+      await pool.query(
+        `INSERT INTO validation_logs (license_key, app_id, hwid_hash, ip_address, result, error_message, user_agent)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [license_key, app_id, hwid, ip_address, result, error_message, user_agent]
+      );
 
-  if (hwids.length === 0) {
-    await bindHWID(license_key, hwid);
-  } else if (!hwids.includes(hwid)) {
-    if (hwids.length >= license.max_hwid_slots) {
-      return res.json({ valid: false, message: "HWID limit reached" });
+      return res.json({ valid: false, message: "Invalid or expired license" });
     }
-    await bindHWID(license_key, hwid);
+
+    if (license.is_banned) {
+      result = "banned";
+      error_message = "License is banned";
+      
+      await pool.query(
+        `INSERT INTO validation_logs (license_key, app_id, hwid_hash, ip_address, result, error_message, user_agent)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [license_key, app_id, hwid, ip_address, result, error_message, user_agent]
+      );
+
+      return res.json({ valid: false, message: "Invalid or expired license" });
+    }
+
+    if (new Date(license.expires_at) < new Date()) {
+      result = "expired";
+      error_message = "License has expired";
+      
+      await pool.query(
+        `INSERT INTO validation_logs (license_key, app_id, hwid_hash, ip_address, result, error_message, user_agent)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [license_key, app_id, hwid, ip_address, result, error_message, user_agent]
+      );
+
+      return res.json({ valid: false, message: "Invalid or expired license" });
+    }
+
+    // Check HWID
+    const hwids = await getHWIDs(license_key);
+
+    if (hwids.length === 0) {
+      await bindHWID(license_key, hwid);
+      // Update HWID slot with IP
+      await pool.query(
+        "UPDATE hwid_slots SET ip_address = $1, last_seen = NOW() WHERE license_key = $2 AND hwid_hash = $3",
+        [ip_address, license_key, hwid]
+      );
+    } else if (!hwids.includes(hwid)) {
+      if (hwids.length >= license.max_hwid_slots) {
+        result = "hwid_limit";
+        error_message = "HWID limit reached";
+        
+        await pool.query(
+          `INSERT INTO validation_logs (license_key, app_id, hwid_hash, ip_address, result, error_message, user_agent)
+           VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+          [license_key, app_id, hwid, ip_address, result, error_message, user_agent]
+        );
+
+        return res.json({ valid: false, message: "HWID limit reached" });
+      }
+      await bindHWID(license_key, hwid);
+      await pool.query(
+        "UPDATE hwid_slots SET ip_address = $1, last_seen = NOW() WHERE license_key = $2 AND hwid_hash = $3",
+        [ip_address, license_key, hwid]
+      );
+    } else {
+      // Update last seen for existing HWID
+      await pool.query(
+        "UPDATE hwid_slots SET last_seen = NOW(), last_ip_address = ip_address, ip_address = $1 WHERE license_key = $2 AND hwid_hash = $3",
+        [ip_address, license_key, hwid]
+      );
+    }
+
+    // Create session
+    const sessionId = crypto.randomBytes(32).toString("hex");
+    await createSession(sessionId, license_key, hwid);
+
+    // Log successful validation
+    await pool.query(
+      `INSERT INTO validation_logs (license_key, app_id, hwid_hash, ip_address, result, error_message, user_agent)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [license_key, app_id, hwid, ip_address, "success", "", user_agent]
+    );
+
+    // Log API analytics
+    await pool.query(
+      `INSERT INTO api_analytics (app_id, endpoint, method, status_code, ip_address)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [app_id, "/validate", "POST", 200, ip_address]
+    );
+
+    const response: ValidateResponse = {
+      valid: true,
+      message: "License validated",
+      expires_at: new Date(license.expires_at).getTime() / 1000,
+      session_id: sessionId,
+    };
+
+    res.json(response);
+  } catch (error) {
+    console.error("Validation error:", error);
+    res.status(500).json({ valid: false, message: "Internal server error" });
   }
-
-  // Create session
-  const sessionId = crypto.randomBytes(32).toString("hex");
-  await createSession(sessionId, license_key, hwid);
-
-  const response: ValidateResponse = {
-    valid: true,
-    message: "License validated",
-    expires_at: new Date(license.expires_at).getTime() / 1000,
-    session_id: sessionId,
-  };
-
-  res.json(response);
 });
 
 router.post("/heartbeat", async (req: Request, res: Response) => {
@@ -494,6 +574,85 @@ router.post("/admin/app/create", authenticateToken, async (req: Request, res: Re
   }
 });
 
+// Admin: Get dashboard statistics
+router.get("/admin/stats", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const userEmail = (req as any).user.email;
+    console.log("[/admin/stats] Fetching stats for user:", userEmail);
+
+    // Get user's app IDs
+    const appsResult = await pool.query(
+      "SELECT app_id FROM applications WHERE owner_email = $1",
+      [userEmail]
+    );
+    const appIds = appsResult.rows.map((row: any) => row.app_id);
+
+    if (appIds.length === 0) {
+      return res.json({
+        totalLicenses: 0,
+        activeLicenses: 0,
+        totalHwidBindings: 0,
+        expiringThisWeek: 0,
+        totalApplications: 0,
+        recentActivity: []
+      });
+    }
+
+    // Total licenses
+    const totalLicensesResult = await pool.query(
+      "SELECT COUNT(*) FROM licenses WHERE app_id = ANY($1)",
+      [appIds]
+    );
+
+    // Active licenses (not expired and not banned)
+    const activeLicensesResult = await pool.query(
+      "SELECT COUNT(*) FROM licenses WHERE app_id = ANY($1) AND expires_at > NOW() AND is_banned = false",
+      [appIds]
+    );
+
+    // Total HWID bindings
+    const hwidBindingsResult = await pool.query(
+      `SELECT COUNT(*) FROM hwid_slots hs 
+       JOIN licenses l ON hs.license_key = l.license_key 
+       WHERE l.app_id = ANY($1)`,
+      [appIds]
+    );
+
+    // Licenses expiring in next 7 days
+    const expiringResult = await pool.query(
+      `SELECT COUNT(*) FROM licenses 
+       WHERE app_id = ANY($1) 
+       AND expires_at > NOW() 
+       AND expires_at < NOW() + INTERVAL '7 days'
+       AND is_banned = false`,
+      [appIds]
+    );
+
+    // Recent activity (last 10 created licenses)
+    const recentActivityResult = await pool.query(
+      `SELECT l.license_key, l.created_at, a.app_id, l.expires_at
+       FROM licenses l
+       JOIN applications a ON l.app_id = a.app_id
+       WHERE a.owner_email = $1
+       ORDER BY l.created_at DESC
+       LIMIT 10`,
+      [userEmail]
+    );
+
+    res.json({
+      totalLicenses: parseInt(totalLicensesResult.rows[0].count),
+      activeLicenses: parseInt(activeLicensesResult.rows[0].count),
+      totalHwidBindings: parseInt(hwidBindingsResult.rows[0].count),
+      expiringThisWeek: parseInt(expiringResult.rows[0].count),
+      totalApplications: appIds.length,
+      recentActivity: recentActivityResult.rows
+    });
+  } catch (err) {
+    console.error("[/admin/stats] Error:", err);
+    res.status(500).json({ message: "Failed to fetch stats", error: String(err) });
+  }
+});
+
 // Admin: Get all applications for user
 router.get("/admin/applications", authenticateToken, async (req: Request, res: Response) => {
   try {
@@ -540,6 +699,14 @@ router.post("/admin/license/create", authenticateToken, async (req: Request, res
       "INSERT INTO licenses (license_key, app_id, expires_at, max_hwid_slots, is_banned) VALUES ($1, $2, $3, $4, false)",
       [licenseKey, app_id, expiresAt, max_hwid_slots || 1]
     );
+
+    // Trigger webhook
+    triggerWebhook(userEmail, "license.created", {
+      license_key: licenseKey,
+      app_id,
+      expires_at: expiresAt,
+      max_hwid_slots: max_hwid_slots || 1
+    }).catch(err => console.error("Webhook trigger failed:", err));
 
     res.json({ license_key: licenseKey, expires_at: expiresAt });
   } catch (err) {
@@ -611,7 +778,7 @@ router.delete("/admin/license/:license_key", authenticateToken, async (req: Requ
 });
 
 // Admin: Ban license
-router.post("/admin/license/ban", async (req: Request, res: Response) => {
+router.post("/admin/license/ban", authenticateToken, async (req: Request, res: Response) => {
   const { license_key } = req.body;
 
   await pool.query(
@@ -621,3 +788,999 @@ router.post("/admin/license/ban", async (req: Request, res: Response) => {
 
   res.json({ success: true });
 });
+
+// Admin: Unban license
+router.post("/admin/license/unban", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { license_key } = req.body;
+
+    await pool.query(
+      "UPDATE licenses SET is_banned = FALSE WHERE license_key = $1",
+      [license_key]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Failed to unban license:", err);
+    res.status(500).json({ message: "Failed to unban license" });
+  }
+});
+
+// Admin: Bulk license actions
+router.post("/admin/licenses/bulk-action", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { action, license_keys } = req.body;
+    const userEmail = (req as any).user.email;
+
+    if (!action || !Array.isArray(license_keys) || license_keys.length === 0) {
+      return res.status(400).json({ message: "Invalid request" });
+    }
+
+    // Verify all licenses belong to user
+    const verifyResult = await pool.query(
+      `SELECT l.license_key FROM licenses l
+       JOIN applications a ON l.app_id = a.app_id
+       WHERE a.owner_email = $1 AND l.license_key = ANY($2)`,
+      [userEmail, license_keys]
+    );
+
+    if (verifyResult.rows.length !== license_keys.length) {
+      return res.status(403).json({ message: "Some licenses do not belong to you" });
+    }
+
+    let result;
+    switch (action) {
+      case "ban":
+        result = await pool.query(
+          "UPDATE licenses SET is_banned = TRUE WHERE license_key = ANY($1)",
+          [license_keys]
+        );
+        break;
+      case "unban":
+        result = await pool.query(
+          "UPDATE licenses SET is_banned = FALSE WHERE license_key = ANY($1)",
+          [license_keys]
+        );
+        break;
+      case "delete":
+        // Delete associated HWID slots first
+        await pool.query("DELETE FROM hwid_slots WHERE license_key = ANY($1)", [license_keys]);
+        // Delete sessions
+        await pool.query("DELETE FROM sessions WHERE license_key = ANY($1)", [license_keys]);
+        // Delete licenses
+        result = await pool.query("DELETE FROM licenses WHERE license_key = ANY($1)", [license_keys]);
+        break;
+      default:
+        return res.status(400).json({ message: "Invalid action" });
+    }
+
+    res.json({ success: true, affected: result?.rowCount || 0 });
+  } catch (err) {
+    console.error("Failed to perform bulk action:", err);
+    res.status(500).json({ message: "Failed to perform bulk action" });
+  }
+});
+
+// Admin: Update license notes
+router.put("/admin/license/:license_key/notes", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { license_key } = req.params;
+    const { notes } = req.body;
+    const userEmail = (req as any).user.email;
+
+    // Verify license belongs to user
+    const verifyResult = await pool.query(
+      `SELECT l.license_key FROM licenses l
+       JOIN applications a ON l.app_id = a.app_id
+       WHERE a.owner_email = $1 AND l.license_key = $2`,
+      [userEmail, license_key]
+    );
+
+    if (verifyResult.rows.length === 0) {
+      return res.status(403).json({ message: "License not found or access denied" });
+    }
+
+    await pool.query(
+      "UPDATE licenses SET notes = $1 WHERE license_key = $2",
+      [notes, license_key]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Failed to update notes:", err);
+    res.status(500).json({ message: "Failed to update notes" });
+  }
+});
+
+// Admin: Get HWID bindings for a license
+router.get("/admin/license/:license_key/hwids", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { license_key } = req.params;
+    const userEmail = (req as any).user.email;
+
+    // Verify license belongs to user
+    const verifyResult = await pool.query(
+      `SELECT l.license_key FROM licenses l
+       JOIN applications a ON l.app_id = a.app_id
+       WHERE a.owner_email = $1 AND l.license_key = $2`,
+      [userEmail, license_key]
+    );
+
+    if (verifyResult.rows.length === 0) {
+      return res.status(403).json({ message: "License not found or access denied" });
+    }
+
+    const result = await pool.query(
+      `SELECT id, hwid_hash, device_name, last_seen, ip_address, unbind_count, last_unbind_at
+       FROM hwid_slots
+       WHERE license_key = $1
+       ORDER BY last_seen DESC`,
+      [license_key]
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Failed to fetch HWIDs:", err);
+    res.status(500).json({ message: "Failed to fetch HWIDs" });
+  }
+});
+
+// Admin: Unbind HWID from license
+router.delete("/admin/license/:license_key/hwid/:hwid_id", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { license_key, hwid_id } = req.params;
+    const userEmail = (req as any).user.email;
+
+    // Verify license belongs to user
+    const verifyResult = await pool.query(
+      `SELECT l.license_key FROM licenses l
+       JOIN applications a ON l.app_id = a.app_id
+       WHERE a.owner_email = $1 AND l.license_key = $2`,
+      [userEmail, license_key]
+    );
+
+    if (verifyResult.rows.length === 0) {
+      return res.status(403).json({ message: "License not found or access denied" });
+    }
+
+    await pool.query(
+      "DELETE FROM hwid_slots WHERE license_key = $1 AND id = $2",
+      [license_key, hwid_id]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Failed to unbind HWID:", err);
+    res.status(500).json({ message: "Failed to unbind HWID" });
+  }
+});
+
+// Admin: License templates
+router.get("/admin/templates", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const userEmail = (req as any).user.email;
+
+    const result = await pool.query(
+      `SELECT template_id, name, days_valid, max_hwid_slots, metadata, created_at
+       FROM license_templates
+       WHERE owner_email = $1
+       ORDER BY created_at DESC`,
+      [userEmail]
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Failed to fetch templates:", err);
+    res.status(500).json({ message: "Failed to fetch templates" });
+  }
+});
+
+router.post("/admin/templates", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { name, days_valid, max_hwid_slots, metadata } = req.body;
+    const userEmail = (req as any).user.email;
+
+    const templateId = crypto.randomBytes(16).toString("hex");
+
+    await pool.query(
+      `INSERT INTO license_templates (template_id, owner_email, name, days_valid, max_hwid_slots, metadata)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [templateId, userEmail, name, days_valid, max_hwid_slots || 1, metadata || {}]
+    );
+
+    res.json({ template_id: templateId });
+  } catch (err) {
+    console.error("Failed to create template:", err);
+    res.status(500).json({ message: "Failed to create template" });
+  }
+});
+
+router.delete("/admin/templates/:template_id", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { template_id } = req.params;
+    const userEmail = (req as any).user.email;
+
+    await pool.query(
+      "DELETE FROM license_templates WHERE template_id = $1 AND owner_email = $2",
+      [template_id, userEmail]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Failed to delete template:", err);
+    res.status(500).json({ message: "Failed to delete template" });
+  }
+});
+
+// Admin: Export licenses to CSV
+router.get("/admin/licenses/export", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const userEmail = (req as any).user.email;
+
+    const result = await pool.query(
+      `SELECT 
+        l.license_key,
+        l.app_id,
+        l.expires_at,
+        l.max_hwid_slots,
+        l.is_banned,
+        l.created_at,
+        l.notes,
+        (SELECT COUNT(*) FROM hwid_slots WHERE license_key = l.license_key) as hwid_count
+       FROM licenses l
+       JOIN applications a ON l.app_id = a.app_id
+       WHERE a.owner_email = $1
+       ORDER BY l.created_at DESC`,
+      [userEmail]
+    );
+
+    // Generate CSV
+    const headers = ["License Key", "App ID", "Expires At", "Max HWID Slots", "Used Slots", "Status", "Created At", "Notes"];
+    const rows = result.rows.map((row) => [
+      row.license_key,
+      row.app_id,
+      new Date(row.expires_at).toISOString(),
+      row.max_hwid_slots,
+      row.hwid_count,
+      row.is_banned ? "Banned" : new Date(row.expires_at) > new Date() ? "Active" : "Expired",
+      new Date(row.created_at).toISOString(),
+      row.notes || ""
+    ]);
+
+    const csv = [headers, ...rows].map((row) => row.map((cell) => `"${cell}"`).join(",")).join("\n");
+
+    res.setHeader("Content-Type", "text/csv");
+    res.setHeader("Content-Disposition", "attachment; filename=licenses.csv");
+    res.send(csv);
+  } catch (err) {
+    console.error("Failed to export licenses:", err);
+    res.status(500).json({ message: "Failed to export licenses" });
+  }
+});
+
+// Admin: Validation logs
+router.get("/admin/logs", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const userEmail = (req as any).user.email;
+    const { app_id, license_key, result, limit = 100, offset = 0 } = req.query;
+
+    let query = `
+      SELECT vl.id, vl.license_key, vl.app_id, vl.hwid_hash, vl.ip_address, 
+             vl.result, vl.error_message, vl.user_agent, vl.created_at
+      FROM validation_logs vl
+      JOIN applications a ON vl.app_id = a.app_id
+      WHERE a.owner_email = $1
+    `;
+    const params: any[] = [userEmail];
+    let paramIndex = 2;
+
+    if (app_id) {
+      query += ` AND vl.app_id = $${paramIndex}`;
+      params.push(app_id);
+      paramIndex++;
+    }
+
+    if (license_key) {
+      query += ` AND vl.license_key = $${paramIndex}`;
+      params.push(license_key);
+      paramIndex++;
+    }
+
+    if (result) {
+      query += ` AND vl.result = $${paramIndex}`;
+      params.push(result);
+      paramIndex++;
+    }
+
+    query += ` ORDER BY vl.created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+    params.push(parseInt(limit as string), parseInt(offset as string));
+
+    const logsResult = await pool.query(query, params);
+
+    // Get total count
+    let countQuery = `
+      SELECT COUNT(*) FROM validation_logs vl
+      JOIN applications a ON vl.app_id = a.app_id
+      WHERE a.owner_email = $1
+    `;
+    const countParams: any[] = [userEmail];
+    let countParamIndex = 2;
+
+    if (app_id) {
+      countQuery += ` AND vl.app_id = $${countParamIndex}`;
+      countParams.push(app_id);
+      countParamIndex++;
+    }
+
+    if (license_key) {
+      countQuery += ` AND vl.license_key = $${countParamIndex}`;
+      countParams.push(license_key);
+      countParamIndex++;
+    }
+
+    if (result) {
+      countQuery += ` AND vl.result = $${countParamIndex}`;
+      countParams.push(result);
+    }
+
+    const countResult = await pool.query(countQuery, countParams);
+
+    res.json({
+      logs: logsResult.rows,
+      total: parseInt(countResult.rows[0].count),
+      limit: parseInt(limit as string),
+      offset: parseInt(offset as string)
+    });
+  } catch (err) {
+    console.error("Failed to fetch logs:", err);
+    res.status(500).json({ message: "Failed to fetch logs" });
+  }
+});
+
+// Admin: Analytics per app
+router.get("/admin/analytics/:app_id", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { app_id } = req.params;
+    const userEmail = (req as any).user.email;
+    const { days = 7 } = req.query;
+
+    // Verify app belongs to user
+    const appCheck = await pool.query(
+      "SELECT app_id FROM applications WHERE app_id = $1 AND owner_email = $2",
+      [app_id, userEmail]
+    );
+
+    if (appCheck.rows.length === 0) {
+      return res.status(403).json({ message: "Application not found or access denied" });
+    }
+
+    // Validation attempts over time
+    const validationsByDay = await pool.query(
+      `SELECT 
+        DATE(created_at) as date,
+        result,
+        COUNT(*) as count
+       FROM validation_logs
+       WHERE app_id = $1 AND created_at >= NOW() - INTERVAL '${parseInt(days as string)} days'
+       GROUP BY DATE(created_at), result
+       ORDER BY date DESC`,
+      [app_id]
+    );
+
+    // Success/failure rates
+    const successRate = await pool.query(
+      `SELECT 
+        result,
+        COUNT(*) as count
+       FROM validation_logs
+       WHERE app_id = $1 AND created_at >= NOW() - INTERVAL '${parseInt(days as string)} days'
+       GROUP BY result`,
+      [app_id]
+    );
+
+    // Geographic distribution (top countries)
+    const geoDistribution = await pool.query(
+      `SELECT 
+        country_code,
+        COUNT(*) as count
+       FROM api_analytics
+       WHERE app_id = $1 AND created_at >= NOW() - INTERVAL '${parseInt(days as string)} days' AND country_code IS NOT NULL
+       GROUP BY country_code
+       ORDER BY count DESC
+       LIMIT 10`,
+      [app_id]
+    );
+
+    // Error breakdown
+    const errorBreakdown = await pool.query(
+      `SELECT 
+        error_message,
+        COUNT(*) as count
+       FROM validation_logs
+       WHERE app_id = $1 AND result != 'success' AND created_at >= NOW() - INTERVAL '${parseInt(days as string)} days'
+       GROUP BY error_message
+       ORDER BY count DESC
+       LIMIT 10`,
+      [app_id]
+    );
+
+    res.json({
+      validationsByDay: validationsByDay.rows,
+      successRate: successRate.rows,
+      geoDistribution: geoDistribution.rows,
+      errorBreakdown: errorBreakdown.rows
+    });
+  } catch (err) {
+    console.error("Failed to fetch app analytics:", err);
+    res.status(500).json({ message: "Failed to fetch app analytics" });
+  }
+});
+
+// Admin: Webhooks
+router.get("/admin/webhooks", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const userEmail = (req as any).user.email;
+
+    const result = await pool.query(
+      `SELECT webhook_id, url, events, secret, is_active, created_at, updated_at
+       FROM webhooks
+       WHERE owner_email = $1
+       ORDER BY created_at DESC`,
+      [userEmail]
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Failed to fetch webhooks:", err);
+    res.status(500).json({ message: "Failed to fetch webhooks" });
+  }
+});
+
+router.post("/admin/webhooks", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { url, events } = req.body;
+    const userEmail = (req as any).user.email;
+
+    if (!url || !Array.isArray(events) || events.length === 0) {
+      return res.status(400).json({ message: "URL and events are required" });
+    }
+
+    const webhookId = `wh_${crypto.randomBytes(12).toString("hex")}`;
+    const secret = crypto.randomBytes(32).toString("hex");
+
+    await pool.query(
+      `INSERT INTO webhooks (webhook_id, owner_email, url, events, secret)
+       VALUES ($1, $2, $3, $4, $5)`,
+      [webhookId, userEmail, url, events, secret]
+    );
+
+    res.json({ webhook_id: webhookId, secret });
+  } catch (err) {
+    console.error("Failed to create webhook:", err);
+    res.status(500).json({ message: "Failed to create webhook" });
+  }
+});
+
+router.delete("/admin/webhooks/:webhook_id", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { webhook_id } = req.params;
+    const userEmail = (req as any).user.email;
+
+    await pool.query(
+      "DELETE FROM webhooks WHERE webhook_id = $1 AND owner_email = $2",
+      [webhook_id, userEmail]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Failed to delete webhook:", err);
+    res.status(500).json({ message: "Failed to delete webhook" });
+  }
+});
+
+router.put("/admin/webhooks/:webhook_id", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { webhook_id } = req.params;
+    const { url, events, is_active } = req.body;
+    const userEmail = (req as any).user.email;
+
+    await pool.query(
+      `UPDATE webhooks 
+       SET url = COALESCE($1, url), 
+           events = COALESCE($2, events), 
+           is_active = COALESCE($3, is_active),
+           updated_at = NOW()
+       WHERE webhook_id = $4 AND owner_email = $5`,
+      [url, events, is_active, webhook_id, userEmail]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Failed to update webhook:", err);
+    res.status(500).json({ message: "Failed to update webhook" });
+  }
+});
+
+// Admin: Webhook deliveries (logs)
+router.get("/admin/webhooks/:webhook_id/deliveries", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { webhook_id } = req.params;
+    const userEmail = (req as any).user.email;
+
+    // Verify webhook belongs to user
+    const webhookCheck = await pool.query(
+      "SELECT webhook_id FROM webhooks WHERE webhook_id = $1 AND owner_email = $2",
+      [webhook_id, userEmail]
+    );
+
+    if (webhookCheck.rows.length === 0) {
+      return res.status(403).json({ message: "Webhook not found or access denied" });
+    }
+
+    const result = await pool.query(
+      `SELECT id, event_type, payload, status_code, response_body, attempt_count, 
+              delivered_at, failed_at, created_at
+       FROM webhook_deliveries
+       WHERE webhook_id = $1
+       ORDER BY created_at DESC
+       LIMIT 50`,
+      [webhook_id]
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Failed to fetch webhook deliveries:", err);
+    res.status(500).json({ message: "Failed to fetch webhook deliveries" });
+  }
+});
+
+// Admin: Test webhook
+router.post("/admin/webhooks/:webhook_id/test", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { webhook_id } = req.params;
+    const userEmail = (req as any).user.email;
+
+    // Get webhook
+    const webhookResult = await pool.query(
+      "SELECT url, secret FROM webhooks WHERE webhook_id = $1 AND owner_email = $2",
+      [webhook_id, userEmail]
+    );
+
+    if (webhookResult.rows.length === 0) {
+      return res.status(403).json({ message: "Webhook not found or access denied" });
+    }
+
+    const webhook = webhookResult.rows[0];
+
+    // Send test payload
+    const testPayload = {
+      event: "test",
+      webhook_id,
+      timestamp: new Date().toISOString(),
+      data: { message: "This is a test webhook from ShieldAuth" }
+    };
+
+    try {
+      const fetch = (await import("node-fetch")).default;
+      const response = await fetch(webhook.url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Webhook-Secret": webhook.secret
+        },
+        body: JSON.stringify(testPayload)
+      });
+
+      const responseBody = await response.text();
+
+      res.json({
+        success: response.ok,
+        status_code: response.status,
+        response_body: responseBody
+      });
+    } catch (fetchErr: any) {
+      res.json({
+        success: false,
+        error: fetchErr.message
+      });
+    }
+  } catch (err) {
+    console.error("Failed to test webhook:", err);
+    res.status(500).json({ message: "Failed to test webhook" });
+  }
+});
+
+// Admin: API Keys
+router.get("/admin/api-keys", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const userEmail = (req as any).user.email;
+
+    const result = await pool.query(
+      `SELECT key_id, name, app_id, scopes, last_used_at, expires_at, created_at
+       FROM api_keys
+       WHERE owner_email = $1
+       ORDER BY created_at DESC`,
+      [userEmail]
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Failed to fetch API keys:", err);
+    res.status(500).json({ message: "Failed to fetch API keys" });
+  }
+});
+
+router.post("/admin/api-keys", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { name, app_id, scopes, expires_in_days } = req.body;
+    const userEmail = (req as any).user.email;
+
+    if (!name || !Array.isArray(scopes) || scopes.length === 0) {
+      return res.status(400).json({ message: "Name and scopes are required" });
+    }
+
+    // Verify app belongs to user if app_id provided
+    if (app_id) {
+      const appCheck = await pool.query(
+        "SELECT app_id FROM applications WHERE app_id = $1 AND owner_email = $2",
+        [app_id, userEmail]
+      );
+
+      if (appCheck.rows.length === 0) {
+        return res.status(403).json({ message: "Application not found or access denied" });
+      }
+    }
+
+    const keyId = `sk_${crypto.randomBytes(12).toString("hex")}`;
+    const apiKey = `${keyId}_${crypto.randomBytes(24).toString("hex")}`;
+    const keyHash = crypto.createHash("sha256").update(apiKey).digest("hex");
+
+    const expiresAt = expires_in_days ? new Date(Date.now() + expires_in_days * 24 * 60 * 60 * 1000) : null;
+
+    await pool.query(
+      `INSERT INTO api_keys (key_id, key_hash, owner_email, app_id, name, scopes, expires_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+      [keyId, keyHash, userEmail, app_id, name, scopes, expiresAt]
+    );
+
+    res.json({ key_id: keyId, api_key: apiKey, message: "Save this key securely - it won't be shown again" });
+  } catch (err) {
+    console.error("Failed to create API key:", err);
+    res.status(500).json({ message: "Failed to create API key" });
+  }
+});
+
+router.delete("/admin/api-keys/:key_id", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { key_id } = req.params;
+    const userEmail = (req as any).user.email;
+
+    await pool.query(
+      "DELETE FROM api_keys WHERE key_id = $1 AND owner_email = $2",
+      [key_id, userEmail]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Failed to delete API key:", err);
+    res.status(500).json({ message: "Failed to delete API key" });
+  }
+});
+
+// Admin: Fraud alerts
+router.get("/admin/fraud-alerts", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const userEmail = (req as any).user.email;
+    const { severity, is_resolved } = req.query;
+
+    let query = `
+      SELECT fa.id, fa.license_key, fa.alert_type, fa.severity, fa.details, 
+             fa.trust_score, fa.is_resolved, fa.auto_banned, fa.created_at
+      FROM fraud_alerts fa
+      JOIN licenses l ON fa.license_key = l.license_key
+      JOIN applications a ON l.app_id = a.app_id
+      WHERE a.owner_email = $1
+    `;
+    const params: any[] = [userEmail];
+    let paramIndex = 2;
+
+    if (severity) {
+      query += ` AND fa.severity = $${paramIndex}`;
+      params.push(severity);
+      paramIndex++;
+    }
+
+    if (is_resolved !== undefined) {
+      query += ` AND fa.is_resolved = $${paramIndex}`;
+      params.push(is_resolved === 'true');
+      paramIndex++;
+    }
+
+    query += ` ORDER BY fa.created_at DESC LIMIT 100`;
+
+    const result = await pool.query(query, params);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Failed to fetch fraud alerts:", err);
+    res.status(500).json({ message: "Failed to fetch fraud alerts" });
+  }
+});
+
+router.put("/admin/fraud-alerts/:alert_id/resolve", authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { alert_id } = req.params;
+    const userEmail = (req as any).user.email;
+
+    // Verify alert belongs to user's license
+    const verifyResult = await pool.query(
+      `SELECT fa.id FROM fraud_alerts fa
+       JOIN licenses l ON fa.license_key = l.license_key
+       JOIN applications a ON l.app_id = a.app_id
+       WHERE fa.id = $1 AND a.owner_email = $2`,
+      [alert_id, userEmail]
+    );
+
+    if (verifyResult.rows.length === 0) {
+      return res.status(403).json({ message: "Alert not found or access denied" });
+    }
+
+    await pool.query(
+      "UPDATE fraud_alerts SET is_resolved = TRUE WHERE id = $1",
+      [alert_id]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Failed to resolve alert:", err);
+    res.status(500).json({ message: "Failed to resolve alert" });
+  }
+});
+
+// Helper: Trigger webhook
+async function triggerWebhook(ownerEmail: string, eventType: string, payload: any) {
+  try {
+    // Get all active webhooks for this user that listen to this event
+    const webhooksResult = await pool.query(
+      `SELECT webhook_id, url, secret
+       FROM webhooks
+       WHERE owner_email = $1 AND is_active = TRUE AND $2 = ANY(events)`,
+      [ownerEmail, eventType]
+    );
+
+    for (const webhook of webhooksResult.rows) {
+      const webhookPayload = {
+        event: eventType,
+        webhook_id: webhook.webhook_id,
+        timestamp: new Date().toISOString(),
+        data: payload
+      };
+
+      // Insert delivery record
+      await pool.query(
+        `INSERT INTO webhook_deliveries (webhook_id, event_type, payload, next_retry_at)
+         VALUES ($1, $2, $3, NOW())`,
+        [webhook.webhook_id, eventType, webhookPayload]
+      );
+
+      // Attempt delivery (non-blocking)
+      deliverWebhook(webhook.webhook_id, webhook.url, webhook.secret, webhookPayload).catch((err) => {
+        console.error(`Webhook delivery failed for ${webhook.webhook_id}:`, err);
+      });
+    }
+  } catch (err) {
+    console.error("Error triggering webhooks:", err);
+  }
+}
+
+async function deliverWebhook(webhookId: string, url: string, secret: string, payload: any) {
+  try {
+    const fetch = (await import("node-fetch")).default;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Webhook-Secret": secret,
+        "X-Webhook-ID": webhookId
+      },
+      body: JSON.stringify(payload),
+      timeout: 10000
+    });
+
+    const responseBody = await response.text();
+
+    // Update delivery record
+    await pool.query(
+      `UPDATE webhook_deliveries
+       SET status_code = $1, response_body = $2, delivered_at = NOW()
+       WHERE webhook_id = $3 AND event_type = $4 AND delivered_at IS NULL
+       ORDER BY created_at DESC LIMIT 1`,
+      [response.status, responseBody.substring(0, 1000), webhookId, payload.event]
+    );
+  } catch (err: any) {
+    // Update delivery record as failed
+    await pool.query(
+      `UPDATE webhook_deliveries
+       SET failed_at = NOW(), response_body = $1
+       WHERE webhook_id = $2 AND event_type = $3 AND delivered_at IS NULL AND failed_at IS NULL
+       ORDER BY created_at DESC LIMIT 1`,
+      [err.message, webhookId, payload.event]
+    );
+  }
+}
+
+// Public: License portal (no auth required)
+router.get("/public/portal/:license_key", async (req: Request, res: Response) => {
+  try {
+    const { license_key } = req.params;
+
+    // Get license info
+    const licenseResult = await pool.query(
+      `SELECT l.license_key, l.app_id, l.expires_at, l.max_hwid_slots, l.is_banned, l.created_at,
+              a.owner_email
+       FROM licenses l
+       JOIN applications a ON l.app_id = a.app_id
+       WHERE l.license_key = $1`,
+      [license_key]
+    );
+
+    if (licenseResult.rows.length === 0) {
+      return res.status(404).json({ message: "License not found" });
+    }
+
+    const license = licenseResult.rows[0];
+
+    // Get HWID bindings
+    const hwidsResult = await pool.query(
+      `SELECT id, hwid_hash, device_name, last_seen, unbind_count, last_unbind_at
+       FROM hwid_slots
+       WHERE license_key = $1
+       ORDER BY last_seen DESC`,
+      [license_key]
+    );
+
+    // Calculate expiration days
+    const expiresAt = new Date(license.expires_at);
+    const now = new Date();
+    const daysRemaining = Math.ceil((expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+
+    res.json({
+      license_key: license.license_key,
+      expires_at: license.expires_at,
+      days_remaining: daysRemaining,
+      max_hwid_slots: license.max_hwid_slots,
+      is_banned: license.is_banned,
+      is_active: !license.is_banned && expiresAt > now,
+      hwid_bindings: hwidsResult.rows.map((row: any) => ({
+        id: row.id,
+        hwid_hash: row.hwid_hash.substring(0, 16) + "...",
+        device_name: row.device_name || "Unknown Device",
+        last_seen: row.last_seen,
+        unbind_count: row.unbind_count,
+        last_unbind_at: row.last_unbind_at,
+        can_unbind: row.unbind_count === 0 || 
+                   (row.last_unbind_at && new Date(row.last_unbind_at).getTime() < Date.now() - 7 * 24 * 60 * 60 * 1000)
+      }))
+    });
+  } catch (err) {
+    console.error("Failed to fetch portal data:", err);
+    res.status(500).json({ message: "Failed to fetch license data" });
+  }
+});
+
+// Public: Self-service unbind HWID (rate limited)
+router.post("/public/portal/:license_key/unbind/:hwid_id", async (req: Request, res: Response) => {
+  try {
+    const { license_key, hwid_id } = req.params;
+    const ip_address = req.headers["x-forwarded-for"] as string || req.socket.remoteAddress || "";
+
+    // Get HWID slot
+    const hwidResult = await pool.query(
+      `SELECT id, hwid_hash, unbind_count, last_unbind_at
+       FROM hwid_slots
+       WHERE id = $1 AND license_key = $2`,
+      [hwid_id, license_key]
+    );
+
+    if (hwidResult.rows.length === 0) {
+      return res.status(404).json({ message: "HWID binding not found" });
+    }
+
+    const hwid = hwidResult.rows[0];
+
+    // Check rate limit (1 unbind per 7 days)
+    if (hwid.last_unbind_at) {
+      const daysSinceLastUnbind = (Date.now() - new Date(hwid.last_unbind_at).getTime()) / (1000 * 60 * 60 * 24);
+      if (daysSinceLastUnbind < 7) {
+        return res.status(429).json({ 
+          message: "You can only unbind once every 7 days",
+          retry_after: Math.ceil(7 - daysSinceLastUnbind)
+        });
+      }
+    }
+
+    // Update unbind tracking
+    await pool.query(
+      `UPDATE hwid_slots
+       SET unbind_count = unbind_count + 1, last_unbind_at = NOW()
+       WHERE id = $1`,
+      [hwid_id]
+    );
+
+    // Delete the HWID binding
+    await pool.query("DELETE FROM hwid_slots WHERE id = $1", [hwid_id]);
+
+    // Log action
+    await pool.query(
+      `INSERT INTO portal_actions (license_key, action_type, hwid_hash, ip_address)
+       VALUES ($1, $2, $3, $4)`,
+      [license_key, "unbind", hwid.hwid_hash, ip_address]
+    );
+
+    res.json({ success: true, message: "Device unbound successfully" });
+  } catch (err) {
+    console.error("Failed to unbind HWID:", err);
+    res.status(500).json({ message: "Failed to unbind device" });
+  }
+});
+
+// Public: Update device name
+router.put("/public/portal/:license_key/device/:hwid_id/name", async (req: Request, res: Response) => {
+  try {
+    const { license_key, hwid_id } = req.params;
+    const { device_name } = req.body;
+
+    if (!device_name || device_name.length > 100) {
+      return res.status(400).json({ message: "Invalid device name" });
+    }
+
+    // Verify HWID belongs to license
+    const verifyResult = await pool.query(
+      "SELECT id FROM hwid_slots WHERE id = $1 AND license_key = $2",
+      [hwid_id, license_key]
+    );
+
+    if (verifyResult.rows.length === 0) {
+      return res.status(404).json({ message: "HWID binding not found" });
+    }
+
+    await pool.query(
+      "UPDATE hwid_slots SET device_name = $1 WHERE id = $2",
+      [device_name, hwid_id]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Failed to update device name:", err);
+    res.status(500).json({ message: "Failed to update device name" });
+  }
+});
+
+// Public: Get live validation count (for landing page)
+router.get("/public/stats", async (req: Request, res: Response) => {
+  try {
+    // Get total validations today
+    const validationsToday = await pool.query(
+      `SELECT COUNT(*) FROM validation_logs
+       WHERE created_at >= CURRENT_DATE`
+    );
+
+    // Get total licenses
+    const totalLicenses = await pool.query("SELECT COUNT(*) FROM licenses");
+
+    // Get active licenses
+    const activeLicenses = await pool.query(
+      "SELECT COUNT(*) FROM licenses WHERE expires_at > NOW() AND is_banned = FALSE"
+    );
+
+    res.json({
+      validations_today: parseInt(validationsToday.rows[0].count),
+      total_licenses: parseInt(totalLicenses.rows[0].count),
+      active_licenses: parseInt(activeLicenses.rows[0].count)
+    });
+  } catch (err) {
+    console.error("Failed to fetch public stats:", err);
+    res.status(500).json({ message: "Failed to fetch stats" });
+  }
+});
+

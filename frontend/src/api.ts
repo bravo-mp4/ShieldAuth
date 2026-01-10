@@ -2,10 +2,18 @@ import axios from "axios";
 
 const API_BASE = "/api/v1";
 
-// Add axios interceptor for auth token
-axios.interceptors.request.use((config) => {
+// Create axios instance with interceptor for auth token
+const apiClient = axios.create({
+  baseURL: API_BASE,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+// Add request interceptor to include auth token
+apiClient.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
-  if (token && config.url?.startsWith(API_BASE)) {
+  if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
@@ -31,23 +39,23 @@ export interface CheckHWIDRequest {
 
 export const api = {
   async getUsers(): Promise<User[]> {
-    const response = await axios.get(`${API_BASE}/users`);
+    const response = await apiClient.get("/users");
     return response.data;
   },
 
   async createUser(data: CreateUserRequest): Promise<User> {
-    const response = await axios.post(`${API_BASE}/users`, data);
+    const response = await apiClient.post("/users", data);
     return response.data;
   },
 
   async checkHWID(
     data: CheckHWIDRequest
   ): Promise<{ valid: boolean; user?: User }> {
-    const response = await axios.post(`${API_BASE}/check-hwid`, data);
+    const response = await apiClient.post("/check-hwid", data);
     return response.data;
   },
 
   async deleteUser(id: number): Promise<void> {
-    await axios.delete(`${API_BASE}/users/${id}`);
+    await apiClient.delete(`/users/${id}`);
   },
 };

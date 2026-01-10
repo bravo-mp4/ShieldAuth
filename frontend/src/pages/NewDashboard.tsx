@@ -1,7 +1,6 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-// @ts-expect-error - JS module
-import { users as usersApi } from "../services/api";
+import axios from "axios";
 // @ts-expect-error - JSX component
 import TopBar from "../components/TopBar";
 // @ts-expect-error - JSX component
@@ -9,24 +8,29 @@ import StatCard from "../components/StatCard";
 // @ts-expect-error - JSX component
 import OnboardingWizard from "../components/OnboardingWizard";
 
-interface User {
-  id: string;
-  username: string;
-  email: string;
-  expires_at: string;
-  created_at: string;
-  hwid: string;
-  status: "active" | "expired" | "banned";
+interface DashboardStats {
+  totalLicenses: number;
+  activeLicenses: number;
+  totalHwidBindings: number;
+  expiringThisWeek: number;
+  totalApplications: number;
+  recentActivity: Array<{
+    license_key: string;
+    created_at: string;
+    app_id: string;
+    expires_at: string;
+  }>;
 }
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [users, setUsers] = useState<User[]>([]);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
-    loadUsers();
+    loadStats();
 
     // Check if user has completed onboarding
     const hasCompletedOnboarding = localStorage.getItem("onboarding_completed");
@@ -35,26 +39,29 @@ export default function Dashboard() {
     }
   }, []);
 
-  const loadUsers = async () => {
+  const loadStats = async () => {
     try {
-      const response = await usersApi.list();
-      setUsers(response.data);
+      setLoading(true);
+      const token = localStorage.getItem("token");
+      const response = await axios.get("/api/v1/admin/stats", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setStats(response.data);
       setError("");
     } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to load users");
+      setError(err.response?.data?.message || "Failed to load stats");
+      setStats({
+        totalLicenses: 0,
+        activeLicenses: 0,
+        totalHwidBindings: 0,
+        expiringThisWeek: 0,
+        totalApplications: 0,
+        recentActivity: []
+      });
+    } finally {
+      setLoading(false);
     }
   };
-
-  const stats = useMemo(() => {
-    const now = new Date();
-    const active = users.filter((u) => new Date(u.expires_at) > now).length;
-    const today = users.filter((u) => {
-      const created = new Date(u.created_at);
-      return created.toDateString() === now.toDateString();
-    }).length;
-
-    return { total: users.length, active, newToday: today };
-  }, [users]);
 
   return (
     <div className="page">
@@ -90,15 +97,19 @@ export default function Dashboard() {
             className="btn btnPrimary"
             style={{ padding: "12px 20px", justifyContent: "flex-start" }}
             onClick={() => navigate("/users")}
+          <button
+            className="btn btnPrimary"
+            style={{ padding: "12px 20px", justifyContent: "flex-start" }}
+            onClick={() => navigate("/licenses")}
           >
             🔑 Create License
           </button>
           <button
             className="btn btnGhost"
             style={{ padding: "12px 20px", justifyContent: "flex-start" }}
-            onClick={() => window.open("/api-demo", "_blank")}
+            onClick={() => navigate("/applications")}
           >
-            ✓ Test Validation
+            📱 Manage Apps
           </button>
           <button
             className="btn btnGhost"
@@ -117,80 +128,173 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="grid4" style={{ marginBottom: 24 }}>
-        <StatCard
-          title="Total Users"
-          value={stats.total}
-          subtitle="All registered licenses"
-        />
-        <StatCard
-          title="Active Licenses"
-          value={stats.active}
-          subtitle="Currently valid"
-        />
-        <StatCard
-          title="New Today"
-          value={stats.newToday}
-          subtitle="Registrations"
-          trend={
-            stats.newToday > 0
-              ? { value: stats.newToday, isPositive: true }
-              : undefined
-          }
-        />
-        <div className="card">
-          <div className="cardTitle">System Status</div>
+      {loading ? (
+        <div style={{ textAlign: "center", padding: 40, color: "var(--text-muted)" }}>
+          Loading statistics...
+        </div>
+      ) : (
+        <>
+          <div className="grid4" style={{ marginBottom: 24 }}>
+            <StatCard
+              title="Total Licenses"
+              value={stats?.totalLicenses || 0}
+              subtitle="All created licenses"
+            />
+            <StatCard
+              title="Active Licenses"
+              value={stats?.activeLicenses || 0}
+              subtitle="Currently valid"
+            />
+            <StatCard
+              title="HWID Bindings"
+              value={stats?.totalHwidBindings || 0}
+              subtitle="Devices protected"
+            />
+            <div className="card">
+              <div className="cardTitle">Expiring Soon</div>
+              <div
+                style={{
+                  fontSize: "2rem",
+                  fontWeight: 700,
+                  color: stats?.expiringThisWeek ? (stats.expiringThisWeek > 0 ? "var(--warning)" : "var(--success)") : "var(--text)",
+                  marginTop: 8,
+                }}
+              >
+                {stats?.expiringThisWeek || 0}
+              </div>
+              <div className="muted" style={{ marginTop: 8, fontSize: "0.85rem" }}>
+                Next 7 days
+              </div>
+            </div>
+          </div>
+
           <div
             style={{
-              fontSize: "1.2rem",
-              fontWeight: 600,
-              color: "var(--success)",
-              marginTop: 8,
+              display: "grid",
+              gridTemplateColumns: "2fr 1fr",
+              gap: 24,
+              marginBottom: 24,
             }}
           >
-            ● Operational
+            <div className="card" style={{ padding: 24 }}>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: 20,
+                }}
+              >
+                <h3 style={{ fontSize: "1.2rem", fontWeight: 600 }}>
+                  Recent Licenses
+                </h3>
+                <button
+                  className="btn btnGhost"
+                  style={{ padding: "6px 12px", fontSize: "0.85rem" }}
+                  onClick={() => navigate("/licenses")}
+                >
+                  View All
+                </button>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                {stats?.recentActivity && stats.recentActivity.length > 0 ? (
+                  stats.recentActivity.slice(0, 5).map((activity, idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        padding: 12,
+                        background: "var(--bg-elevated)",
+                        borderRadius: 8,
+                        gap: 12,
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: 8,
+                          background: "var(--primary-bg)",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: "1.2rem",
+                        }}
+                      >
+                        ✓
+                      </div>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ fontWeight: 500, fontSize: "0.9rem", fontFamily: "monospace" }}>
+                          {activity.license_key.substring(0, 16)}...
+                        </div>
+                        <div className="muted" style={{ fontSize: "0.8rem" }}>
+                          App: {activity.app_id.substring(0, 8)}... • Expires: {new Date(activity.expires_at).toLocaleDateString()}
+                        </div>
+                      </div>
+                      <div className="muted" style={{ fontSize: "0.75rem" }}>
+                        {new Date(activity.created_at).toLocaleDateString()}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div style={{ textAlign: "center", padding: 40, color: "var(--text-muted)" }}>
+                    No licenses created yet
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="card" style={{ padding: 24 }}>
+              <h3 style={{ fontSize: "1.2rem", fontWeight: 600, marginBottom: 20 }}>
+                Quick Stats
+              </h3>
+              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                <div>
+                  <div className="muted" style={{ fontSize: "0.8rem", marginBottom: 4 }}>
+                    Applications
+                  </div>
+                  <div style={{ fontSize: "1.5rem", fontWeight: 700 }}>
+                    {stats?.totalApplications || 0}
+                  </div>
+                </div>
+                <div>
+                  <div className="muted" style={{ fontSize: "0.8rem", marginBottom: 4 }}>
+                    Active Rate
+                  </div>
+                  <div style={{ fontSize: "1.5rem", fontWeight: 700, color: "var(--primary)" }}>
+                    {stats?.totalLicenses ? Math.round((stats.activeLicenses / stats.totalLicenses) * 100) : 0}%
+                  </div>
+                </div>
+                <div>
+                  <div className="muted" style={{ fontSize: "0.8rem", marginBottom: 4 }}>
+                    Avg HWID/License
+                  </div>
+                  <div style={{ fontSize: "1.5rem", fontWeight: 700 }}>
+                    {stats?.totalLicenses ? (stats.totalHwidBindings / stats.totalLicenses).toFixed(1) : "0"}
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="muted" style={{ marginTop: 8, fontSize: "0.85rem" }}>
-            All systems running
-          </div>
-        </div>
-      </div>
+        </>
+      )}
 
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "2fr 1fr",
-          gap: 24,
-          marginBottom: 24,
+          gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+          gap: 16,
         }}
       >
-        <div className="card" style={{ padding: 24 }}>
+        <div className="card" style={{ padding: 20 }}>
           <div
             style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginBottom: 20,
+              fontSize: "2rem",
+              marginBottom: 8,
             }}
           >
-            <h3 style={{ fontSize: "1.2rem", fontWeight: 600 }}>
-              Recent Activity
-            </h3>
-            <button
-              className="btn btnGhost"
-              style={{ padding: "6px 12px", fontSize: "0.85rem" }}
-            >
-              View All
-            </button>
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            {[
-              {
-                type: "success",
-                icon: "✓",
-                title: "License validated",
-                desc: "user_8473 • GameApp_Pro",
-                time: "2 min ago",
+            {/* Removed fake activity items */}
               },
               {
                 type: "success",
