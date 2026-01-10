@@ -4,10 +4,23 @@ import MobileMenu from "./MobileMenu";
 
 export default function Layout() {
   const navigate = useNavigate();
+  
+  // Get user data from localStorage
+  const getUserData = () => {
+    try {
+      const userStr = localStorage.getItem("user");
+      return userStr ? JSON.parse(userStr) : { name: "User", email: "user@example.com" };
+    } catch {
+      return { name: "User", email: "user@example.com" };
+    }
+  };
+  
+  const user = getUserData();
 
   const handleLogout = () => {
-    // Clear token
+    // Clear token and user data
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
     // Redirect to login
     navigate("/login");
   };
@@ -102,9 +115,9 @@ export default function Layout() {
               fontSize: "0.85rem",
             }}
           >
-            <div style={{ fontWeight: 600, marginBottom: "2px" }}>Admin</div>
+            <div style={{ fontWeight: 600, marginBottom: "2px" }}>{user.name || user.email?.split('@')[0]}</div>
             <div style={{ color: "var(--text-muted)", fontSize: "0.75rem" }}>
-              admin@shieldlabs.com
+              {user.email}
             </div>
           </div>
           <button

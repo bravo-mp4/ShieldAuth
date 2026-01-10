@@ -1,6 +1,7 @@
 import axios from "axios";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:3000/api/v1";
+// Use relative path for API calls - Vercel will proxy /api/v1/* to Railway backend
+const API_BASE = "/api/v1";
 
 // Create axios instance with default config
 const api = axios.create({
@@ -8,7 +9,6 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: true, // Enable sending cookies/credentials
 });
 
 // Add auth token to requests if it exists

@@ -23,8 +23,9 @@ export default function Login() {
       // Call backend API
       const response = await auth.login(email, password);
 
-      // Save token for future requests
+      // Save token and user data for future requests
       localStorage.setItem("token", response.data.token);
+      localStorage.setItem("user", JSON.stringify(response.data.user));
 
       // Show success message
       showSuccess("Welcome back!");
@@ -100,7 +101,7 @@ export default function Login() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@shieldlabs.com"
+              placeholder="your@email.com"
               required
               disabled={loading}
             />
@@ -127,28 +128,6 @@ export default function Login() {
             {loading ? "Signing in..." : "Sign In"}
           </button>
         </form>
-
-        {/* Demo credentials hint */}
-        <div
-          style={{
-            marginTop: 24,
-            padding: 16,
-            background: "var(--bg-elevated)",
-            borderRadius: 8,
-            fontSize: "0.85rem",
-          }}
-        >
-          <div className="muted" style={{ marginBottom: 8 }}>
-            Demo Credentials:
-          </div>
-          <div
-            style={{ fontFamily: "monospace", color: "var(--primary-light)" }}
-          >
-            admin@shieldlabs.com
-            <br />
-            admin123
-          </div>
-        </div>
       </div>
     </div>
   );

@@ -56,6 +56,7 @@ import Users from "./pages/Users";
 import Logs from "./pages/Logs";
 import SettingsPage from "./pages/Settings";
 import Licenses from "./pages/Licenses";
+import LicensePortal from "./pages/LicensePortal";
 import "./App.css";
 
 export default function App() {
@@ -85,6 +86,7 @@ export default function App() {
       <Route path="/privacy" element={<Privacy />} />
       <Route path="/changelog" element={<Changelog />} />
       <Route path="/docs" element={<Documentation />} />
+      <Route path="/portal/:licenseKey" element={<LicensePortal />} />
 
       {/* Protected Routes */}
       <Route element={<ProtectedRoute />}>
