@@ -6,7 +6,7 @@ REM Add all changes
 git add .
 
 REM Commit with message
-git commit -m "Fix Licenses page to match database schema - remove username/email fields"
+git commit -m "Add debug logging to Create License button"
 
 REM Push to GitHub
 git push
