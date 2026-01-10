@@ -6,7 +6,7 @@ REM Add all changes
 git add .
 
 REM Commit with message
-git commit -m "Fix Vercel proxy - route /api/v1 to Railway backend"
+git commit -m "Fix /admin/licenses - filter by user and add error logging"
 
 REM Push to GitHub
 git push

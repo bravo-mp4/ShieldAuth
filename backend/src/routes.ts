@@ -518,6 +518,9 @@ router.post("/admin/license/create", authenticateToken, async (req: Request, res
 // Admin: List all licenses
 router.get("/admin/licenses", authenticateToken, async (req: Request, res: Response) => {
   try {
+    const userEmail = (req as any).user.email;
+    console.log("[/admin/licenses] Fetching licenses for user:", userEmail);
+    
     const result = await pool.query(
       `SELECT 
         l.license_key,
@@ -529,13 +532,17 @@ router.get("/admin/licenses", authenticateToken, async (req: Request, res: Respo
         l.created_at,
         l.is_active
        FROM licenses l
-       ORDER BY l.created_at DESC`
+       JOIN applications a ON l.app_id = a.app_id
+       WHERE a.owner_email = $1
+       ORDER BY l.created_at DESC`,
+      [userEmail]
     );
 
+    console.log("[/admin/licenses] Found", result.rows.length, "licenses");
     res.json(result.rows);
   } catch (err) {
-    console.error("Failed to fetch licenses:", err);
-    res.status(500).json({ message: "Failed to fetch licenses" });
+    console.error("[/admin/licenses] Error fetching licenses:", err);
+    res.status(500).json({ message: "Failed to fetch licenses", error: String(err) });
   }
 });
 
