@@ -1782,3 +1782,662 @@ router.get("/public/stats", async (req: Request, res: Response) => {
   }
 });
 
+// ================================================================
+// DYNAMIC CONTENT SYSTEM ENDPOINTS
+// ================================================================
+
+// -------------------- BLOG ENDPOINTS --------------------
+
+// GET /api/v1/public/blog - Get all published blog posts
+app.get("/api/v1/public/blog", async (req, res) => {
+  try {
+    const { category, featured, limit = "10", offset = "0" } = req.query;
+    
+    let query = `
+      SELECT post_id, title, slug, excerpt, featured_emoji, category, 
+             read_time_minutes, published_at, views, likes, author_email
+      FROM blog_posts
+      WHERE is_published = true
+    `;
+    const params: any[] = [];
+    let paramCount = 0;
+
+    if (category) {
+      paramCount++;
+      query += ` AND category = $${paramCount}`;
+      params.push(category);
+    }
+
+    if (featured === "true") {
+      query += ` AND is_featured = true`;
+    }
+
+    query += ` ORDER BY published_at DESC LIMIT $${paramCount + 1} OFFSET $${paramCount + 2}`;
+    params.push(limit, offset);
+
+    const result = await pool.query(query, params);
+    
+    // Get total count
+    const countResult = await pool.query(
+      `SELECT COUNT(*) FROM blog_posts WHERE is_published = true`
+    );
+
+    res.json({
+      posts: result.rows,
+      total: parseInt(countResult.rows[0].count),
+      limit: parseInt(limit as string),
+      offset: parseInt(offset as string)
+    });
+  } catch (err) {
+    console.error("Failed to fetch blog posts:", err);
+    res.status(500).json({ message: "Failed to fetch blog posts" });
+  }
+});
+
+// GET /api/v1/public/blog/:slug - Get single blog post
+app.get("/api/v1/public/blog/:slug", async (req, res) => {
+  try {
+    const { slug } = req.params;
+
+    // Increment view count
+    await pool.query(
+      `UPDATE blog_posts SET views = views + 1 WHERE slug = $1 AND is_published = true`,
+      [slug]
+    );
+
+    const result = await pool.query(
+      `SELECT * FROM blog_posts WHERE slug = $1 AND is_published = true`,
+      [slug]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Blog post not found" });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error("Failed to fetch blog post:", err);
+    res.status(500).json({ message: "Failed to fetch blog post" });
+  }
+});
+
+// POST /api/v1/public/blog/:slug/like - Like a blog post (rate limited)
+app.post("/api/v1/public/blog/:slug/like", async (req, res) => {
+  try {
+    const { slug } = req.params;
+
+    await pool.query(
+      `UPDATE blog_posts SET likes = likes + 1 WHERE slug = $1 AND is_published = true`,
+      [slug]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Failed to like blog post:", err);
+    res.status(500).json({ message: "Failed to like post" });
+  }
+});
+
+// POST /api/v1/admin/blog - Create blog post (ADMIN)
+app.post("/api/v1/admin/blog", authenticateToken, async (req, res) => {
+  try {
+    const { title, excerpt, content, featured_emoji, category, read_time_minutes, is_featured, is_published } = req.body;
+    
+    // Generate slug from title
+    const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    
+    const result = await pool.query(
+      `INSERT INTO blog_posts (title, slug, excerpt, content, featured_emoji, author_email, category, 
+       read_time_minutes, is_featured, is_published, published_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+       RETURNING *`,
+      [title, slug, excerpt, content, featured_emoji, req.user.email, category, 
+       read_time_minutes, is_featured, is_published, is_published ? new Date() : null]
+    );
+
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error("Failed to create blog post:", err);
+    res.status(500).json({ message: "Failed to create blog post" });
+  }
+});
+
+// PUT /api/v1/admin/blog/:post_id - Update blog post (ADMIN)
+app.put("/api/v1/admin/blog/:post_id", authenticateToken, async (req, res) => {
+  try {
+    const { post_id } = req.params;
+    const { title, excerpt, content, featured_emoji, category, read_time_minutes, is_featured, is_published } = req.body;
+
+    const result = await pool.query(
+      `UPDATE blog_posts 
+       SET title = $1, excerpt = $2, content = $3, featured_emoji = $4, category = $5,
+           read_time_minutes = $6, is_featured = $7, is_published = $8, updated_at = NOW(),
+           published_at = CASE WHEN $8 = true AND published_at IS NULL THEN NOW() ELSE published_at END
+       WHERE post_id = $9
+       RETURNING *`,
+      [title, excerpt, content, featured_emoji, category, read_time_minutes, is_featured, is_published, post_id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Blog post not found" });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error("Failed to update blog post:", err);
+    res.status(500).json({ message: "Failed to update blog post" });
+  }
+});
+
+// DELETE /api/v1/admin/blog/:post_id - Delete blog post (ADMIN)
+app.delete("/api/v1/admin/blog/:post_id", authenticateToken, async (req, res) => {
+  try {
+    const { post_id } = req.params;
+
+    await pool.query(`DELETE FROM blog_posts WHERE post_id = $1`, [post_id]);
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Failed to delete blog post:", err);
+    res.status(500).json({ message: "Failed to delete blog post" });
+  }
+});
+
+// -------------------- CHANGELOG ENDPOINTS --------------------
+
+// GET /api/v1/public/changelog - Get all changelog entries
+app.get("/api/v1/public/changelog", async (req, res) => {
+  try {
+    const entriesResult = await pool.query(
+      `SELECT * FROM changelog_entries WHERE is_published = true ORDER BY release_date DESC`
+    );
+
+    const entries = await Promise.all(
+      entriesResult.rows.map(async (entry) => {
+        const changesResult = await pool.query(
+          `SELECT change_type, description FROM changelog_changes 
+           WHERE entry_id = $1 ORDER BY sort_order, change_id`,
+          [entry.entry_id]
+        );
+
+        // Group changes by type
+        const changes: any = { new: [], improved: [], fixed: [], deprecated: [], security: [] };
+        changesResult.rows.forEach((change) => {
+          changes[change.change_type].push(change.description);
+        });
+
+        return {
+          version: entry.version,
+          date: entry.release_date,
+          changes
+        };
+      })
+    );
+
+    res.json(entries);
+  } catch (err) {
+    console.error("Failed to fetch changelog:", err);
+    res.status(500).json({ message: "Failed to fetch changelog" });
+  }
+});
+
+// POST /api/v1/admin/changelog - Create changelog entry (ADMIN)
+app.post("/api/v1/admin/changelog", authenticateToken, async (req, res) => {
+  try {
+    const { version, release_date, changes } = req.body;
+
+    // Create entry
+    const entryResult = await pool.query(
+      `INSERT INTO changelog_entries (version, release_date) VALUES ($1, $2) RETURNING *`,
+      [version, release_date]
+    );
+
+    const entry_id = entryResult.rows[0].entry_id;
+
+    // Add changes
+    for (const [type, descriptions] of Object.entries(changes)) {
+      if (Array.isArray(descriptions)) {
+        for (const description of descriptions) {
+          await pool.query(
+            `INSERT INTO changelog_changes (entry_id, change_type, description) VALUES ($1, $2, $3)`,
+            [entry_id, type, description]
+          );
+        }
+      }
+    }
+
+    res.status(201).json(entryResult.rows[0]);
+  } catch (err) {
+    console.error("Failed to create changelog:", err);
+    res.status(500).json({ message: "Failed to create changelog" });
+  }
+});
+
+// DELETE /api/v1/admin/changelog/:entry_id - Delete changelog entry (ADMIN)
+app.delete("/api/v1/admin/changelog/:entry_id", authenticateToken, async (req, res) => {
+  try {
+    const { entry_id } = req.params;
+
+    await pool.query(`DELETE FROM changelog_entries WHERE entry_id = $1`, [entry_id]);
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Failed to delete changelog:", err);
+    res.status(500).json({ message: "Failed to delete changelog" });
+  }
+});
+
+// -------------------- STATUS & MONITORING ENDPOINTS --------------------
+
+// GET /api/v1/public/status - Get current service status
+app.get("/api/v1/public/status", async (req, res) => {
+  try {
+    const monitorsResult = await pool.query(
+      `SELECT m.*, 
+        (SELECT status FROM service_status_logs 
+         WHERE monitor_id = m.monitor_id 
+         ORDER BY checked_at DESC LIMIT 1) as current_status,
+        (SELECT response_time_ms FROM service_status_logs 
+         WHERE monitor_id = m.monitor_id 
+         ORDER BY checked_at DESC LIMIT 1) as last_response_time
+       FROM service_monitors m
+       WHERE is_active = true`
+    );
+
+    // Calculate uptime for each service (last 30 days)
+    const services = await Promise.all(
+      monitorsResult.rows.map(async (monitor) => {
+        const uptimeResult = await pool.query(
+          `SELECT 
+            COUNT(*) as total_checks,
+            COUNT(*) FILTER (WHERE status = 'operational') as operational_checks
+           FROM service_status_logs
+           WHERE monitor_id = $1 AND checked_at > NOW() - INTERVAL '30 days'`,
+          [monitor.monitor_id]
+        );
+
+        const total = parseInt(uptimeResult.rows[0].total_checks);
+        const operational = parseInt(uptimeResult.rows[0].operational_checks);
+        const uptime = total > 0 ? ((operational / total) * 100).toFixed(2) : "100.00";
+
+        return {
+          name: monitor.service_name,
+          description: monitor.service_description,
+          status: monitor.current_status || "operational",
+          uptime: `${uptime}%`,
+          response_time_ms: monitor.last_response_time
+        };
+      })
+    );
+
+    // Get active incidents
+    const incidentsResult = await pool.query(
+      `SELECT i.*, m.service_name
+       FROM status_incidents i
+       JOIN service_monitors m ON i.monitor_id = m.monitor_id
+       WHERE i.resolved_at IS NULL
+       ORDER BY i.started_at DESC`
+    );
+
+    res.json({
+      overall_status: services.every(s => s.status === "operational") ? "operational" : "degraded",
+      services,
+      active_incidents: incidentsResult.rows
+    });
+  } catch (err) {
+    console.error("Failed to fetch status:", err);
+    res.status(500).json({ message: "Failed to fetch status" });
+  }
+});
+
+// GET /api/v1/public/status/incidents - Get recent incidents
+app.get("/api/v1/public/status/incidents", async (req, res) => {
+  try {
+    const { limit = "10" } = req.query;
+
+    const result = await pool.query(
+      `SELECT i.*, m.service_name,
+        (SELECT json_agg(json_build_object('message', message, 'status', status, 'posted_at', posted_at))
+         FROM incident_updates WHERE incident_id = i.incident_id ORDER BY posted_at DESC) as updates
+       FROM status_incidents i
+       JOIN service_monitors m ON i.monitor_id = m.monitor_id
+       ORDER BY i.started_at DESC
+       LIMIT $1`,
+      [limit]
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Failed to fetch incidents:", err);
+    res.status(500).json({ message: "Failed to fetch incidents" });
+  }
+});
+
+// POST /api/v1/admin/status/incident - Create incident (ADMIN)
+app.post("/api/v1/admin/status/incident", authenticateToken, async (req, res) => {
+  try {
+    const { monitor_id, title, description, severity } = req.body;
+
+    const result = await pool.query(
+      `INSERT INTO status_incidents (monitor_id, title, description, severity, started_at)
+       VALUES ($1, $2, $3, $4, NOW()) RETURNING *`,
+      [monitor_id, title, description, severity]
+    );
+
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error("Failed to create incident:", err);
+    res.status(500).json({ message: "Failed to create incident" });
+  }
+});
+
+// POST /api/v1/admin/status/incident/:incident_id/update - Add incident update (ADMIN)
+app.post("/api/v1/admin/status/incident/:incident_id/update", authenticateToken, async (req, res) => {
+  try {
+    const { incident_id } = req.params;
+    const { message, status } = req.body;
+
+    await pool.query(
+      `INSERT INTO incident_updates (incident_id, message, status) VALUES ($1, $2, $3)`,
+      [incident_id, message, status]
+    );
+
+    // Update incident status and resolved_at if status is 'resolved'
+    await pool.query(
+      `UPDATE status_incidents 
+       SET status = $1, resolved_at = CASE WHEN $1 = 'resolved' THEN NOW() ELSE resolved_at END
+       WHERE incident_id = $2`,
+      [status, incident_id]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Failed to add incident update:", err);
+    res.status(500).json({ message: "Failed to add incident update" });
+  }
+});
+
+// -------------------- TESTIMONIALS & FAQ ENDPOINTS --------------------
+
+// GET /api/v1/public/testimonials - Get approved testimonials
+app.get("/api/v1/public/testimonials", async (req, res) => {
+  try {
+    const { featured, limit = "20" } = req.query;
+
+    let query = `SELECT * FROM testimonials WHERE is_approved = true`;
+    
+    if (featured === "true") {
+      query += ` AND is_featured = true`;
+    }
+
+    query += ` ORDER BY display_order, testimonial_id DESC LIMIT $1`;
+
+    const result = await pool.query(query, [limit]);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Failed to fetch testimonials:", err);
+    res.status(500).json({ message: "Failed to fetch testimonials" });
+  }
+});
+
+// POST /api/v1/admin/testimonials - Create testimonial (ADMIN)
+app.post("/api/v1/admin/testimonials", authenticateToken, async (req, res) => {
+  try {
+    const { author_name, author_role, author_company, author_avatar_url, quote, rating, is_featured } = req.body;
+
+    const result = await pool.query(
+      `INSERT INTO testimonials (author_name, author_role, author_company, author_avatar_url, 
+       quote, rating, is_featured, is_approved, approved_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, true, NOW()) RETURNING *`,
+      [author_name, author_role, author_company, author_avatar_url, quote, rating, is_featured]
+    );
+
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error("Failed to create testimonial:", err);
+    res.status(500).json({ message: "Failed to create testimonial" });
+  }
+});
+
+// GET /api/v1/public/faqs - Get published FAQs
+app.get("/api/v1/public/faqs", async (req, res) => {
+  try {
+    const { category, limit = "50" } = req.query;
+
+    let query = `SELECT * FROM faqs WHERE is_published = true`;
+    const params: any[] = [];
+
+    if (category) {
+      query += ` AND category = $1`;
+      params.push(category);
+    }
+
+    query += ` ORDER BY display_order, faq_id LIMIT $${params.length + 1}`;
+    params.push(limit);
+
+    const result = await pool.query(query, params);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Failed to fetch FAQs:", err);
+    res.status(500).json({ message: "Failed to fetch FAQs" });
+  }
+});
+
+// POST /api/v1/public/faqs/:faq_id/helpful - Mark FAQ as helpful
+app.post("/api/v1/public/faqs/:faq_id/helpful", async (req, res) => {
+  try {
+    const { faq_id } = req.params;
+    const { helpful } = req.body;
+
+    const field = helpful ? "helpful_yes" : "helpful_no";
+    
+    await pool.query(
+      `UPDATE faqs SET ${field} = ${field} + 1, views = views + 1 WHERE faq_id = $1`,
+      [faq_id]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Failed to update FAQ:", err);
+    res.status(500).json({ message: "Failed to update FAQ" });
+  }
+});
+
+// POST /api/v1/admin/faqs - Create FAQ (ADMIN)
+app.post("/api/v1/admin/faqs", authenticateToken, async (req, res) => {
+  try {
+    const { question, answer, category, display_order } = req.body;
+
+    const result = await pool.query(
+      `INSERT INTO faqs (question, answer, category, display_order) 
+       VALUES ($1, $2, $3, $4) RETURNING *`,
+      [question, answer, category, display_order || 0]
+    );
+
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error("Failed to create FAQ:", err);
+    res.status(500).json({ message: "Failed to create FAQ" });
+  }
+});
+
+// -------------------- SUPPORT TICKET ENDPOINTS --------------------
+
+// GET /api/v1/support/tickets - Get user's tickets
+app.get("/api/v1/support/tickets", authenticateToken, async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT t.*,
+        (SELECT COUNT(*) FROM ticket_messages WHERE ticket_id = t.ticket_id) as message_count
+       FROM support_tickets t
+       WHERE user_email = $1
+       ORDER BY created_at DESC`,
+      [req.user.email]
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Failed to fetch tickets:", err);
+    res.status(500).json({ message: "Failed to fetch tickets" });
+  }
+});
+
+// GET /api/v1/support/tickets/:ticket_number - Get ticket details
+app.get("/api/v1/support/tickets/:ticket_number", authenticateToken, async (req, res) => {
+  try {
+    const { ticket_number } = req.params;
+
+    const ticketResult = await pool.query(
+      `SELECT * FROM support_tickets WHERE ticket_number = $1 AND user_email = $2`,
+      [ticket_number, req.user.email]
+    );
+
+    if (ticketResult.rows.length === 0) {
+      return res.status(404).json({ message: "Ticket not found" });
+    }
+
+    const messagesResult = await pool.query(
+      `SELECT * FROM ticket_messages WHERE ticket_id = $1 AND is_internal_note = false ORDER BY created_at`,
+      [ticketResult.rows[0].ticket_id]
+    );
+
+    res.json({
+      ticket: ticketResult.rows[0],
+      messages: messagesResult.rows
+    });
+  } catch (err) {
+    console.error("Failed to fetch ticket:", err);
+    res.status(500).json({ message: "Failed to fetch ticket" });
+  }
+});
+
+// POST /api/v1/support/tickets - Create support ticket
+app.post("/api/v1/support/tickets", authenticateToken, async (req, res) => {
+  try {
+    const { subject, priority, category, message } = req.body;
+
+    // Generate ticket number
+    const countResult = await pool.query(`SELECT COUNT(*) FROM support_tickets`);
+    const ticket_number = `TKT-${String(parseInt(countResult.rows[0].count) + 1000).padStart(4, '0')}`;
+
+    const ticketResult = await pool.query(
+      `INSERT INTO support_tickets (ticket_number, user_email, subject, priority, category)
+       VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+      [ticket_number, req.user.email, subject, priority, category]
+    );
+
+    // Add first message
+    await pool.query(
+      `INSERT INTO ticket_messages (ticket_id, sender_email, message)
+       VALUES ($1, $2, $3)`,
+      [ticketResult.rows[0].ticket_id, req.user.email, message]
+    );
+
+    res.status(201).json(ticketResult.rows[0]);
+  } catch (err) {
+    console.error("Failed to create ticket:", err);
+    res.status(500).json({ message: "Failed to create ticket" });
+  }
+});
+
+// POST /api/v1/support/tickets/:ticket_number/messages - Reply to ticket
+app.post("/api/v1/support/tickets/:ticket_number/messages", authenticateToken, async (req, res) => {
+  try {
+    const { ticket_number } = req.params;
+    const { message } = req.body;
+
+    const ticketResult = await pool.query(
+      `SELECT ticket_id FROM support_tickets WHERE ticket_number = $1 AND user_email = $2`,
+      [ticket_number, req.user.email]
+    );
+
+    if (ticketResult.rows.length === 0) {
+      return res.status(404).json({ message: "Ticket not found" });
+    }
+
+    await pool.query(
+      `INSERT INTO ticket_messages (ticket_id, sender_email, message)
+       VALUES ($1, $2, $3)`,
+      [ticketResult.rows[0].ticket_id, req.user.email, message]
+    );
+
+    // Update ticket
+    await pool.query(
+      `UPDATE support_tickets 
+       SET updated_at = NOW(), last_customer_reply_at = NOW(), status = 'open'
+       WHERE ticket_id = $1`,
+      [ticketResult.rows[0].ticket_id]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error("Failed to add message:", err);
+    res.status(500).json({ message: "Failed to add message" });
+  }
+});
+
+// -------------------- CONTACT FORM ENDPOINT --------------------
+
+// POST /api/v1/public/contact - Submit contact form
+app.post("/api/v1/public/contact", async (req, res) => {
+  try {
+    const { name, email, subject, message } = req.body;
+    const ip_address = req.ip;
+    const user_agent = req.headers["user-agent"];
+
+    await pool.query(
+      `INSERT INTO contact_submissions (name, email, subject, message, ip_address, user_agent)
+       VALUES ($1, $2, $3, $4, $5, $6)`,
+      [name, email, subject, message, ip_address, user_agent]
+    );
+
+    res.json({ success: true, message: "Thank you for contacting us! We'll get back to you within 24 hours." });
+  } catch (err) {
+    console.error("Failed to submit contact form:", err);
+    res.status(500).json({ message: "Failed to submit contact form" });
+  }
+});
+
+// GET /api/v1/admin/contact - Get contact submissions (ADMIN)
+app.get("/api/v1/admin/contact", authenticateToken, async (req, res) => {
+  try {
+    const { is_read, limit = "50", offset = "0" } = req.query;
+
+    let query = `SELECT * FROM contact_submissions WHERE is_spam = false`;
+    const params: any[] = [];
+
+    if (is_read !== undefined) {
+      params.push(is_read === "true");
+      query += ` AND is_read = $${params.length}`;
+    }
+
+    query += ` ORDER BY created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
+    params.push(limit, offset);
+
+    const result = await pool.query(query, params);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Failed to fetch contact submissions:", err);
+    res.status(500).json({ message: "Failed to fetch submissions" });
+  }
+});
+
+// -------------------- COMPANY INFO ENDPOINTS --------------------
+
+// GET /api/v1/public/about/milestones - Get company milestones
+app.get("/api/v1/public/about/milestones", async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT * FROM company_milestones WHERE is_published = true ORDER BY year DESC, month DESC, display_order`
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error("Failed to fetch milestones:", err);
+    res.status(500).json({ message: "Failed to fetch milestones" });
+  }
+});
+

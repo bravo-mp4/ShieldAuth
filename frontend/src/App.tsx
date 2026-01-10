@@ -16,10 +16,9 @@ import ResetPassword from "./pages/ResetPassword";
 import Features from "./pages/Features";
 // @ts-expect-error - JSX component
 import Pricing from "./pages/Pricing";
-// @ts-expect-error - JSX component
 import Status from "./pages/Status";
-// @ts-expect-error - JSX component
 import Blog from "./pages/Blog";
+import BlogPost from "./pages/BlogPost";
 // @ts-expect-error - JSX component
 import About from "./pages/About";
 // @ts-expect-error - JSX component
@@ -28,7 +27,6 @@ import Contact from "./pages/Contact";
 import Terms from "./pages/Terms";
 // @ts-expect-error - JSX component
 import Privacy from "./pages/Privacy";
-// @ts-expect-error - JSX component
 import Changelog from "./pages/Changelog";
 // @ts-expect-error - JSX component
 import Documentation from "./pages/Documentation";
@@ -80,6 +78,7 @@ export default function App() {
       <Route path="/api-demo" element={<APIDemo />} />
       <Route path="/status" element={<Status />} />
       <Route path="/blog" element={<Blog />} />
+      <Route path="/blog/:slug" element={<BlogPost />} />
       <Route path="/about" element={<About />} />
       <Route path="/contact" element={<Contact />} />
       <Route path="/terms" element={<Terms />} />

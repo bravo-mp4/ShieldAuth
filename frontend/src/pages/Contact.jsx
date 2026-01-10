@@ -1,8 +1,11 @@
 import { useState } from "react";
+import axios from "axios";
 // @ts-expect-error - JSX component
 import PublicNav from "../components/PublicNav";
 // @ts-expect-error - JSX component
 import PublicFooter from "../components/PublicFooter";
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 
 export default function Contact() {
   const [name, setName] = useState("");
@@ -10,11 +13,28 @@ export default function Contact() {
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle contact form submission
-    setSubmitted(true);
+    setSubmitting(true);
+    setError("");
+
+    try {
+      await axios.post(`${API_BASE_URL}/api/v1/public/contact`, {
+        name,
+        email,
+        subject,
+        message,
+      });
+      setSubmitted(true);
+    } catch (err) {
+      console.error("Failed to submit contact form:", err);
+      setError("Failed to send message. Please try again.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   if (submitted) {
@@ -125,12 +145,28 @@ export default function Contact() {
                 />
               </div>
 
+              {error && (
+                <div
+                  style={{
+                    padding: 12,
+                    background: "var(--error-bg)",
+                    color: "var(--error)",
+                    borderRadius: 6,
+                    marginBottom: 16,
+                    fontSize: "0.9rem",
+                  }}
+                >
+                  {error}
+                </div>
+              )}
+
               <button
                 type="submit"
                 className="btn btnPrimary"
                 style={{ width: "100%" }}
+                disabled={submitting}
               >
-                Send Message
+                {submitting ? "Sending..." : "Send Message"}
               </button>
             </form>
           </div>
