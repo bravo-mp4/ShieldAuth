@@ -65,11 +65,11 @@ a.muted:hover {
 .brandLogo .brandName {
   font-size: 1.5rem;
   font-weight: 800;
-  background: linear-gradient(135deg, var(--primary) 0%, #00cc34 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, #059669 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  text-shadow: 0 0 30px rgba(0, 255, 65, 0.3);
+  text-shadow: 0 0 30px rgba(16, 185, 129, 0.3);
 }
 
 /* Navigation Pill */
@@ -843,11 +843,11 @@ a.muted:hover {
 }
 
 .heroAccent {
-  background: linear-gradient(135deg, var(--primary) 0%, #00cc34 100%);
+  background: linear-gradient(135deg, var(--primary) 0%, #059669 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  text-shadow: 0 0 30px rgba(0, 255, 65, 0.3);
+  text-shadow: 0 0 30px rgba(16, 185, 129, 0.3);
 }
 
 .heroDesc {
