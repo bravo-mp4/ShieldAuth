@@ -42,8 +42,6 @@ body::before {
   animation: noise 8s steps(10) infinite;
 }
 
-body::after {
-  content: "";
 :root {
   --mx: 50vw;
   --my: 20vh;
@@ -73,6 +71,8 @@ body::after {
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
   --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.6);
+}
+
 ::selection {
   background: var(--primary);
   color: #000;
@@ -91,35 +91,6 @@ h1, h2, h3, h4, h5, h6 {
 .tabular {
   font-feature-settings: "tnum";
   font-variant-numeric: tabular-nums;
-} --bg: #0a0a0f;
-  --bg-elevated: #131318;
-  --bg-card: #18181d;
-  --bg-hover: #1f1f26;
-  --primary: #22c55e;
-  --primary-dark: #16a34a;
-  --primary-light: #86efac;
-  --primary-glow: rgba(34, 197, 94, 0.18);
-  --primary-bg: rgba(34, 197, 94, 0.12);
-  --text: #e4e4e7;
-  --text-secondary: #a1a1aa;
-  --text-muted: #71717a;
-  --border: #27272a;
-  --border-light: #3f3f46;
-  --success: #10b981;
-  --success-bg: rgba(16, 185, 129, 0.12);
-  --error: #ef4444;
-  --error-bg: rgba(239, 68, 68, 0.12);
-  --warning: #f59e0b;
-  --warning-bg: rgba(245, 158, 11, 0.12);
-  --info: #06b6d4;
-  --info-bg: rgba(6, 182, 212, 0.12);
-  --shadow-sm: 0 1px 0 rgba(0, 0, 0, 0.25), 0 8px 18px rgba(0, 0, 0, 0.25);
-  --shadow-md: 0 1px 0 rgba(0, 0, 0, 0.25), 0 14px 40px rgba(0, 0, 0, 0.35);
-}
-
-::selection {
-  background: var(--primary);
-  color: white;
 }
 
 #root {
