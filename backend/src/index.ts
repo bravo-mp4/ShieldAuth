@@ -57,14 +57,14 @@ app.use(
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // Apply rate limiting to all API routes
 app.use("/api", apiLimiter);
-
-// Health check endpointimit: "10mb" }));
-app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // Health check endpoint
 app.get("/health", async (req, res) => {
@@ -83,6 +83,10 @@ app.get("/health", async (req, res) => {
     });
   }
 });
+
+// Routes
+app.use("/api", routes);
+
 // Global error handler
 app.use(
   (
@@ -97,8 +101,8 @@ app.use(
       error: process.env.NODE_ENV === "development" ? err.stack : undefined,
     });
   }
-);    error: process.env.NODE_ENV === "development" ? err.stack : undefined,
-    });
+);
+
 // Graceful shutdown
 process.on("SIGTERM", async () => {
   logger.info("SIGTERM received, closing database pool...");
@@ -110,7 +114,4 @@ app.listen(PORT, () => {
   logger.info(`ShieldAuth API running on port ${PORT}`);
   logger.info(`Environment: ${process.env.NODE_ENV || "development"}`);
   logger.info(`Allowed origins: ${allowedOrigins.join(", ")}`);
-});onsole.log(`ShieldAuth API running on port ${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
-  console.log(`Allowed origins: ${allowedOrigins.join(", ")}`);
 });

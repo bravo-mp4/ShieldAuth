@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Package } from "lucide-react";
 // @ts-expect-error - JS module
 import { applications } from "../services/api";
 // @ts-expect-error - JSX component

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { Sparkles, CheckCircle2, AlertCircle, AlertTriangle, Activity } from "lucide-react";
+import { Sparkles } from "lucide-react";
 // @ts-expect-error - JSX component
 import PublicNav from "../components/PublicNav";
 // @ts-expect-error - JSX component
