@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Users, Search, Ban, UserCog, Eye, Filter } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Users, Search, Ban } from 'lucide-react';
 import { Card } from '../../components/ui/Card';
 import { Input } from '../../components/ui/Input';
 import { Button } from '../../components/ui/Button';
-import { Skeleton, TableSkeleton } from '../../components/ui/Skeleton';
+import { TableSkeleton } from '../../components/ui/Skeleton';
 import axios from 'axios';
 
 interface User {

@@ -120,7 +120,7 @@ export const CommandPalette: React.FC = () => {
                 No commands found
               </div>
             ) : (
-              filteredCommands.map((cmd, idx) => (
+              filteredCommands.map((cmd) => (
                 <button
                   key={cmd.id}
                   onClick={() => handleCommand(cmd.action)}

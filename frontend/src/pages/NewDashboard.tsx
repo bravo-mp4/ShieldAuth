@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { Zap, BarChart3 } from "lucide-react";
 import axios from "axios";
 // @ts-expect-error - JSX component
 import TopBar from "../components/TopBar";
