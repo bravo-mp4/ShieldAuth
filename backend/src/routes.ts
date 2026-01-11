@@ -1789,7 +1789,7 @@ router.get("/public/stats", async (req: Request, res: Response) => {
 // -------------------- BLOG ENDPOINTS --------------------
 
 // GET /api/v1/public/blog - Get all published blog posts
-app.get("/api/v1/public/blog", async (req, res) => {
+router.get("/api/v1/public/blog", async (req: Request, res: Response) => {
   try {
     const { category, featured, limit = "10", offset = "0" } = req.query;
     
@@ -1835,7 +1835,7 @@ app.get("/api/v1/public/blog", async (req, res) => {
 });
 
 // GET /api/v1/public/blog/:slug - Get single blog post
-app.get("/api/v1/public/blog/:slug", async (req, res) => {
+router.get("/api/v1/public/blog/:slug", async (req: Request, res: Response) => {
   try {
     const { slug } = req.params;
 
@@ -1862,7 +1862,7 @@ app.get("/api/v1/public/blog/:slug", async (req, res) => {
 });
 
 // POST /api/v1/public/blog/:slug/like - Like a blog post (rate limited)
-app.post("/api/v1/public/blog/:slug/like", async (req, res) => {
+router.post("/api/v1/public/blog/:slug/like", async (req: Request, res: Response) => {
   try {
     const { slug } = req.params;
 
@@ -1879,7 +1879,7 @@ app.post("/api/v1/public/blog/:slug/like", async (req, res) => {
 });
 
 // POST /api/v1/admin/blog - Create blog post (ADMIN)
-app.post("/api/v1/admin/blog", authenticateToken, async (req, res) => {
+router.post("/api/v1/admin/blog", authenticateToken, async (req: Request, res: Response) => {
   try {
     const { title, excerpt, content, featured_emoji, category, read_time_minutes, is_featured, is_published } = req.body;
     
@@ -1903,7 +1903,7 @@ app.post("/api/v1/admin/blog", authenticateToken, async (req, res) => {
 });
 
 // PUT /api/v1/admin/blog/:post_id - Update blog post (ADMIN)
-app.put("/api/v1/admin/blog/:post_id", authenticateToken, async (req, res) => {
+router.put("/api/v1/admin/blog/:post_id", authenticateToken, async (req: Request, res: Response) => {
   try {
     const { post_id } = req.params;
     const { title, excerpt, content, featured_emoji, category, read_time_minutes, is_featured, is_published } = req.body;
@@ -1930,7 +1930,7 @@ app.put("/api/v1/admin/blog/:post_id", authenticateToken, async (req, res) => {
 });
 
 // DELETE /api/v1/admin/blog/:post_id - Delete blog post (ADMIN)
-app.delete("/api/v1/admin/blog/:post_id", authenticateToken, async (req, res) => {
+router.delete("/api/v1/admin/blog/:post_id", authenticateToken, async (req: Request, res: Response) => {
   try {
     const { post_id } = req.params;
 
@@ -1946,7 +1946,7 @@ app.delete("/api/v1/admin/blog/:post_id", authenticateToken, async (req, res) =>
 // -------------------- CHANGELOG ENDPOINTS --------------------
 
 // GET /api/v1/public/changelog - Get all changelog entries
-app.get("/api/v1/public/changelog", async (req, res) => {
+router.get("/api/v1/public/changelog", async (req: Request, res: Response) => {
   try {
     const entriesResult = await pool.query(
       `SELECT * FROM changelog_entries WHERE is_published = true ORDER BY release_date DESC`
@@ -1982,7 +1982,7 @@ app.get("/api/v1/public/changelog", async (req, res) => {
 });
 
 // POST /api/v1/admin/changelog - Create changelog entry (ADMIN)
-app.post("/api/v1/admin/changelog", authenticateToken, async (req, res) => {
+router.post("/api/v1/admin/changelog", authenticateToken, async (req: Request, res: Response) => {
   try {
     const { version, release_date, changes } = req.body;
 
@@ -2014,7 +2014,7 @@ app.post("/api/v1/admin/changelog", authenticateToken, async (req, res) => {
 });
 
 // DELETE /api/v1/admin/changelog/:entry_id - Delete changelog entry (ADMIN)
-app.delete("/api/v1/admin/changelog/:entry_id", authenticateToken, async (req, res) => {
+router.delete("/api/v1/admin/changelog/:entry_id", authenticateToken, async (req: Request, res: Response) => {
   try {
     const { entry_id } = req.params;
 
@@ -2030,7 +2030,7 @@ app.delete("/api/v1/admin/changelog/:entry_id", authenticateToken, async (req, r
 // -------------------- STATUS & MONITORING ENDPOINTS --------------------
 
 // GET /api/v1/public/status - Get current service status
-app.get("/api/v1/public/status", async (req, res) => {
+router.get("/api/v1/public/status", async (req: Request, res: Response) => {
   try {
     const monitorsResult = await pool.query(
       `SELECT m.*, 
@@ -2091,7 +2091,7 @@ app.get("/api/v1/public/status", async (req, res) => {
 });
 
 // GET /api/v1/public/status/incidents - Get recent incidents
-app.get("/api/v1/public/status/incidents", async (req, res) => {
+router.get("/api/v1/public/status/incidents", async (req: Request, res: Response) => {
   try {
     const { limit = "10" } = req.query;
 
@@ -2114,7 +2114,7 @@ app.get("/api/v1/public/status/incidents", async (req, res) => {
 });
 
 // POST /api/v1/admin/status/incident - Create incident (ADMIN)
-app.post("/api/v1/admin/status/incident", authenticateToken, async (req, res) => {
+router.post("/api/v1/admin/status/incident", authenticateToken, async (req: Request, res: Response) => {
   try {
     const { monitor_id, title, description, severity } = req.body;
 
@@ -2132,7 +2132,7 @@ app.post("/api/v1/admin/status/incident", authenticateToken, async (req, res) =>
 });
 
 // POST /api/v1/admin/status/incident/:incident_id/update - Add incident update (ADMIN)
-app.post("/api/v1/admin/status/incident/:incident_id/update", authenticateToken, async (req, res) => {
+router.post("/api/v1/admin/status/incident/:incident_id/update", authenticateToken, async (req: Request, res: Response) => {
   try {
     const { incident_id } = req.params;
     const { message, status } = req.body;
@@ -2160,7 +2160,7 @@ app.post("/api/v1/admin/status/incident/:incident_id/update", authenticateToken,
 // -------------------- TESTIMONIALS & FAQ ENDPOINTS --------------------
 
 // GET /api/v1/public/testimonials - Get approved testimonials
-app.get("/api/v1/public/testimonials", async (req, res) => {
+router.get("/api/v1/public/testimonials", async (req: Request, res: Response) => {
   try {
     const { featured, limit = "20" } = req.query;
 
@@ -2182,7 +2182,7 @@ app.get("/api/v1/public/testimonials", async (req, res) => {
 });
 
 // POST /api/v1/admin/testimonials - Create testimonial (ADMIN)
-app.post("/api/v1/admin/testimonials", authenticateToken, async (req, res) => {
+router.post("/api/v1/admin/testimonials", authenticateToken, async (req: Request, res: Response) => {
   try {
     const { author_name, author_role, author_company, author_avatar_url, quote, rating, is_featured } = req.body;
 
@@ -2201,7 +2201,7 @@ app.post("/api/v1/admin/testimonials", authenticateToken, async (req, res) => {
 });
 
 // GET /api/v1/public/faqs - Get published FAQs
-app.get("/api/v1/public/faqs", async (req, res) => {
+router.get("/api/v1/public/faqs", async (req: Request, res: Response) => {
   try {
     const { category, limit = "50" } = req.query;
 
@@ -2226,7 +2226,7 @@ app.get("/api/v1/public/faqs", async (req, res) => {
 });
 
 // POST /api/v1/public/faqs/:faq_id/helpful - Mark FAQ as helpful
-app.post("/api/v1/public/faqs/:faq_id/helpful", async (req, res) => {
+router.post("/api/v1/public/faqs/:faq_id/helpful", async (req: Request, res: Response) => {
   try {
     const { faq_id } = req.params;
     const { helpful } = req.body;
@@ -2246,7 +2246,7 @@ app.post("/api/v1/public/faqs/:faq_id/helpful", async (req, res) => {
 });
 
 // POST /api/v1/admin/faqs - Create FAQ (ADMIN)
-app.post("/api/v1/admin/faqs", authenticateToken, async (req, res) => {
+router.post("/api/v1/admin/faqs", authenticateToken, async (req: Request, res: Response) => {
   try {
     const { question, answer, category, display_order } = req.body;
 
@@ -2266,7 +2266,7 @@ app.post("/api/v1/admin/faqs", authenticateToken, async (req, res) => {
 // -------------------- SUPPORT TICKET ENDPOINTS --------------------
 
 // GET /api/v1/support/tickets - Get user's tickets
-app.get("/api/v1/support/tickets", authenticateToken, async (req, res) => {
+router.get("/api/v1/support/tickets", authenticateToken, async (req: Request, res: Response) => {
   try {
     const result = await pool.query(
       `SELECT t.*,
@@ -2285,7 +2285,7 @@ app.get("/api/v1/support/tickets", authenticateToken, async (req, res) => {
 });
 
 // GET /api/v1/support/tickets/:ticket_number - Get ticket details
-app.get("/api/v1/support/tickets/:ticket_number", authenticateToken, async (req, res) => {
+router.get("/api/v1/support/tickets/:ticket_number", authenticateToken, async (req: Request, res: Response) => {
   try {
     const { ticket_number } = req.params;
 
@@ -2314,7 +2314,7 @@ app.get("/api/v1/support/tickets/:ticket_number", authenticateToken, async (req,
 });
 
 // POST /api/v1/support/tickets - Create support ticket
-app.post("/api/v1/support/tickets", authenticateToken, async (req, res) => {
+router.post("/api/v1/support/tickets", authenticateToken, async (req: Request, res: Response) => {
   try {
     const { subject, priority, category, message } = req.body;
 
@@ -2343,7 +2343,7 @@ app.post("/api/v1/support/tickets", authenticateToken, async (req, res) => {
 });
 
 // POST /api/v1/support/tickets/:ticket_number/messages - Reply to ticket
-app.post("/api/v1/support/tickets/:ticket_number/messages", authenticateToken, async (req, res) => {
+router.post("/api/v1/support/tickets/:ticket_number/messages", authenticateToken, async (req: Request, res: Response) => {
   try {
     const { ticket_number } = req.params;
     const { message } = req.body;
@@ -2381,7 +2381,7 @@ app.post("/api/v1/support/tickets/:ticket_number/messages", authenticateToken, a
 // -------------------- CONTACT FORM ENDPOINT --------------------
 
 // POST /api/v1/public/contact - Submit contact form
-app.post("/api/v1/public/contact", async (req, res) => {
+router.post("/api/v1/public/contact", async (req: Request, res: Response) => {
   try {
     const { name, email, subject, message } = req.body;
     const ip_address = req.ip;
@@ -2401,7 +2401,7 @@ app.post("/api/v1/public/contact", async (req, res) => {
 });
 
 // GET /api/v1/admin/contact - Get contact submissions (ADMIN)
-app.get("/api/v1/admin/contact", authenticateToken, async (req, res) => {
+router.get("/api/v1/admin/contact", authenticateToken, async (req: Request, res: Response) => {
   try {
     const { is_read, limit = "50", offset = "0" } = req.query;
 
@@ -2428,7 +2428,7 @@ app.get("/api/v1/admin/contact", authenticateToken, async (req, res) => {
 // -------------------- COMPANY INFO ENDPOINTS --------------------
 
 // GET /api/v1/public/about/milestones - Get company milestones
-app.get("/api/v1/public/about/milestones", async (req, res) => {
+router.get("/api/v1/public/about/milestones", async (req: Request, res: Response) => {
   try {
     const result = await pool.query(
       `SELECT * FROM company_milestones WHERE is_published = true ORDER BY year DESC, month DESC, display_order`
