@@ -1,6 +1,7 @@
 # 🚀 Dynamic Content Improvement Plan - Complete Site Overhaul
 
 ## Executive Summary
+
 This plan transforms **ShieldAuth** from a static display site to a fully dynamic, data-driven platform. Every placeholder will be replaced with real backend data, creating an authentic, production-ready SaaS experience.
 
 ---
@@ -8,6 +9,7 @@ This plan transforms **ShieldAuth** from a static display site to a fully dynami
 ## 🎯 Current State Analysis
 
 ### Pages with Placeholder Content
+
 1. **Blog.jsx** - Hardcoded posts, no CMS
 2. **Changelog.jsx** - Static version history
 3. **Status.jsx** - Fake service status & uptime
@@ -22,8 +24,9 @@ This plan transforms **ShieldAuth** from a static display site to a fully dynami
 12. **SecurityPage.jsx** - Static security claims
 
 ### Backend Missing Tables
+
 - No `blog_posts` table
-- No `changelog_entries` table  
+- No `changelog_entries` table
 - No `service_status` monitoring
 - No `testimonials` table
 - No `faqs` table
@@ -36,6 +39,7 @@ This plan transforms **ShieldAuth** from a static display site to a fully dynami
 ## 📋 PHASE 1: Blog & Content Management System (CMS)
 
 ### Database Schema
+
 ```sql
 -- Blog Posts
 CREATE TABLE blog_posts (
@@ -63,6 +67,7 @@ CREATE INDEX idx_blog_slug ON blog_posts(slug);
 ```
 
 ### Backend API Endpoints
+
 ```typescript
 // GET /api/v1/public/blog
 // - Query params: category, limit, offset, featured
@@ -87,7 +92,9 @@ CREATE INDEX idx_blog_slug ON blog_posts(slug);
 ```
 
 ### Frontend Updates
+
 **Blog.jsx → Blog.tsx**
+
 ```typescript
 - Replace hardcoded posts array with API fetch
 - Add category filter dropdown
@@ -99,6 +106,7 @@ CREATE INDEX idx_blog_slug ON blog_posts(slug);
 ```
 
 **New: BlogPost.tsx** (Individual post page)
+
 ```typescript
 - Route: /blog/:slug
 - Full post content with markdown
@@ -110,6 +118,7 @@ CREATE INDEX idx_blog_slug ON blog_posts(slug);
 ```
 
 **Admin Blog Management**
+
 ```typescript
 - New route: /admin/blog
 - Rich text editor (TinyMCE or Quill)
@@ -125,6 +134,7 @@ CREATE INDEX idx_blog_slug ON blog_posts(slug);
 ## 📋 PHASE 2: Changelog System
 
 ### Database Schema
+
 ```sql
 CREATE TYPE changelog_change_type AS ENUM ('new', 'improved', 'fixed', 'deprecated', 'security');
 
@@ -148,6 +158,7 @@ CREATE INDEX idx_changelog_date ON changelog_entries(release_date DESC);
 ```
 
 ### Backend API Endpoints
+
 ```typescript
 // GET /api/v1/public/changelog
 // - Returns all published changelog entries with changes
@@ -164,7 +175,9 @@ CREATE INDEX idx_changelog_date ON changelog_entries(release_date DESC);
 ```
 
 ### Frontend Updates
+
 **Changelog.jsx → Changelog.tsx**
+
 ```typescript
 - Fetch from /public/changelog API
 - Dynamic version badges with colors
@@ -175,6 +188,7 @@ CREATE INDEX idx_changelog_date ON changelog_entries(release_date DESC);
 ```
 
 **Admin Changelog Management**
+
 ```typescript
 - Route: /admin/changelog
 - Add new version with multi-change form
@@ -188,6 +202,7 @@ CREATE INDEX idx_changelog_date ON changelog_entries(release_date DESC);
 ## 📋 PHASE 3: Real-Time Service Status & Monitoring
 
 ### Database Schema
+
 ```sql
 CREATE TABLE service_monitors (
   monitor_id SERIAL PRIMARY KEY,
@@ -233,6 +248,7 @@ CREATE INDEX idx_incidents_active ON status_incidents(status) WHERE resolved_at 
 ```
 
 ### Backend API Endpoints
+
 ```typescript
 // GET /api/v1/public/status
 // - Returns current status of all services
@@ -256,7 +272,9 @@ CREATE INDEX idx_incidents_active ON status_incidents(status) WHERE resolved_at 
 ```
 
 ### Frontend Updates
+
 **Status.jsx → Status.tsx**
+
 ```typescript
 - Real-time status from /public/status API
 - Live uptime percentages (calculated from logs)
@@ -269,6 +287,7 @@ CREATE INDEX idx_incidents_active ON status_incidents(status) WHERE resolved_at 
 ```
 
 **Status Page Embeddable Widget**
+
 ```typescript
 // New: StatusBadge.tsx component
 // - Embeddable iframe or script tag
@@ -281,6 +300,7 @@ CREATE INDEX idx_incidents_active ON status_incidents(status) WHERE resolved_at 
 ## 📋 PHASE 4: Testimonials & Social Proof System
 
 ### Database Schema
+
 ```sql
 CREATE TABLE testimonials (
   testimonial_id SERIAL PRIMARY KEY,
@@ -319,6 +339,7 @@ CREATE INDEX idx_showcases_featured ON customer_showcases(is_featured, display_o
 ```
 
 ### Backend API Endpoints
+
 ```typescript
 // GET /api/v1/public/testimonials
 // - Query params: featured, limit
@@ -339,7 +360,9 @@ CREATE INDEX idx_showcases_featured ON customer_showcases(is_featured, display_o
 ```
 
 ### Frontend Updates
+
 **Pricing.jsx → Pricing.tsx**
+
 ```typescript
 - Fetch testimonials from API
 - Dynamic testimonial carousel
@@ -349,6 +372,7 @@ CREATE INDEX idx_showcases_featured ON customer_showcases(is_featured, display_o
 ```
 
 **New: Testimonials.tsx** (Dedicated page)
+
 ```typescript
 - Route: /testimonials
 - Grid of all approved testimonials
@@ -358,6 +382,7 @@ CREATE INDEX idx_showcases_featured ON customer_showcases(is_featured, display_o
 ```
 
 **Landing.tsx**
+
 ```typescript
 - Replace hardcoded customer logos with real showcases
 - Dynamic stats pulled from customer_showcases table
@@ -369,6 +394,7 @@ CREATE INDEX idx_showcases_featured ON customer_showcases(is_featured, display_o
 ## 📋 PHASE 5: FAQ Management System
 
 ### Database Schema
+
 ```sql
 CREATE TABLE faqs (
   faq_id SERIAL PRIMARY KEY,
@@ -389,6 +415,7 @@ CREATE INDEX idx_faqs_published ON faqs(is_published);
 ```
 
 ### Backend API Endpoints
+
 ```typescript
 // GET /api/v1/public/faqs
 // - Query params: category, limit
@@ -409,7 +436,9 @@ CREATE INDEX idx_faqs_published ON faqs(is_published);
 ```
 
 ### Frontend Updates
+
 **Pricing.jsx FAQ Section**
+
 ```typescript
 - Fetch from /public/faqs?category=pricing
 - Expandable accordion with smooth animations
@@ -418,6 +447,7 @@ CREATE INDEX idx_faqs_published ON faqs(is_published);
 ```
 
 **New: FAQ.tsx** (Dedicated page)
+
 ```typescript
 - Route: /faq
 - All FAQs with category tabs
@@ -431,6 +461,7 @@ CREATE INDEX idx_faqs_published ON faqs(is_published);
 ## 📋 PHASE 6: Support Ticket System (Real Implementation)
 
 ### Database Schema
+
 ```sql
 CREATE TYPE ticket_status AS ENUM ('open', 'in_progress', 'waiting_customer', 'resolved', 'closed');
 CREATE TYPE ticket_priority AS ENUM ('low', 'medium', 'high', 'urgent');
@@ -476,6 +507,7 @@ CREATE INDEX idx_ticket_messages ON ticket_messages(ticket_id, created_at);
 ```
 
 ### Backend API Endpoints
+
 ```typescript
 // POST /api/v1/support/tickets [AUTH]
 // - Create new support ticket
@@ -510,7 +542,9 @@ CREATE INDEX idx_ticket_messages ON ticket_messages(ticket_id, created_at);
 ```
 
 ### Frontend Updates
+
 **Support.jsx → Support.tsx**
+
 ```typescript
 - Real ticket system with API integration
 - Create ticket form with file uploads
@@ -522,6 +556,7 @@ CREATE INDEX idx_ticket_messages ON ticket_messages(ticket_id, created_at);
 ```
 
 **New: Admin Support Dashboard**
+
 ```typescript
 - Route: /admin/support
 - Unassigned tickets queue
@@ -537,6 +572,7 @@ CREATE INDEX idx_ticket_messages ON ticket_messages(ticket_id, created_at);
 ## 📋 PHASE 7: Contact Form Integration
 
 ### Database Schema
+
 ```sql
 CREATE TABLE contact_submissions (
   submission_id SERIAL PRIMARY KEY,
@@ -556,6 +592,7 @@ CREATE INDEX idx_contact_unread ON contact_submissions(is_read, created_at DESC)
 ```
 
 ### Backend API Endpoints
+
 ```typescript
 // POST /api/v1/public/contact
 // - Submit contact form
@@ -572,7 +609,9 @@ CREATE INDEX idx_contact_unread ON contact_submissions(is_read, created_at DESC)
 ```
 
 ### Frontend Updates
+
 **Contact.jsx → Contact.tsx**
+
 ```typescript
 - Real form submission to backend
 - Loading state & success message
@@ -586,6 +625,7 @@ CREATE INDEX idx_contact_unread ON contact_submissions(is_read, created_at DESC)
 ## 📋 PHASE 8: Documentation Enhancements
 
 ### Database Schema
+
 ```sql
 CREATE TABLE documentation_pages (
   page_id SERIAL PRIMARY KEY,
@@ -617,6 +657,7 @@ CREATE INDEX idx_search_queries ON doc_search_history(query);
 ```
 
 ### Backend API Endpoints
+
 ```typescript
 // GET /api/v1/public/docs
 // - Get all documentation sections
@@ -635,7 +676,9 @@ CREATE INDEX idx_search_queries ON doc_search_history(query);
 ```
 
 ### Frontend Updates
+
 **Documentation.jsx → Documentation.tsx**
+
 ```typescript
 - Fetch docs from API
 - Code syntax highlighting (Prism.js)
@@ -652,6 +695,7 @@ CREATE INDEX idx_search_queries ON doc_search_history(query);
 ## 📋 PHASE 9: About Page & Company Timeline
 
 ### Database Schema
+
 ```sql
 CREATE TABLE company_milestones (
   milestone_id SERIAL PRIMARY KEY,
@@ -686,6 +730,7 @@ CREATE INDEX idx_team_order ON team_members(display_order);
 ```
 
 ### Backend API Endpoints
+
 ```typescript
 // GET /api/v1/public/about/milestones
 // - Returns published milestones
@@ -701,7 +746,9 @@ CREATE INDEX idx_team_order ON team_members(display_order);
 ```
 
 ### Frontend Updates
+
 **About.jsx → About.tsx**
+
 ```typescript
 - Fetch milestones from API
 - Interactive timeline with animations
@@ -715,6 +762,7 @@ CREATE INDEX idx_team_order ON team_members(display_order);
 ## 📋 PHASE 10: Analytics & Metrics Dashboard
 
 ### Backend Enhancements
+
 ```typescript
 // Aggregate real data for public display
 
@@ -734,7 +782,9 @@ CREATE INDEX idx_team_order ON team_members(display_order);
 ```
 
 ### Frontend Updates
+
 **Landing.tsx**
+
 ```typescript
 ✅ Already implemented live stats
 - Enhance with additional metrics
@@ -743,6 +793,7 @@ CREATE INDEX idx_team_order ON team_members(display_order);
 ```
 
 **New: PublicMetrics.tsx**
+
 ```typescript
 - Route: /metrics
 - Public transparency dashboard
@@ -757,6 +808,7 @@ CREATE INDEX idx_team_order ON team_members(display_order);
 ## 📋 PHASE 11: Email System Integration
 
 ### Infrastructure Setup
+
 ```typescript
 // Email Service: SendGrid / Amazon SES / Resend
 
@@ -777,6 +829,7 @@ CREATE INDEX idx_team_order ON team_members(display_order);
 ```
 
 ### Database Schema
+
 ```sql
 CREATE TABLE email_subscriptions (
   subscription_id SERIAL PRIMARY KEY,
@@ -805,6 +858,7 @@ CREATE INDEX idx_email_logs_sent ON email_logs(sent_at DESC);
 ```
 
 ### Backend API Endpoints
+
 ```typescript
 // POST /api/v1/public/subscribe
 // - Body: { email, type }
@@ -822,22 +876,26 @@ CREATE INDEX idx_email_logs_sent ON email_logs(sent_at DESC);
 ## 🛠️ IMPLEMENTATION PRIORITY
 
 ### Phase 1 (High Impact, Quick Wins) - Week 1-2
+
 1. ✅ **Live Stats on Landing** (Already done)
 2. **Blog System** - Most visible, adds credibility
 3. **Changelog** - Shows active development
 4. **Contact Form** - Essential functionality
 
 ### Phase 2 (Core Features) - Week 3-4
+
 5. **Service Status** - Trust & transparency
 6. **Support Tickets** - Customer support
 7. **FAQ System** - Reduce support load
 
 ### Phase 3 (Social Proof) - Week 5-6
+
 8. **Testimonials** - Conversion optimization
 9. **Customer Showcases** - Trust signals
 10. **About Page** - Company legitimacy
 
 ### Phase 4 (Advanced Features) - Week 7-8
+
 11. **Documentation CMS** - Maintainability
 12. **Email System** - Automation
 13. **Public Metrics** - Transparency
@@ -847,6 +905,7 @@ CREATE INDEX idx_email_logs_sent ON email_logs(sent_at DESC);
 ## 📊 Success Metrics
 
 ### Before (Current State)
+
 - Static content, no updates
 - No user engagement tracking
 - No content management
@@ -854,6 +913,7 @@ CREATE INDEX idx_email_logs_sent ON email_logs(sent_at DESC);
 - No social proof system
 
 ### After (Target State)
+
 - Dynamic content updated regularly
 - Blog published 2x per month
 - Changelog updated with every release
@@ -869,6 +929,7 @@ CREATE INDEX idx_email_logs_sent ON email_logs(sent_at DESC);
 ## 🔧 Technical Requirements
 
 ### New Backend Dependencies
+
 ```bash
 npm install @sendgrid/mail      # Email
 npm install marked              # Markdown rendering
@@ -878,6 +939,7 @@ npm install sharp               # Image processing
 ```
 
 ### New Frontend Dependencies
+
 ```bash
 npm install react-quill         # Rich text editor
 npm install prismjs             # Code highlighting
@@ -887,6 +949,7 @@ npm install framer-motion       # Animations
 ```
 
 ### Infrastructure Additions
+
 - **CDN for images**: Cloudflare R2 or S3
 - **Email service**: SendGrid (free tier: 100/day)
 - **Cron jobs**: For status checks & reminders
@@ -897,19 +960,23 @@ npm install framer-motion       # Animations
 ## 🚀 Deployment Strategy
 
 1. **Database Migration**
+
    - Run all new table migrations
    - Seed with initial data (blog posts, FAQs, etc.)
 
 2. **Backend Deployment**
+
    - Deploy API endpoints incrementally
    - Test each endpoint before frontend integration
 
 3. **Frontend Updates**
+
    - Convert JSX → TSX for type safety
    - Implement new pages one at a time
    - A/B test with old pages before full rollout
 
 4. **Content Population**
+
    - Write 5-10 initial blog posts
    - Populate FAQs from common support questions
    - Add 2-3 customer testimonials
@@ -930,6 +997,7 @@ npm install framer-motion       # Animations
 ## 💡 Content Strategy
 
 ### Blog Topics (Initial 10 Posts)
+
 1. "Introducing ShieldAuth: Why We Built This"
 2. "How HWID Locking Actually Works"
 3. "Preventing Software Piracy: A Complete Guide"
@@ -942,6 +1010,7 @@ npm install framer-motion       # Animations
 10. "ShieldAuth vs Competitors: Feature Comparison"
 
 ### FAQ Categories
+
 - **Billing & Pricing** (10 questions)
 - **Technical Integration** (15 questions)
 - **Account Management** (8 questions)
@@ -953,18 +1022,21 @@ npm install framer-motion       # Animations
 ## 📈 Expected Outcomes
 
 ### User Experience
+
 - **Trust Score**: +40% (real data vs fake)
 - **Time on Site**: +60% (engaging content)
 - **Support Tickets**: -30% (self-service FAQs)
 - **Conversion Rate**: +25% (social proof)
 
 ### Business Impact
+
 - **SEO Traffic**: +150% (blog content)
 - **Customer Confidence**: +70% (status page)
 - **Support Efficiency**: +50% (ticket system)
 - **Brand Credibility**: Significantly improved
 
 ### Developer Experience
+
 - **Content Updates**: Admin can publish without deployment
 - **Maintainability**: CMS vs hardcoded content
 - **Scalability**: Database-driven, not code changes

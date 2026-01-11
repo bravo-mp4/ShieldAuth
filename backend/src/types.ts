@@ -10,3 +10,19 @@ export interface ValidateResponse {
   expires_at?: number;
   session_id?: string;
 }
+
+export interface JWTUser {
+  email: string;
+  user_id?: number;
+  iat?: number;
+  exp?: number;
+}
+
+// Extend Express Request type to include user property
+declare global {
+  namespace Express {
+    interface Request {
+      user?: JWTUser;
+    }
+  }
+}

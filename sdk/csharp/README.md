@@ -17,6 +17,7 @@
 
 1. Copy `ShieldAuth.cs` to your project
 2. Install required NuGet package:
+
 ```bash
 dotnet add package System.Management
 ```
@@ -43,7 +44,7 @@ if (result.Valid)
 {
     Console.WriteLine("✓ License valid!");
     Console.WriteLine($"Session: {client.GetSessionId()}");
-    
+
     // Send heartbeat every 5 minutes
     await client.HeartbeatAsync();
 }
@@ -121,9 +122,9 @@ public class LicenseManager : MonoBehaviour
     async void Start()
     {
         client = new ShieldAuthClient("your_app_id");
-        
+
         var result = await client.ValidateAsync("license-key");
-        
+
         if (result.Valid)
         {
             Debug.Log("License validated!");
@@ -153,7 +154,7 @@ public class LicenseManager : MonoBehaviour
 try
 {
     var result = await client.ValidateAsync(licenseKey);
-    
+
     if (!result.Valid)
     {
         // Handle specific errors

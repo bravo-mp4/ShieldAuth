@@ -6,7 +6,8 @@ import PublicNav from "../components/PublicNav";
 // @ts-expect-error - JSX component
 import PublicFooter from "../components/PublicFooter";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 
 interface BlogPost {
   post_id: number;
@@ -115,7 +116,9 @@ export default function Blog() {
                     ? "var(--primary)"
                     : "var(--bg-elevated)",
                 color:
-                  selectedCategory === category ? "white" : "var(--text-primary)",
+                  selectedCategory === category
+                    ? "white"
+                    : "var(--text-primary)",
                 border: "none",
                 borderRadius: 8,
                 cursor: "pointer",
@@ -132,7 +135,11 @@ export default function Blog() {
         {loading ? (
           <div style={{ textAlign: "center", padding: 60 }}>
             <div
-              style={{ fontSize: "2rem", marginBottom: 16, color: "var(--text-muted)" }}
+              style={{
+                fontSize: "2rem",
+                marginBottom: 16,
+                color: "var(--text-muted)",
+              }}
             >
               Loading...
             </div>
@@ -227,12 +234,16 @@ export default function Blog() {
                 style={{ padding: 60, textAlign: "center" }}
               >
                 <div style={{ fontSize: "3rem", marginBottom: 16 }}>📝</div>
-                <div style={{ fontSize: "1.2rem", fontWeight: 600, marginBottom: 8 }}>
+                <div
+                  style={{
+                    fontSize: "1.2rem",
+                    fontWeight: 600,
+                    marginBottom: 8,
+                  }}
+                >
                   No posts yet
                 </div>
-                <div className="muted">
-                  Check back soon for new content!
-                </div>
+                <div className="muted">Check back soon for new content!</div>
               </div>
             ) : (
               <div
@@ -308,9 +319,7 @@ export default function Blog() {
                         {post.read_time_minutes} min
                       </span>
                       <span className="muted">•</span>
-                      <span className="muted">
-                        {post.views} views
-                      </span>
+                      <span className="muted">{post.views} views</span>
                       <span
                         style={{
                           marginLeft: "auto",

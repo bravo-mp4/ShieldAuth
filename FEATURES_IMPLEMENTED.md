@@ -9,7 +9,9 @@ All 11 features from the improvement plan have been successfully implemented wit
 ## ✅ Completed Features
 
 ### 1. Real-Time Dashboard Stats ✅
+
 **Backend:**
+
 - `GET /admin/stats` endpoint returning:
   - Total licenses count
   - Active licenses (not expired/banned)
@@ -21,6 +23,7 @@ All 11 features from the improvement plan have been successfully implemented wit
 - Efficient PostgreSQL queries with JOINs
 
 **Frontend:**
+
 - NewDashboard.tsx fetches real API data
 - Live stat cards showing actual metrics
 - Recent activity section with license details
@@ -28,7 +31,9 @@ All 11 features from the improvement plan have been successfully implemented wit
 - Loading states and error handling
 
 ### 2. Advanced License Management ✅
+
 **Backend Endpoints:**
+
 - `POST /admin/licenses/bulk-action` - Bulk ban/unban/delete licenses
 - `PUT /admin/license/:key/notes` - Add notes to licenses
 - `GET /admin/license/:key/hwids` - View all bound devices
@@ -39,12 +44,14 @@ All 11 features from the improvement plan have been successfully implemented wit
 - `GET /admin/licenses/export` - Export licenses to CSV
 
 **Database:**
+
 - Added `notes` field to licenses table
 - Added `metadata` JSONB field for custom data
 - Added `license_templates` table with owner_email, name, days_valid, max_hwid_slots
 - Enhanced `hwid_slots` with device_name, ip_address, unbind_count, last_unbind_at
 
 **Features:**
+
 - Checkbox selection for bulk operations
 - License templates for quick creation (30-day/$10, 365-day/$50, Lifetime/$100 presets)
 - HWID management modal showing all devices with unbind capability
@@ -52,7 +59,9 @@ All 11 features from the improvement plan have been successfully implemented wit
 - CSV export with all license data
 
 ### 3. Per-App Analytics System ✅
+
 **Backend:**
+
 - `GET /admin/analytics/:app_id` endpoint with date range filter
 - Returns:
   - Validation attempts over time (by day)
@@ -62,6 +71,7 @@ All 11 features from the improvement plan have been successfully implemented wit
 - Created `api_analytics` table tracking endpoint, method, status_code, response_time, IP, country_code
 
 **Frontend:**
+
 - Analytics.jsx page with app selector
 - Charts showing validation trends
 - Success rate percentage
@@ -70,7 +80,9 @@ All 11 features from the improvement plan have been successfully implemented wit
 - Date range filters (7d, 30d, 90d, all time)
 
 ### 4. Intelligent Logging System ✅
+
 **Backend:**
+
 - `GET /admin/logs` endpoint with pagination and filters:
   - Filter by app_id, license_key, result type
   - Pagination with limit/offset
@@ -83,6 +95,7 @@ All 11 features from the improvement plan have been successfully implemented wit
 - Indexed for fast queries
 
 **Enhanced `/validate` Endpoint:**
+
 - Logs every validation attempt with result
 - Captures IP address, user agent, error details
 - Tracks API analytics (response time, status codes)
@@ -90,6 +103,7 @@ All 11 features from the improvement plan have been successfully implemented wit
 - Fraud detection data collection
 
 **Frontend:**
+
 - Logs.tsx page with advanced filtering
 - Date picker for time range
 - Real-time log streaming
@@ -98,7 +112,9 @@ All 11 features from the improvement plan have been successfully implemented wit
 - Anomaly detection warnings (>100 attempts/hour)
 
 ### 5. Webhook System ✅
+
 **Backend:**
+
 - `GET /admin/webhooks` - List user's webhooks
 - `POST /admin/webhooks` - Create webhook with events array
 - `PUT /admin/webhooks/:id` - Update webhook (url, events, is_active)
@@ -107,10 +123,12 @@ All 11 features from the improvement plan have been successfully implemented wit
 - `POST /admin/webhooks/:id/test` - Test webhook with sample payload
 
 **Database:**
+
 - `webhooks` table: webhook_id, owner_email, url, events[], secret, is_active
 - `webhook_deliveries` table: webhook_id, event_type, payload, status_code, response_body, attempt_count, delivered_at, failed_at
 
 **Event Types:**
+
 - license.created
 - license.expired
 - license.banned
@@ -121,6 +139,7 @@ All 11 features from the improvement plan have been successfully implemented wit
 - validation.failed
 
 **Features:**
+
 - Auto-trigger on license creation (implemented)
 - Webhook secret for verification
 - Delivery retry logic with exponential backoff
@@ -129,15 +148,19 @@ All 11 features from the improvement plan have been successfully implemented wit
 - Non-blocking async delivery
 
 ### 6. API Key Rotation & Scoped Permissions ✅
+
 **Backend:**
+
 - `GET /admin/api-keys` - List user's API keys
 - `POST /admin/api-keys` - Generate new API key with scopes
 - `DELETE /admin/api-keys/:id` - Revoke API key
 
 **Database:**
+
 - `api_keys` table: key_id, key_hash (SHA256), owner_email, app_id, name, scopes[], last_used_at, expires_at
 
 **Scopes:**
+
 - `license:read` - View licenses
 - `license:write` - Create/modify licenses
 - `license:delete` - Delete licenses
@@ -146,6 +169,7 @@ All 11 features from the improvement plan have been successfully implemented wit
 - `validate:read` - Validation endpoint access
 
 **Features:**
+
 - Multiple keys per app
 - Scoped permissions per key
 - Expiration dates (optional)
@@ -154,16 +178,20 @@ All 11 features from the improvement plan have been successfully implemented wit
 - SHA256 hashing for storage
 
 ### 7. Customer-Facing License Portal ✅
+
 **Backend:**
+
 - `GET /public/portal/:license_key` - Get license details (no auth)
 - `POST /public/portal/:license_key/unbind/:hwid_id` - Self-service unbind (rate limited)
 - `PUT /public/portal/:license_key/device/:hwid_id/name` - Update device name
 
 **Database:**
+
 - Enhanced `hwid_slots` with device_name, unbind_count, last_unbind_at
 - `portal_actions` table for rate limiting and audit log
 
 **Frontend:**
+
 - `/portal/:licenseKey` route (public, no login required)
 - Shows:
   - License expiration countdown
@@ -178,33 +206,42 @@ All 11 features from the improvement plan have been successfully implemented wit
   - Mobile-friendly
 
 **Rate Limiting:**
+
 - 1 unbind per device every 7 days
 - Tracks unbind_count and last_unbind_at
 - Clear error messages with retry_after days
 
 ### 8. Fraud Detection System ✅
+
 **Backend:**
+
 - `GET /admin/fraud-alerts` - List fraud alerts with filters (severity, is_resolved)
 - `PUT /admin/fraud-alerts/:id/resolve` - Mark alert as resolved
 
 **Database:**
+
 - `fraud_alerts` table: license_key, alert_type, severity, details (JSONB), trust_score, is_resolved, auto_banned
 
 **Detection Methods (Ready for Implementation):**
+
 1. **HWID Spoofing Detection**
+
    - Same HWID from different IPs
    - HWID changes too frequently
    - Suspicious HWID patterns
 
 2. **Geo-Impossibility Checks**
+
    - Validations from US then China within 10 minutes
    - Physically impossible travel times
 
 3. **Sharing Detection**
+
    - Multiple simultaneous sessions from different locations
    - Abnormal validation patterns
 
 4. **Trust Score Calculation**
+
    - Based on: validation history, geo patterns, HWID stability
    - Scale: 0.00 (suspicious) to 1.00 (trusted)
 
@@ -213,29 +250,29 @@ All 11 features from the improvement plan have been successfully implemented wit
    - Configurable thresholds per application
 
 **Alert Severity Levels:**
+
 - Low: Minor anomalies
 - Medium: Suspicious patterns
 - High: Likely fraud
 - Critical: Confirmed fraud (auto-ban)
 
 ### 9. Updated Pricing Page ✅
+
 **Frontend:**
+
 - Free Tier: $0/mo
   - 1 app, 25 users, 1 HWID slot
   - Basic dashboard, community support
-  
 - Developer Tier: $2.99/mo
   - 3 apps, 10K users, 3 HWID slots
   - Webhooks, IP lists, logs, analytics
   - All SDKs, email support
-  
 - Seller Tier: $4.99/mo (POPULAR)
   - Unlimited apps/users/HWID
   - Team management, reseller system
   - White-label customer panel
   - Discord/Telegram bots
   - Advanced analytics, custom branding
-  
 - Pro Tier: $39.99/mo
   - Everything from Seller +
   - **Binary Protector** (highlighted in green):
@@ -246,6 +283,7 @@ All 11 features from the improvement plan have been successfully implemented wit
     - Anti-tamper
 
 **Features:**
+
 - Feature highlighting for special items
 - Popular badge on Seller tier
 - Comparison table
@@ -253,7 +291,9 @@ All 11 features from the improvement plan have been successfully implemented wit
 - Call-to-action buttons
 
 ### 10. Overhauled Landing Page ✅
+
 **Frontend:**
+
 - Live validation counter (fetches from `/public/stats`)
 - Real metrics:
   - Validations today (live count)
@@ -268,6 +308,7 @@ All 11 features from the improvement plan have been successfully implemented wit
 - Feature highlights
 
 **Backend:**
+
 - `GET /public/stats` endpoint (no auth required)
 - Returns:
   - validations_today (COUNT from validation_logs WHERE created_at >= CURRENT_DATE)
@@ -277,7 +318,9 @@ All 11 features from the improvement plan have been successfully implemented wit
 ### 11. Expanded SDK Offerings ✅
 
 #### C# SDK (New!)
+
 **Features:**
+
 - .NET Standard 2.0+ compatible
 - Unity support
 - Async/await patterns
@@ -287,12 +330,14 @@ All 11 features from the improvement plan have been successfully implemented wit
 - Type-safe API
 
 **Files Created:**
+
 - `/sdk/csharp/ShieldAuth.cs` - Main SDK
 - `/sdk/csharp/example/Program.cs` - Example application
 - `/sdk/csharp/example/ShieldAuthExample.csproj` - Project file
 - `/sdk/csharp/README.md` - Full documentation
 
 **Usage:**
+
 ```csharp
 var client = new ShieldAuthClient("app_id");
 var result = await client.ValidateAsync("license_key");
@@ -302,7 +347,9 @@ if (result.Valid) {
 ```
 
 #### Python SDK (New!)
+
 **Features:**
+
 - Python 3.7+ compatible
 - Cross-platform HWID (Windows, Linux, macOS)
 - Simple pythonic API
@@ -312,12 +359,14 @@ if (result.Valid) {
 - Perfect for automation/bots
 
 **Files Created:**
+
 - `/sdk/python/shieldauth.py` - Main SDK
 - `/sdk/python/example.py` - Example script
 - `/sdk/python/requirements.txt` - Dependencies
 - `/sdk/python/README.md` - Full documentation
 
 **Usage:**
+
 ```python
 from shieldauth import ShieldAuthClient
 
@@ -328,7 +377,9 @@ if result['valid']:
 ```
 
 #### C++ SDK (Improved)
+
 **Existing Features:**
+
 - Zero external dependencies
 - Cross-platform (Windows, Linux, macOS)
 - Hardware ID generation
@@ -336,12 +387,14 @@ if result['valid']:
 - HTTP client built-in
 
 **Improvements Documented:**
+
 - Offline validation cache (24h)
 - Automatic heartbeat management
 - Better error handling
 - Example improvements
 
 **Files:**
+
 - `/sdk/cpp/include/shieldauth.h` - Header
 - `/sdk/cpp/src/shieldauth.cpp` - Implementation
 - `/sdk/cpp/src/hwid.cpp` - HWID generation
@@ -349,7 +402,9 @@ if result['valid']:
 - `/sdk/cpp/examples/example.cpp` - Example
 
 #### Node.js SDK (Existing)
+
 **Status:** Already exists in codebase
+
 - TypeScript definitions
 - Promise-based API
 - Express middleware
@@ -360,6 +415,7 @@ if result['valid']:
 ## 📊 Database Schema Additions
 
 ### New Tables Created (advanced_features.sql):
+
 1. **validation_logs** - Tracks every validation attempt
 2. **api_analytics** - API usage metrics
 3. **webhooks** - Webhook configurations
@@ -370,10 +426,12 @@ if result['valid']:
 8. **portal_actions** - Portal activity logs (rate limiting)
 
 ### Enhanced Existing Tables:
+
 - **licenses**: Added notes, metadata fields
 - **hwid_slots**: Added device_name, ip_address, last_ip_address, unbind_count, last_unbind_at
 
 ### Indexes Added:
+
 - validation_logs: license_key, app_id, created_at, result
 - api_analytics: app_id, created_at
 - webhooks: owner_email
@@ -388,22 +446,26 @@ if result['valid']:
 ## 🔒 Security Enhancements
 
 1. **API Key System**
+
    - SHA256 hashing for storage
    - One-time display
    - Scoped permissions
    - Expiration support
 
 2. **Webhook Secrets**
+
    - Auto-generated 32-byte secrets
    - Included in X-Webhook-Secret header
    - Verification recommended
 
 3. **Rate Limiting**
+
    - Portal unbind: 1 per 7 days per device
    - Tracked in database
    - Clear error messages
 
 4. **Input Validation**
+
    - All endpoints validate user ownership
    - License key verification
    - HWID validation
@@ -419,16 +481,19 @@ if result['valid']:
 ## 📈 Performance Optimizations
 
 1. **Database Indexes**
+
    - All frequently queried fields indexed
    - Composite indexes for complex queries
    - Improves query performance 10-100x
 
 2. **Pagination**
+
    - Logs endpoint supports limit/offset
    - Default limit: 100 records
    - Total count for UI pagination
 
 3. **Non-Blocking Operations**
+
    - Webhook delivery is async
    - Doesn't block validation responses
    - Fire-and-forget pattern
@@ -443,12 +508,14 @@ if result['valid']:
 ## 🎨 Frontend Features
 
 ### Public Pages:
+
 - ✅ Landing page with live stats
 - ✅ Pricing page with 4 tiers
 - ✅ License portal (/portal/:key)
 - ✅ Downloads page (existing, updated)
 
 ### Protected Pages:
+
 - ✅ Dashboard with real-time stats
 - ✅ Licenses with bulk operations
 - ✅ Analytics with charts
@@ -459,6 +526,7 @@ if result['valid']:
 - ✅ Settings
 
 ### Components:
+
 - TopBar with breadcrumbs
 - Modal for forms
 - Loader for loading states
@@ -471,6 +539,7 @@ if result['valid']:
 ## 🚀 API Endpoints Summary
 
 ### Public Endpoints (No Auth):
+
 - `POST /validate` - Validate license (enhanced with logging)
 - `POST /heartbeat` - Keep session alive
 - `GET /public/stats` - Live validation counter
@@ -479,6 +548,7 @@ if result['valid']:
 - `PUT /public/portal/:key/device/:id/name` - Rename device
 
 ### Admin Endpoints (JWT Auth Required):
+
 - `GET /admin/stats` - Dashboard statistics
 - `GET /admin/applications` - List user's apps
 - `POST /admin/app/create` - Create application
@@ -514,6 +584,7 @@ if result['valid']:
 ## 🧪 Testing Recommendations
 
 ### Backend Testing:
+
 1. Run database migration: `advanced_features.sql`
 2. Test webhook creation and triggering
 3. Test bulk license operations
@@ -522,6 +593,7 @@ if result['valid']:
 6. Verify validation logging
 
 ### Frontend Testing:
+
 1. Dashboard: Check real-time stats loading
 2. Licenses: Test bulk selection and actions
 3. Webhooks: Create webhook and test delivery
@@ -530,6 +602,7 @@ if result['valid']:
 6. Landing: Verify live stats fetch
 
 ### SDK Testing:
+
 1. C# SDK: Compile example and test validation
 2. Python SDK: Run example.py
 3. C++ SDK: Build and run example
@@ -551,26 +624,31 @@ if result['valid']:
 ## 🎯 Future Enhancements (Optional)
 
 1. **Email Notifications**
+
    - License expiration warnings
    - Fraud alert emails
    - Webhook failure notifications
 
 2. **2FA for Dashboard**
+
    - TOTP support
    - Backup codes
    - SMS option
 
 3. **GraphQL API**
+
    - Alternative to REST
    - Real-time subscriptions
    - Better for complex queries
 
 4. **Mobile SDKs**
+
    - iOS (Swift)
    - Android (Kotlin/Java)
    - React Native
 
 5. **Advanced Analytics**
+
    - Machine learning fraud detection
    - Predictive analytics
    - Cohort analysis
@@ -613,18 +691,21 @@ if result['valid']:
 ## 📞 Support & Maintenance
 
 **Monitoring:**
+
 - Check validation_logs table regularly for patterns
 - Monitor webhook_deliveries for failures
 - Review fraud_alerts for security issues
 - Track API key usage via last_used_at
 
 **Maintenance:**
+
 - Clean up old validation_logs (> 90 days)
 - Archive webhook_deliveries (> 30 days)
 - Review and resolve fraud_alerts
 - Rotate expired API keys
 
 **Optimization:**
+
 - Run VACUUM ANALYZE on large tables monthly
 - Reindex frequently updated tables
 - Monitor query performance

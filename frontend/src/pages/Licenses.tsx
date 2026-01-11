@@ -29,7 +29,7 @@ export default function Licenses() {
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [creating, setCreating] = useState(false);
-  
+
   // Form state
   const [selectedAppId, setSelectedAppId] = useState("");
   const [daysValid, setDaysValid] = useState("30");
@@ -48,8 +48,13 @@ export default function Licenses() {
         headers: { Authorization: `Bearer ${token}` },
       });
       console.log("Licenses loaded:", response.data);
-      console.log("Data type:", typeof response.data, "Is array:", Array.isArray(response.data));
-      
+      console.log(
+        "Data type:",
+        typeof response.data,
+        "Is array:",
+        Array.isArray(response.data)
+      );
+
       // Ensure data is an array
       const licensesArray = Array.isArray(response.data) ? response.data : [];
       setLicenses(licensesArray);
@@ -68,9 +73,14 @@ export default function Licenses() {
         headers: { Authorization: `Bearer ${token}` },
       });
       console.log("Applications API Response:", response.data);
-      console.log("Applications type:", typeof response.data, "Is array:", Array.isArray(response.data));
+      console.log(
+        "Applications type:",
+        typeof response.data,
+        "Is array:",
+        Array.isArray(response.data)
+      );
       console.log("Applications length:", response.data?.length);
-      
+
       // Ensure data is an array
       const appsArray = Array.isArray(response.data) ? response.data : [];
       console.log("Setting applications state with:", appsArray);
@@ -84,11 +94,11 @@ export default function Licenses() {
 
   const handleCreateLicense = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       setCreating(true);
       const token = localStorage.getItem("token");
-      
+
       await axios.post(
         "/api/v1/admin/license/create",
         {
@@ -166,7 +176,14 @@ export default function Licenses() {
       )}
 
       {/* Stats */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 24, marginBottom: 32 }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+          gap: 24,
+          marginBottom: 32,
+        }}
+      >
         <div className="card" style={{ padding: 24 }}>
           <div className="cardTitle">Total Licenses</div>
           <div className="metricValue">{licenses.length}</div>
@@ -174,13 +191,17 @@ export default function Licenses() {
         <div className="card" style={{ padding: 24 }}>
           <div className="cardTitle">Active Licenses</div>
           <div className="metricValue metricGreen">
-            {licenses.filter(l => l.is_active).length}
+            {licenses.filter((l) => l.is_active).length}
           </div>
         </div>
         <div className="card" style={{ padding: 24 }}>
           <div className="cardTitle">Expired</div>
           <div className="metricValue metricRed">
-            {licenses.filter(l => !l.is_active || new Date(l.expires_at) < new Date()).length}
+            {
+              licenses.filter(
+                (l) => !l.is_active || new Date(l.expires_at) < new Date()
+              ).length
+            }
           </div>
         </div>
       </div>
@@ -202,7 +223,14 @@ export default function Licenses() {
             <tbody>
               {licenses.length === 0 ? (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: "center", padding: 40, color: "var(--text-muted)" }}>
+                  <td
+                    colSpan={6}
+                    style={{
+                      textAlign: "center",
+                      padding: 40,
+                      color: "var(--text-muted)",
+                    }}
+                  >
                     No licenses yet. Create your first license to get started.
                   </td>
                 </tr>
@@ -229,10 +257,13 @@ export default function Licenses() {
                       </button>
                     </td>
                     <td>{license.max_hwid_slots}</td>
-                    <td>{license.hwid_count} / {license.max_hwid_slots}</td>
+                    <td>
+                      {license.hwid_count} / {license.max_hwid_slots}
+                    </td>
                     <td>{new Date(license.expires_at).toLocaleDateString()}</td>
                     <td>
-                      {!license.is_banned && new Date(license.expires_at) > new Date() ? (
+                      {!license.is_banned &&
+                      new Date(license.expires_at) > new Date() ? (
                         <span className="badge badgeSuccess">Active</span>
                       ) : license.is_banned ? (
                         <span className="badge badgeDanger">Banned</span>

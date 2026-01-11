@@ -1,6 +1,8 @@
 import { Pool, PoolConfig } from "pg";
-import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
+
+// Use require for bcryptjs to avoid type resolution issues
+const bcrypt = require("bcryptjs");
 
 dotenv.config();
 

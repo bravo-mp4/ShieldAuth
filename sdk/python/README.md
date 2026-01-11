@@ -40,7 +40,7 @@ result = client.validate("license-key-here")
 if result['valid']:
     print("✓ License valid!")
     print(f"Session: {client.get_session_id()}")
-    
+
     # Send heartbeat
     client.heartbeat()
 else:
@@ -67,6 +67,7 @@ ShieldAuthClient(app_id: str, api_url: str = "...")
 Validates a license key and binds it to the current hardware.
 
 **Returns:** Dictionary with keys:
+
 - `valid` (bool): Validation result
 - `message` (str): Status message
 - `expires_at` (int, optional): Expiration timestamp
@@ -141,7 +142,7 @@ if result['valid']:
         daemon=True
     )
     heartbeat_thread.start()
-    
+
     # Your application logic
     print("Application running...")
     while True:
@@ -208,10 +209,10 @@ print("Starting bot...")
 ```python
 try:
     result = client.validate(license_key)
-    
+
     if not result['valid']:
         message = result['message']
-        
+
         if 'expired' in message.lower():
             print("License expired!")
         elif 'hwid' in message.lower():
@@ -220,7 +221,7 @@ try:
             print(f"Validation failed: {message}")
     else:
         print("Success!")
-        
+
 except Exception as e:
     print(f"Error: {e}")
 ```
@@ -228,14 +229,17 @@ except Exception as e:
 ## Platform-Specific Notes
 
 ### Windows
+
 - Requires `wmic` command (available by default)
 - Works on Windows 7, 10, 11
 
 ### Linux
+
 - May require `sudo` for some HWID methods (dmidecode)
 - Falls back to CPU info and MAC address if elevated permissions unavailable
 
 ### macOS
+
 - Uses `system_profiler` for hardware info
 - Works on macOS 10.13+
 
@@ -269,32 +273,32 @@ class LicensedService:
     def __init__(self, app_id, license_key):
         self.client = ShieldAuthClient(app_id)
         self.running = False
-        
+
         # Validate on startup
         result = self.client.validate(license_key)
         if not result['valid']:
             raise Exception(f"Invalid license: {result['message']}")
-        
+
         print("License validated successfully")
-    
+
     def start(self):
         self.running = True
-        
+
         # Setup signal handlers
         signal.signal(signal.SIGINT, self.stop)
         signal.signal(signal.SIGTERM, self.stop)
-        
+
         last_heartbeat = time.time()
-        
+
         while self.running:
             # Your service logic here
             time.sleep(1)
-            
+
             # Heartbeat every 5 minutes
             if time.time() - last_heartbeat > 300:
                 self.client.heartbeat()
                 last_heartbeat = time.time()
-    
+
     def stop(self, signum, frame):
         print("Shutting down...")
         self.running = False
