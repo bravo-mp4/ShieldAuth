@@ -6,9 +6,6 @@ import PublicNav from "../components/PublicNav";
 // @ts-expect-error - JSX component
 import PublicFooter from "../components/PublicFooter";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
-
 interface BlogPost {
   post_id: number;
   title: string;
@@ -39,7 +36,7 @@ export default function BlogPost() {
     try {
       setLoading(true);
       const response = await axios.get(
-        `${API_BASE_URL}/api/v1/public/blog/${slug}`
+        `/api/v1/public/blog/${slug}`
       );
       setPost(response.data);
       setLocalLikes(response.data.likes);
@@ -54,7 +51,7 @@ export default function BlogPost() {
     if (liked) return;
 
     try {
-      await axios.post(`${API_BASE_URL}/api/v1/public/blog/${slug}/like`);
+      await axios.post(`/api/v1/public/blog/${slug}/like`);
       setLiked(true);
       setLocalLikes((prev) => prev + 1);
     } catch (error) {

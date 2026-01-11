@@ -40,7 +40,7 @@ export default function Blog() {
 
       // Fetch featured post
       const featuredResponse = await axios.get(
-        `${API_BASE_URL}/api/v1/public/blog?featured=true&limit=1`
+        "/api/v1/public/blog?featured=true&limit=1"
       );
       if (featuredResponse.data.posts.length > 0) {
         setFeaturedPost(featuredResponse.data.posts[0]);
@@ -52,7 +52,7 @@ export default function Blog() {
         params.category = selectedCategory;
       }
 
-      const response = await axios.get(`${API_BASE_URL}/api/v1/public/blog`, {
+      const response = await axios.get("/api/v1/public/blog", {
         params,
       });
 
