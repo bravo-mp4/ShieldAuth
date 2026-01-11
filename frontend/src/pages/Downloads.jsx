@@ -8,7 +8,7 @@ export default function Downloads() {
       name: "C++ SDK",
       version: "2.5.0",
       language: "C++",
-      icon: "⚡",
+      icon: <Zap size={24} className="text-primary-500" />,
       color: "#00599C",
       downloads: 12453,
       size: "2.4 MB",

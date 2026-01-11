@@ -56,7 +56,9 @@ export default function ApplicationDetail() {
     return (
       <div className="page">
         <div className="card" style={{ textAlign: "center", padding: 60 }}>
-          <div style={{ fontSize: "3rem", marginBottom: 16 }}>📦</div>
+          <div style={{ marginBottom: 16, display: "flex", justifyContent: "center" }}>
+            <Package size={48} className="text-gray-600" />
+          </div>
           <div className="cardTitle" style={{ marginBottom: 16 }}>
             Application not found
           </div>
@@ -289,7 +291,9 @@ if (!ShieldAuth::Validate(license_key)) {
             Analytics
           </h3>
           <div style={{ textAlign: "center", padding: 60 }}>
-            <div style={{ fontSize: "3rem", marginBottom: 16 }}>📊</div>
+            <div style={{ marginBottom: 16, display: "flex", justifyContent: "center" }}>
+              <BarChart3 size={48} className="text-gray-600" />
+            </div>
             <div className="muted">Analytics dashboard coming soon</div>
           </div>
         </div>

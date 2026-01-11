@@ -115,8 +115,9 @@ export default function LicensePortal() {
         <div className="container" style={{ maxWidth: 900 }}>
           {/* Header */}
           <div style={{ textAlign: "center", marginBottom: 48 }}>
-            <div className="kicker" style={{ marginBottom: 16 }}>
-              🔐 LICENSE PORTAL
+            <div className="kicker" style={{ marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+              <Shield size={16} />
+              LICENSE PORTAL
             </div>
             <h1 style={{ fontSize: "2.5rem", marginBottom: 16 }}>
               Your License Details

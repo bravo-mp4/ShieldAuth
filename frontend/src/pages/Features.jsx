@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
+import { Shield, Zap, BarChart3 } from "lucide-react";
 // @ts-expect-error - JSX component
 import PublicNav from "../components/PublicNav";
 // @ts-expect-error - JSX component
@@ -10,9 +11,9 @@ export default function Features() {
 
   const tabs = [
     { id: "license", label: "License Management", icon: "🔑" },
-    { id: "security", label: "Binary Protection", icon: "🛡️" },
-    { id: "developer", label: "Developer Tools", icon: "⚡" },
-    { id: "analytics", label: "Analytics", icon: "📊" },
+    { id: "security", label: "Binary Protection", icon: <Shield size={20} /> },
+    { id: "developer", label: "Developer Tools", icon: <Zap size={20} /> },
+    { id: "analytics", label: "Analytics", icon: <BarChart3 size={20} /> },
   ];
 
   const featureContent = {

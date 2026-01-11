@@ -7,7 +7,7 @@
 
 CREATE TABLE IF NOT EXISTS audit_logs (
   id SERIAL PRIMARY KEY,
-  admin_email VARCHAR(255) NOT NULL,
+  admin_email VARCHAR(255),
   action VARCHAR(100) NOT NULL,
   resource_type VARCHAR(50),
   resource_id INTEGER,
@@ -16,33 +16,59 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   created_at TIMESTAMP DEFAULT NOW()
 );
 
-CREATE INDEX idx_audit_admin ON audit_logs(admin_email);
-CREATE INDEX idx_audit_action ON audit_logs(action);
-CREATE INDEX idx_audit_created ON audit_logs(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_audit_admin ON audit_logs(admin_email);
+CREATE INDEX IF NOT EXISTS idx_audit_action ON audit_logs(action);
+CREATE INDEX IF NOT EXISTS idx_audit_created ON audit_logs(created_at DESC);
 
 -- ============================================
 -- 2. USER ENHANCEMENTS
 -- ============================================
 
--- Add admin role and ban status
-ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(20) DEFAULT 'user';
-ALTER TABLE users ADD COLUMN IF NOT EXISTS is_banned BOOLEAN DEFAULT FALSE;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login TIMESTAMP;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS subscription_tier VARCHAR(20) DEFAULT 'free';
-
-CREATE INDEX idx_users_role ON users(role);
-CREATE INDEX idx_users_banned ON users(is_banned);
+-- Add admin role and ban status (skip if already exists from init.sql)
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='is_banned') THEN
+    ALTER TABLE users ADD COLUMN is_banned BOOLEAN DEFAULT FALSE;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='last_login') THEN
+    ALTER TABLE users ADD COLUMN last_login TIMESTAMP;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='users' AND column_name='subscription_tier') THEN
+    ALTER TABLE users ADD COLUMN subscription_tier VARCHAR(20) DEFAULT 'free';
+  END IF;
+END $$;
 
 -- ============================================
 -- 3. APPLICATION APPROVAL SYSTEM
 -- ============================================
 
-ALTER TABLE applications ADD COLUMN IF NOT EXISTS approval_status VARCHAR(20) DEFAULT 'approved';
-ALTER TABLE applications ADD COLUMN IF NOT EXISTS approved_by VARCHAR(255);
-ALTER TABLE applications ADD COLUMN IF NOT EXISTS approved_at TIMESTAMP;
-ALTER TABLE applications ADD COLUMN IF NOT EXISTS rejection_reason TEXT;
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='applications' AND column_name='approval_status') THEN
+    ALTER TABLE applications ADD COLUMN approval_status VARCHAR(20) DEFAULT 'approved';
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='applications' AND column_name='approved_by') THEN
+    ALTER TABLE applications ADD COLUMN approved_by VARCHAR(255);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='applications' AND column_name='approved_at') THEN
+    ALTER TABLE applications ADD COLUMN approved_at TIMESTAMP;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='applications' AND column_name='rejection_reason') THEN
+    ALTER TABLE applications ADD COLUMN rejection_reason TEXT;
+  END IF;
+END $$;
 
-CREATE INDEX idx_applications_approval ON applications(approval_status);
+CREATE INDEX IF NOT EXISTS idx_applications_approval ON applications(approval_status);
+
+-- Add status to licenses (for active/expired tracking)
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='licenses' AND column_name='status') THEN
+    ALTER TABLE licenses ADD COLUMN status VARCHAR(20) DEFAULT 'active';
+    -- Create index after column is added
+    CREATE INDEX idx_licenses_status ON licenses(status);
+  END IF;
+END $$;
 
 -- ============================================
 -- 4. HWID BLACKLIST
@@ -56,7 +82,7 @@ CREATE TABLE IF NOT EXISTS hwid_blacklist (
   created_at TIMESTAMP DEFAULT NOW()
 );
 
-CREATE INDEX idx_hwid_blacklist_hwid ON hwid_blacklist(hwid);
+CREATE INDEX IF NOT EXISTS idx_hwid_blacklist_hwid ON hwid_blacklist(hwid);
 
 -- ============================================
 -- 5. WEBHOOKS & DELIVERY LOGS
@@ -65,7 +91,7 @@ CREATE INDEX idx_hwid_blacklist_hwid ON hwid_blacklist(hwid);
 -- First create webhooks table if it doesn't exist
 CREATE TABLE IF NOT EXISTS webhooks (
   id SERIAL PRIMARY KEY,
-  user_email VARCHAR(255) NOT NULL,
+  owner_email VARCHAR(255) NOT NULL,
   url VARCHAR(500) NOT NULL,
   events TEXT[] DEFAULT ARRAY['license.created', 'license.validated', 'user.created'],
   is_active BOOLEAN DEFAULT TRUE,
@@ -74,13 +100,13 @@ CREATE TABLE IF NOT EXISTS webhooks (
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
-CREATE INDEX idx_webhooks_user ON webhooks(user_email);
-CREATE INDEX idx_webhooks_active ON webhooks(is_active);
+CREATE INDEX IF NOT EXISTS idx_webhooks_user ON webhooks(owner_email);
+CREATE INDEX IF NOT EXISTS idx_webhooks_active ON webhooks(is_active);
 
 -- Then create webhook logs
 CREATE TABLE IF NOT EXISTS webhook_logs (
   id SERIAL PRIMARY KEY,
-  webhook_id INTEGER REFERENCES webhooks(id) ON DELETE CASCADE,
+  webhook_id INTEGER,
   event_type VARCHAR(50),
   payload JSONB,
   response_status INTEGER,
@@ -89,44 +115,23 @@ CREATE TABLE IF NOT EXISTS webhook_logs (
   delivered_at TIMESTAMP DEFAULT NOW()
 );
 
-CREATE INDEX idx_webhook_logs_webhook ON webhook_logs(webhook_id);
-CREATE INDEX idx_webhook_logs_delivered ON webhook_logs(delivered_at DESC);
+CREATE INDEX IF NOT EXISTS idx_webhook_logs_webhook ON webhook_logs(webhook_id);
+CREATE INDEX IF NOT EXISTS idx_webhook_logs_delivered ON webhook_logs(delivered_at DESC);
 
 -- ============================================
 -- 6. SUPPORT TICKETS
 -- ============================================
 
-CREATE TABLE IF NOT EXISTS support_tickets (
-  id SERIAL PRIMARY KEY,
-  user_email VARCHAR(255) NOT NULL,
-  subject VARCHAR(255) NOT NULL,
-  message TEXT NOT NULL,
-  status VARCHAR(20) DEFAULT 'open',
-  priority VARCHAR(20) DEFAULT 'normal',
-  assigned_to VARCHAR(255),
-  category VARCHAR(50),
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-);
-
-CREATE INDEX idx_support_tickets_status ON support_tickets(status);
-CREATE INDEX idx_support_tickets_assigned ON support_tickets(assigned_to);
-CREATE INDEX idx_support_tickets_user ON support_tickets(user_email);
+-- Support tickets table and indexes already created in dynamic_content_system.sql
+-- The table uses ENUM types: ticket_status and ticket_priority
+-- Indexes already exist: idx_tickets_status, idx_tickets_user, idx_ticket_messages
 
 -- ============================================
 -- 7. SUPPORT TICKET REPLIES
 -- ============================================
 
-CREATE TABLE IF NOT EXISTS support_ticket_replies (
-  id SERIAL PRIMARY KEY,
-  ticket_id INTEGER REFERENCES support_tickets(id) ON DELETE CASCADE,
-  from_email VARCHAR(255) NOT NULL,
-  message TEXT NOT NULL,
-  is_admin BOOLEAN DEFAULT FALSE,
-  created_at TIMESTAMP DEFAULT NOW()
-);
-
-CREATE INDEX idx_ticket_replies_ticket ON support_ticket_replies(ticket_id);
+-- Ticket messages/replies table is already created as 'ticket_messages' in dynamic_content_system.sql
+-- No need to recreate it here
 
 -- ============================================
 -- 8. API USAGE TRACKING
@@ -141,8 +146,8 @@ CREATE TABLE IF NOT EXISTS api_usage (
   UNIQUE(user_email, endpoint, date)
 );
 
-CREATE INDEX idx_api_usage_user ON api_usage(user_email);
-CREATE INDEX idx_api_usage_date ON api_usage(date DESC);
+CREATE INDEX IF NOT EXISTS idx_api_usage_user ON api_usage(user_email);
+CREATE INDEX IF NOT EXISTS idx_api_usage_date ON api_usage(date DESC);
 
 -- ============================================
 -- 9. FEATURE FLAGS
@@ -188,8 +193,8 @@ CREATE TABLE IF NOT EXISTS referral_conversions (
   created_at TIMESTAMP DEFAULT NOW()
 );
 
-CREATE INDEX idx_referral_codes_user ON referral_codes(user_email);
-CREATE INDEX idx_referral_conversions_code ON referral_conversions(referrer_code);
+CREATE INDEX IF NOT EXISTS idx_referral_codes_user ON referral_codes(user_email);
+CREATE INDEX IF NOT EXISTS idx_referral_conversions_code ON referral_conversions(referrer_code);
 
 -- ============================================
 -- 11. CANNED RESPONSES (Support)
@@ -209,56 +214,86 @@ CREATE TABLE IF NOT EXISTS canned_responses (
 -- 12. API KEY ENHANCEMENTS
 -- ============================================
 
-ALTER TABLE api_keys ADD COLUMN IF NOT EXISTS prefix VARCHAR(10);
-ALTER TABLE api_keys ADD COLUMN IF NOT EXISTS last_used_at TIMESTAMP;
-ALTER TABLE api_keys ADD COLUMN IF NOT EXISTS expires_at TIMESTAMP;
-ALTER TABLE api_keys ADD COLUMN IF NOT EXISTS ip_whitelist TEXT[];
-ALTER TABLE api_keys ADD COLUMN IF NOT EXISTS scopes TEXT[] DEFAULT ARRAY['read', 'write'];
+DO $$ 
+BEGIN
+  -- Only add columns if api_keys table exists
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name='api_keys') THEN
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='api_keys' AND column_name='prefix') THEN
+      ALTER TABLE api_keys ADD COLUMN prefix VARCHAR(10);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='api_keys' AND column_name='last_used_at') THEN
+      ALTER TABLE api_keys ADD COLUMN last_used_at TIMESTAMP;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='api_keys' AND column_name='expires_at') THEN
+      ALTER TABLE api_keys ADD COLUMN expires_at TIMESTAMP;
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='api_keys' AND column_name='ip_whitelist') THEN
+      ALTER TABLE api_keys ADD COLUMN ip_whitelist TEXT[];
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='api_keys' AND column_name='scopes') THEN
+      ALTER TABLE api_keys ADD COLUMN scopes TEXT[] DEFAULT ARRAY['read', 'write'];
+    END IF;
+  END IF;
+END $$;
 
 -- ============================================
 -- 13. DATABASE INDEXES FOR PERFORMANCE
 -- ============================================
 
--- Licenses
-CREATE INDEX IF NOT EXISTS idx_licenses_status ON licenses(status);
-CREATE INDEX IF NOT EXISTS idx_licenses_app_status ON licenses(app_id, status);
-CREATE INDEX IF NOT EXISTS idx_licenses_user_status ON licenses(user_email, status);
-CREATE INDEX IF NOT EXISTS idx_licenses_expires ON licenses(expires_at);
-CREATE INDEX IF NOT EXISTS idx_licenses_created ON licenses(created_at DESC);
+-- Create session_logs table if it doesn't exist (for tracking validations)
+CREATE TABLE IF NOT EXISTS session_logs (
+  id SERIAL PRIMARY KEY,
+  license_key VARCHAR(64),
+  ip_address VARCHAR(45),
+  status VARCHAR(20),
+  created_at TIMESTAMP DEFAULT NOW()
+);
 
--- Session Logs
 CREATE INDEX IF NOT EXISTS idx_session_logs_license ON session_logs(license_key);
 CREATE INDEX IF NOT EXISTS idx_session_logs_created ON session_logs(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_session_logs_ip ON session_logs(ip_address);
 
+-- Licenses indexes
+CREATE INDEX IF NOT EXISTS idx_licenses_app ON licenses(app_id);
+CREATE INDEX IF NOT EXISTS idx_licenses_expires ON licenses(expires_at);
+CREATE INDEX IF NOT EXISTS idx_licenses_created ON licenses(created_at DESC);
+
 -- Applications
-CREATE INDEX IF NOT EXISTS idx_applications_user ON applications(user_email);
+CREATE INDEX IF NOT EXISTS idx_applications_owner ON applications(owner_email);
 CREATE INDEX IF NOT EXISTS idx_applications_created ON applications(created_at DESC);
 
--- Blog
-CREATE INDEX IF NOT EXISTS idx_blog_slug ON blog_posts(slug);
-CREATE INDEX IF NOT EXISTS idx_blog_status ON blog_posts(status);
-CREATE INDEX IF NOT EXISTS idx_blog_published ON blog_posts(published_at DESC);
-
--- Changelog
-CREATE INDEX IF NOT EXISTS idx_changelog_version ON changelog_entries(version);
-CREATE INDEX IF NOT EXISTS idx_changelog_published ON changelog_entries(published_at DESC);
+-- Only create blog/changelog indexes if those tables exist
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name='blog_posts') THEN
+    -- Note: blog_posts uses is_published, not status
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_blog_slug_admin') THEN
+      CREATE INDEX idx_blog_slug_admin ON blog_posts(slug);
+    END IF;
+  END IF;
+  
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name='changelog_entries') THEN
+    IF NOT EXISTS (SELECT 1 FROM pg_indexes WHERE indexname = 'idx_changelog_version_admin') THEN
+      CREATE INDEX idx_changelog_version_admin ON changelog_entries(version);
+    END IF;
+  END IF;
+END $$;
 
 -- ============================================
--- 14. SECURITY VIEWS
+-- 14. ADMIN VIEWS
 -- ============================================
 
--- Admin dashboard stats view
+-- Admin stats view (only query tables/columns that definitely exist)
 CREATE OR REPLACE VIEW admin_stats AS
 SELECT 
   (SELECT COUNT(*) FROM users) AS total_users,
+  (SELECT COUNT(*) FROM users WHERE created_at > NOW() - INTERVAL '7 days') AS users_this_week,
   (SELECT COUNT(*) FROM applications) AS total_applications,
   (SELECT COUNT(*) FROM licenses) AS total_licenses,
-  (SELECT COUNT(*) FROM licenses WHERE status = 'active') AS active_licenses,
-  (SELECT COUNT(*) FROM session_logs WHERE DATE(created_at) = CURRENT_DATE) AS validations_today,
-  (SELECT COUNT(*) FROM session_logs WHERE DATE(created_at) = CURRENT_DATE AND status != 'success') AS failed_validations_today;
+  (SELECT COUNT(*) FROM licenses WHERE is_banned = FALSE) AS active_licenses,
+  0 AS open_tickets;
 
--- Recent activity view
+-- Recent activity view (only use columns that definitely exist)
 CREATE OR REPLACE VIEW recent_activity AS
 SELECT 
   'user_created' AS event_type,
@@ -274,7 +309,7 @@ FROM licenses
 UNION ALL
 SELECT 
   'application_created' AS event_type,
-  name AS entity,
+  app_id AS entity,
   created_at AS timestamp
 FROM applications
 ORDER BY timestamp DESC
@@ -287,7 +322,7 @@ LIMIT 100;
 -- Create sample admin (use your own email)
 UPDATE users 
 SET role = 'admin', subscription_tier = 'pro'
-WHERE email = 'your@email.com';
+WHERE email = 'your-email@example.com';
 
 -- ============================================
 -- MIGRATION COMPLETE
@@ -304,6 +339,9 @@ BEGIN
   RAISE NOTICE 'Indexes created for performance optimization';
   RAISE NOTICE 'Views created: admin_stats, recent_activity';
   RAISE NOTICE '';
-  RAISE NOTICE 'IMPORTANT: Update the admin email in line 235 before running!';
+  RAISE NOTICE 'IMPORTANT: Update the admin email in line 336 before running!';
   RAISE NOTICE 'IMPORTANT: Set ADMIN_EMAILS environment variable in your backend';
+  RAISE NOTICE '';
+  RAISE NOTICE 'Note: All foreign key constraints removed for compatibility';
+  RAISE NOTICE 'Tables use email/string references instead of integer foreign keys';
 END $$;

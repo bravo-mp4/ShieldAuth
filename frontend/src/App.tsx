@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import Layout from "./components/Layout";
+import { CommandPalette } from "./components/ui/CommandPalette";
 // @ts-expect-error - JSX component
 import ProtectedRoute from "./components/ProtectedRoute";
 import Landing from "./pages/Landing";
@@ -55,14 +56,20 @@ import Logs from "./pages/Logs";
 import SettingsPage from "./pages/Settings";
 import Licenses from "./pages/Licenses";
 import LicensePortal from "./pages/LicensePortal";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import AdminUsers from "./pages/admin/AdminUsers";
+import AdminBlog from "./pages/admin/AdminBlog";
+import AdminChangelog from "./pages/admin/AdminChangelog";
 import "./App.css";
 
-export default function App() {
-  useEffect(() => {
-    // Disabled mouse tracking and particle effects for cleaner look
-    return () => {};
   }, []);
 
+  return (
+    <>
+      <CommandPalette />
+      <Routes>
+        {/* Public Routes */}
+        <Route path="/" element={<Landing />} />
   return (
     <Routes>
       {/* Public Routes */}
@@ -97,16 +104,23 @@ export default function App() {
           <Route path="/licenses" element={<Licenses />} />
           <Route path="/logs" element={<Logs />} />
           <Route path="/analytics" element={<Analytics />} />
-          <Route path="/api-keys" element={<APIKeys />} />
-          <Route path="/webhooks" element={<Webhooks />} />
           <Route path="/downloads" element={<Downloads />} />
           <Route path="/support" element={<Support />} />
           <Route path="/settings" element={<SettingsPage />} />
+          
+          {/* Admin Routes */}
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/users" element={<AdminUsers />} />
+          <Route path="/admin/blog" element={<AdminBlog />} />
+          <Route path="/admin/changelog" element={<AdminChangelog />} />
         </Route>
       </Route>
 
       {/* Fallback */}
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
+    </>
+  );
+}   </Routes>
   );
 }

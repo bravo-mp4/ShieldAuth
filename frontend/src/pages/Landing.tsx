@@ -378,7 +378,9 @@ export default function Landing() {
             className="card"
             style={{ padding: "32px", transition: "all 0.3s ease" }}
           >
-            <div style={{ fontSize: "2.5rem", marginBottom: "16px" }}>⚡</div>
+            <div style={{ marginBottom: "16px" }}>
+              <Zap size={40} className="text-primary-500" />
+            </div>
             <div
               className="cardTitle"
               style={{ marginBottom: "12px", fontSize: "1.2rem" }}
@@ -394,7 +396,9 @@ export default function Landing() {
             className="card"
             style={{ padding: "32px", transition: "all 0.3s ease" }}
           >
-            <div style={{ fontSize: "2.5rem", marginBottom: "16px" }}>🛡️</div>
+            <div style={{ marginBottom: "16px" }}>
+              <Shield size={40} className="text-primary-500" />
+            </div>
             <div
               className="cardTitle"
               style={{ marginBottom: "12px", fontSize: "1.2rem" }}
@@ -410,7 +414,9 @@ export default function Landing() {
             className="card"
             style={{ padding: "32px", transition: "all 0.3s ease" }}
           >
-            <div style={{ fontSize: "2.5rem", marginBottom: "16px" }}>📊</div>
+            <div style={{ marginBottom: "16px" }}>
+              <BarChart3 size={40} className="text-primary-500" />
+            </div>
             <div
               className="cardTitle"
               style={{ marginBottom: "12px", fontSize: "1.2rem" }}
