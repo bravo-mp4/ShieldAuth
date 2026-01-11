@@ -45,15 +45,25 @@ export default function Pricing() {
       name: "Free",
       price: { monthly: 0, yearly: 0 },
       description: "Perfect for testing and small projects",
-      features: [
-        { text: "1 Application", included: true },
-        { text: "25 Users per App", included: true },
-        { text: "License Management", included: true },
-        { text: "HWID Protection (1 slot)", included: true },
-        { text: "API Access", included: true },
-        { text: "Basic Dashboard", included: true },
-        { text: "Community Support (Discord)", included: true },
-        { text: "Documentation", included: true },
+      sections: [
+        {
+          title: "Core Authentication",
+          features: [
+            "1 Application",
+            "25 Users per App",
+            "License Management",
+            "HWID Protection (1 slot)",
+            "API Access",
+          ],
+        },
+        {
+          title: "Management",
+          features: ["Basic Dashboard", "License Generation"],
+        },
+        {
+          title: "Support",
+          features: ["Community (Discord)", "Documentation"],
+        },
       ],
       cta: "Start Free",
       popular: false,
@@ -62,18 +72,51 @@ export default function Pricing() {
       name: "Developer",
       price: { monthly: 2.99, yearly: 29.90 },
       description: "For indie developers building apps",
-      features: [
-        { text: "3 Applications", included: true },
-        { text: "10,000 Users per App", included: true },
-        { text: "HWID Protection (up to 3 slots)", included: true },
-        { text: "Session Management", included: true },
-        { text: "Webhooks", included: true },
-        { text: "IP Whitelists/Blacklists", included: true },
-        { text: "Event Logs", included: true },
-        { text: "Basic Analytics", included: true },
-        { text: "All SDKs (C++/C#/Python/Node.js)", included: true },
-        { text: "2FA Account Security", included: true },
-        { text: "Email Support (Priority)", included: true },
+      sections: [
+        {
+          title: "Core Authentication",
+          features: [
+            "3 Applications",
+            "10,000 Users per App",
+            "All Authentication Methods",
+            "HWID Protection (up to 3 slots)",
+            "Session Management",
+          ],
+        },
+        {
+          title: "Management & Administration",
+          features: [
+            "User Management",
+            "License Management",
+            "Subscription Management",
+            "File Management (SDK downloads)",
+            "Variables (store app data)",
+          ],
+        },
+        {
+          title: "Security",
+          features: ["IP Whitelists/Blacklists", "2FA (Account)"],
+        },
+        {
+          title: "Integration",
+          features: ["Webhooks", "REST API"],
+        },
+        {
+          title: "Analytics",
+          features: ["Event Logs", "Basic Analytics"],
+        },
+        {
+          title: "Developer Tools",
+          features: [
+            "All SDKs (C++/C#/Python/Node.js)",
+            "Code Examples",
+            "API Documentation",
+          ],
+        },
+        {
+          title: "Support",
+          features: ["Email Support (Priority)", "Discord Priority Channel"],
+        },
       ],
       cta: "Start Trial",
       popular: false,
@@ -82,20 +125,55 @@ export default function Pricing() {
       name: "Seller",
       price: { monthly: 4.99, yearly: 49.90 },
       description: "Best for selling software products",
-      features: [
-        { text: "Everything in Developer", included: true },
-        { text: "Unlimited Applications", included: true },
-        { text: "Unlimited Users per App", included: true },
-        { text: "Unlimited HWID slots", included: true },
-        { text: "Team Management", included: true },
-        { text: "Reseller System", included: true },
-        { text: "Customer Panel (white-label)", included: true },
-        { text: "Discord Bot Integration", included: true },
-        { text: "Telegram Bot Integration", included: true },
-        { text: "Advanced Analytics", included: true },
-        { text: "Custom Branding", included: true },
-        { text: "Remove \"Powered by ShieldAuth\"", included: true },
-        { text: "Dedicated Support", included: true },
+      sections: [
+        {
+          title: "Everything in Developer, plus:",
+          features: [],
+        },
+        {
+          title: "Core Authentication",
+          features: [
+            "Unlimited Applications",
+            "Unlimited Users per App",
+            "HWID Protection (unlimited slots)",
+          ],
+        },
+        {
+          title: "Team & Business",
+          features: [
+            "Team Management (add team members)",
+            "Reseller System",
+            "Customer Panel (white-label)",
+          ],
+        },
+        {
+          title: "Integration",
+          features: [
+            "Discord Bot Integration",
+            "Telegram Bot Integration",
+            "Advanced Webhooks",
+          ],
+        },
+        {
+          title: "Analytics",
+          features: [
+            "Advanced Analytics Dashboard",
+            "Seller Logs",
+            "Export Reports",
+          ],
+        },
+        {
+          title: "Branding",
+          features: ["Custom Branding", 'Remove "Powered by ShieldAuth"'],
+        },
+        {
+          title: "Support",
+          features: [
+            "Dedicated Support",
+            "Priority Bug Fixes",
+            "Feature Requests Priority",
+          ],
+        },
       ],
       cta: "Start Trial",
       popular: true,
@@ -104,17 +182,30 @@ export default function Pricing() {
       name: "Pro",
       price: { monthly: 39.99, yearly: 399.90 },
       description: "Complete protection solution",
-      features: [
-        { text: "Everything in Seller", included: true },
-        { text: "🛡️ BINARY PROTECTOR", included: true, highlight: true },
-        { text: "Code Obfuscation", included: true },
-        { text: "String Encryption", included: true },
-        { text: "Anti-Debug Protection", included: true },
-        { text: "Import Hiding", included: true },
-        { text: "Anti-Tamper", included: true },
-        { text: "Unlimited Protected Binaries", included: true },
-        { text: "Auto-integrate with Auth", included: true },
-        { text: "Priority Feature Requests", included: true },
+      badge: "NEW",
+      sections: [
+        {
+          title: "Everything in Seller, plus:",
+          features: [],
+        },
+        {
+          title: "🛡️ BINARY PROTECTOR",
+          features: [
+            "Code Obfuscation",
+            "String Encryption",
+            "Anti-Debug",
+            "Import Hiding",
+            "Anti-Tamper",
+          ],
+        },
+        {
+          title: "Protection Features",
+          features: [
+            "Download Protector Tool",
+            "Unlimited Protected Binaries",
+            "Auto-integrate with Auth",
+          ],
+        },
       ],
       cta: "Get Pro",
       popular: false,
@@ -314,6 +405,25 @@ export default function Pricing() {
                   : undefined,
               }}
             >
+              {plan.badge && (
+                <div
+                  style={{
+                    position: "absolute",
+                    top: -12,
+                    right: 20,
+                    background: "linear-gradient(135deg, var(--primary), var(--primary-light))",
+                    color: "white",
+                    padding: "4px 12px",
+                    borderRadius: 12,
+                    fontSize: "0.75rem",
+                    fontWeight: 700,
+                    boxShadow: "0 4px 12px rgba(34, 197, 94, 0.3)",
+                  }}
+                >
+                  {plan.badge}
+                </div>
+              )}
+
               {plan.popular && (
                 <div
                   style={{
@@ -364,42 +474,52 @@ export default function Pricing() {
                 {plan.cta}
               </Link>
 
-              <ul style={{ listStyle: "none", padding: 0, textAlign: "left" }}>
-                {plan.features.map((feature, i) => (
-                  <li
-                    key={i}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                      marginBottom: 12,
-                      opacity: feature.included ? 1 : 0.4,
-                      background: feature.highlight ? "var(--primary-bg)" : "transparent",
-                      padding: feature.highlight ? "8px 12px" : "0",
-                      borderRadius: feature.highlight ? "6px" : "0",
-                      border: feature.highlight ? "1px solid var(--border-green)" : "none",
-                    }}
-                  >
-                    <span
+              <div style={{ textAlign: "left" }}>
+                {plan.sections.map((section, i) => (
+                  <div key={i} style={{ marginBottom: 20 }}>
+                    <h4
                       style={{
-                        color: feature.included
-                          ? "var(--success)"
-                          : "var(--text-muted)",
-                        fontSize: "1.2rem",
+                        fontSize: "0.85rem",
+                        fontWeight: 700,
+                        color: "var(--text)",
+                        marginBottom: 8,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.5px",
                       }}
                     >
-                      {feature.included ? "✓" : "✗"}
-                    </span>
-                    <span style={{ 
-                      fontSize: "0.9rem",
-                      fontWeight: feature.highlight ? 600 : 400,
-                      color: feature.highlight ? "var(--primary)" : "inherit"
-                    }}>
-                      {feature.text}
-                    </span>
-                  </li>
+                      {section.title}
+                    </h4>
+                    {section.features.length > 0 && (
+                      <ul style={{ listStyle: "none", padding: 0 }}>
+                        {section.features.map((feature, j) => (
+                          <li
+                            key={j}
+                            style={{
+                              display: "flex",
+                              alignItems: "flex-start",
+                              gap: 8,
+                              marginBottom: 8,
+                              fontSize: "0.85rem",
+                              color: "var(--text-secondary)",
+                            }}
+                          >
+                            <span
+                              style={{
+                                color: "var(--success)",
+                                fontSize: "1rem",
+                                marginTop: "2px",
+                              }}
+                            >
+                              •
+                            </span>
+                            <span>{feature}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
           ))}
         </div>
