@@ -6,7 +6,8 @@ import PublicNav from "../components/PublicNav";
 // @ts-expect-error - JSX component
 import PublicFooter from "../components/PublicFooter";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 
 interface BlogPost {
   post_id: number;
@@ -123,7 +124,9 @@ export default function BlogPost() {
     <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
       <PublicNav />
 
-      <article style={{ maxWidth: 800, margin: "0 auto", padding: "80px 24px" }}>
+      <article
+        style={{ maxWidth: 800, margin: "0 auto", padding: "80px 24px" }}
+      >
         {/* Breadcrumb */}
         <div style={{ marginBottom: 32 }}>
           <Link

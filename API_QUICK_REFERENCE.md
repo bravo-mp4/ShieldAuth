@@ -1,7 +1,9 @@
 # ShieldAuth API Quick Reference
 
 ## 🔐 Authentication
+
 All admin endpoints require JWT Bearer token in Authorization header:
+
 ```
 Authorization: Bearer <your_jwt_token>
 ```
@@ -9,6 +11,7 @@ Authorization: Bearer <your_jwt_token>
 ## 📊 Dashboard & Stats
 
 ### Get Dashboard Statistics
+
 ```http
 GET /api/v1/admin/stats
 Authorization: Bearer <token>
@@ -25,6 +28,7 @@ Response:
 ```
 
 ### Get Public Stats (No Auth)
+
 ```http
 GET /api/v1/public/stats
 
@@ -39,6 +43,7 @@ Response:
 ## 🔑 License Management
 
 ### Bulk Operations
+
 ```http
 POST /api/v1/admin/licenses/bulk-action
 Authorization: Bearer <token>
@@ -51,6 +56,7 @@ Content-Type: application/json
 ```
 
 ### Update License Notes
+
 ```http
 PUT /api/v1/admin/license/:license_key/notes
 Authorization: Bearer <token>
@@ -62,6 +68,7 @@ Content-Type: application/json
 ```
 
 ### Get HWID Bindings
+
 ```http
 GET /api/v1/admin/license/:license_key/hwids
 Authorization: Bearer <token>
@@ -79,12 +86,14 @@ Response:
 ```
 
 ### Unbind Device
+
 ```http
 DELETE /api/v1/admin/license/:license_key/hwid/:hwid_id
 Authorization: Bearer <token>
 ```
 
 ### Export Licenses
+
 ```http
 GET /api/v1/admin/licenses/export
 Authorization: Bearer <token>
@@ -95,12 +104,14 @@ Returns: CSV file
 ## 📝 License Templates
 
 ### List Templates
+
 ```http
 GET /api/v1/admin/templates
 Authorization: Bearer <token>
 ```
 
 ### Create Template
+
 ```http
 POST /api/v1/admin/templates
 Authorization: Bearer <token>
@@ -115,6 +126,7 @@ Content-Type: application/json
 ```
 
 ### Delete Template
+
 ```http
 DELETE /api/v1/admin/templates/:template_id
 Authorization: Bearer <token>
@@ -123,6 +135,7 @@ Authorization: Bearer <token>
 ## 📈 Analytics
 
 ### Per-App Analytics
+
 ```http
 GET /api/v1/admin/analytics/:app_id?days=7
 Authorization: Bearer <token>
@@ -139,6 +152,7 @@ Response:
 ## 📜 Logs
 
 ### Get Validation Logs
+
 ```http
 GET /api/v1/admin/logs?app_id=xxx&license_key=yyy&result=success&limit=100&offset=0
 Authorization: Bearer <token>
@@ -155,12 +169,14 @@ Response:
 ## 🪝 Webhooks
 
 ### List Webhooks
+
 ```http
 GET /api/v1/admin/webhooks
 Authorization: Bearer <token>
 ```
 
 ### Create Webhook
+
 ```http
 POST /api/v1/admin/webhooks
 Authorization: Bearer <token>
@@ -184,6 +200,7 @@ Response:
 ```
 
 ### Update Webhook
+
 ```http
 PUT /api/v1/admin/webhooks/:webhook_id
 Authorization: Bearer <token>
@@ -197,12 +214,14 @@ Content-Type: application/json
 ```
 
 ### Delete Webhook
+
 ```http
 DELETE /api/v1/admin/webhooks/:webhook_id
 Authorization: Bearer <token>
 ```
 
 ### Get Delivery Logs
+
 ```http
 GET /api/v1/admin/webhooks/:webhook_id/deliveries
 Authorization: Bearer <token>
@@ -219,6 +238,7 @@ Response:
 ```
 
 ### Test Webhook
+
 ```http
 POST /api/v1/admin/webhooks/:webhook_id/test
 Authorization: Bearer <token>
@@ -234,12 +254,14 @@ Response:
 ## 🔐 API Keys
 
 ### List API Keys
+
 ```http
 GET /api/v1/admin/api-keys
 Authorization: Bearer <token>
 ```
 
 ### Generate API Key
+
 ```http
 POST /api/v1/admin/api-keys
 Authorization: Bearer <token>
@@ -265,6 +287,7 @@ Response:
 ```
 
 ### Revoke API Key
+
 ```http
 DELETE /api/v1/admin/api-keys/:key_id
 Authorization: Bearer <token>
@@ -273,6 +296,7 @@ Authorization: Bearer <token>
 ## 🚨 Fraud Detection
 
 ### List Fraud Alerts
+
 ```http
 GET /api/v1/admin/fraud-alerts?severity=high&is_resolved=false
 Authorization: Bearer <token>
@@ -293,6 +317,7 @@ Response:
 ```
 
 ### Resolve Alert
+
 ```http
 PUT /api/v1/admin/fraud-alerts/:alert_id/resolve
 Authorization: Bearer <token>
@@ -301,6 +326,7 @@ Authorization: Bearer <token>
 ## 🌐 Public Portal (No Auth)
 
 ### Get License Info
+
 ```http
 GET /api/v1/public/portal/:license_key
 
@@ -317,6 +343,7 @@ Response:
 ```
 
 ### Self-Service Unbind
+
 ```http
 POST /api/v1/public/portal/:license_key/unbind/:hwid_id
 
@@ -334,6 +361,7 @@ Response (Rate Limited):
 ```
 
 ### Update Device Name
+
 ```http
 PUT /api/v1/public/portal/:license_key/device/:hwid_id/name
 Content-Type: application/json
@@ -346,6 +374,7 @@ Content-Type: application/json
 ## 🎯 Webhook Event Payloads
 
 ### license.created
+
 ```json
 {
   "event": "license.created",
@@ -361,6 +390,7 @@ Content-Type: application/json
 ```
 
 ### license.expired
+
 ```json
 {
   "event": "license.expired",
@@ -386,6 +416,7 @@ Content-Type: application/json
 ## 🔍 Filter Options
 
 ### Logs
+
 - `app_id` - Filter by application
 - `license_key` - Filter by license
 - `result` - success|expired|banned|invalid|hwid_mismatch|hwid_limit
@@ -393,9 +424,11 @@ Content-Type: application/json
 - `offset` - Pagination offset (default: 0)
 
 ### Analytics
+
 - `days` - Time range in days (default: 7)
 
 ### Fraud Alerts
+
 - `severity` - low|medium|high|critical
 - `is_resolved` - true|false
 
@@ -408,6 +441,7 @@ Content-Type: application/json
 ## 📱 SDK Examples
 
 ### C# SDK
+
 ```csharp
 using ShieldAuth;
 
@@ -421,6 +455,7 @@ if (result.Valid) {
 ```
 
 ### Python SDK
+
 ```python
 from shieldauth import ShieldAuthClient
 
@@ -433,6 +468,7 @@ if result['valid']:
 ```
 
 ### C++ SDK
+
 ```cpp
 #include "shieldauth.h"
 

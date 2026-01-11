@@ -65,11 +65,7 @@ a.muted:hover {
 .brandLogo .brandName {
   font-size: 1.5rem;
   font-weight: 800;
-  background: linear-gradient(
-    135deg,
-    var(--primary) 0%,
-    #00cc34 100%
-  );
+  background: linear-gradient(135deg, var(--primary) 0%, #00cc34 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -320,7 +316,11 @@ a.muted:hover {
 }
 
 .btnPrimary {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  background: linear-gradient(
+    135deg,
+    var(--primary) 0%,
+    var(--primary-dark) 100%
+  );
   color: #000;
   border: none;
   font-weight: 600;
@@ -333,7 +333,7 @@ a.muted:hover {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), transparent);
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -843,11 +843,7 @@ a.muted:hover {
 }
 
 .heroAccent {
-  background: linear-gradient(
-    135deg,
-    var(--primary) 0%,
-    #00cc34 100%
-  );
+  background: linear-gradient(135deg, var(--primary) 0%, #00cc34 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -1342,7 +1338,8 @@ a.muted:hover {
 }
 
 @keyframes pulseGlow {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 1;
     transform: scale(1);
   }
@@ -1474,7 +1471,12 @@ a.muted:hover {
 }
 
 .skeleton {
-  background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--bg-hover) 50%, var(--bg-elevated) 75%);
+  background: linear-gradient(
+    90deg,
+    var(--bg-elevated) 25%,
+    var(--bg-hover) 50%,
+    var(--bg-elevated) 75%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.5s ease-in-out infinite;
   border-radius: 8px;
@@ -1491,7 +1493,9 @@ a.muted:hover {
 
 /* ==================== CODE BLOCKS ==================== */
 
-code, pre, .mono {
+code,
+pre,
+.mono {
   font-family: "JetBrains Mono", monospace;
   font-feature-settings: "liga" 0;
 }
@@ -1561,7 +1565,8 @@ code, pre, .mono {
 /* ==================== SHAKE ANIMATION ==================== */
 
 @keyframes shake {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateX(0);
   }
   25% {

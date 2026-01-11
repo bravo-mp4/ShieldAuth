@@ -5,7 +5,8 @@ import PublicNav from "../components/PublicNav";
 // @ts-expect-error - JSX component
 import PublicFooter from "../components/PublicFooter";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 
 interface Service {
   name: string;
@@ -104,7 +105,7 @@ export default function Status() {
     const endDate = end ? new Date(end) : new Date();
     const diffMs = endDate.getTime() - startDate.getTime();
     const diffMins = Math.floor(diffMs / 60000);
-    
+
     if (diffMins < 60) return `${diffMins} minutes`;
     const diffHours = Math.floor(diffMins / 60);
     if (diffHours < 24) return `${diffHours} hours`;
@@ -147,9 +148,7 @@ export default function Status() {
                 : "Service Disruption"}
             </span>
           </div>
-          <p className="muted">
-            Last updated: {lastUpdated.toLocaleString()}
-          </p>
+          <p className="muted">Last updated: {lastUpdated.toLocaleString()}</p>
         </div>
 
         {loading ? (
@@ -163,11 +162,17 @@ export default function Status() {
             {/* Services Status */}
             <div className="card" style={{ padding: 32, marginBottom: 40 }}>
               <h2
-                style={{ fontSize: "1.5rem", fontWeight: 700, marginBottom: 24 }}
+                style={{
+                  fontSize: "1.5rem",
+                  fontWeight: 700,
+                  marginBottom: 24,
+                }}
               >
                 Service Status
               </h2>
-              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              <div
+                style={{ display: "flex", flexDirection: "column", gap: 16 }}
+              >
                 {services.map((service, idx) => (
                   <div
                     key={idx}
@@ -210,7 +215,10 @@ export default function Status() {
                       {service.response_time_ms && (
                         <>
                           <span className="muted">•</span>
-                          <span className="muted" style={{ fontSize: "0.9rem" }}>
+                          <span
+                            className="muted"
+                            style={{ fontSize: "0.9rem" }}
+                          >
                             {service.response_time_ms}ms
                           </span>
                         </>
@@ -234,7 +242,11 @@ export default function Status() {
             {/* Recent Incidents */}
             <div className="card" style={{ padding: 32 }}>
               <h2
-                style={{ fontSize: "1.5rem", fontWeight: 700, marginBottom: 24 }}
+                style={{
+                  fontSize: "1.5rem",
+                  fontWeight: 700,
+                  marginBottom: 24,
+                }}
               >
                 Incident History
               </h2>
@@ -256,7 +268,9 @@ export default function Status() {
                   </div>
                 </div>
               ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+                <div
+                  style={{ display: "flex", flexDirection: "column", gap: 24 }}
+                >
                   {incidents.map((incident) => (
                     <div
                       key={incident.incident_id}
@@ -278,7 +292,14 @@ export default function Status() {
                         }}
                       >
                         <div>
-                          <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 8 }}>
+                          <div
+                            style={{
+                              display: "flex",
+                              gap: 12,
+                              alignItems: "center",
+                              marginBottom: 8,
+                            }}
+                          >
                             <div
                               style={{
                                 padding: "4px 12px",
@@ -319,10 +340,21 @@ export default function Status() {
                           >
                             {incident.title}
                           </h3>
-                          <div className="muted" style={{ fontSize: "0.85rem" }}>
-                            {incident.service_name} • {formatDate(incident.started_at)}
+                          <div
+                            className="muted"
+                            style={{ fontSize: "0.85rem" }}
+                          >
+                            {incident.service_name} •{" "}
+                            {formatDate(incident.started_at)}
                             {incident.resolved_at && (
-                              <span> • Duration: {formatDuration(incident.started_at, incident.resolved_at)}</span>
+                              <span>
+                                {" "}
+                                • Duration:{" "}
+                                {formatDuration(
+                                  incident.started_at,
+                                  incident.resolved_at
+                                )}
+                              </span>
                             )}
                           </div>
                         </div>
@@ -356,7 +388,11 @@ export default function Status() {
                             Updates:
                           </div>
                           <div
-                            style={{ display: "flex", flexDirection: "column", gap: 12 }}
+                            style={{
+                              display: "flex",
+                              flexDirection: "column",
+                              gap: 12,
+                            }}
                           >
                             {incident.updates.map((update, idx) => (
                               <div

@@ -36,7 +36,11 @@ export default function LicensePortal() {
   };
 
   const handleUnbind = async (hwidId: number) => {
-    if (!confirm("Are you sure you want to unbind this device? You can only unbind once every 7 days.")) {
+    if (
+      !confirm(
+        "Are you sure you want to unbind this device? You can only unbind once every 7 days."
+      )
+    ) {
       return;
     }
 
@@ -47,7 +51,7 @@ export default function LicensePortal() {
     } catch (err: any) {
       const message = err.response?.data?.message || "Failed to unbind device";
       const retryAfter = err.response?.data?.retry_after;
-      
+
       if (retryAfter) {
         alert(`${message}\nYou can try again in ${retryAfter} days.`);
       } else {
@@ -58,9 +62,12 @@ export default function LicensePortal() {
 
   const handleUpdateDeviceName = async (hwidId: number) => {
     try {
-      await axios.put(`/api/v1/public/portal/${licenseKey}/device/${hwidId}/name`, {
-        device_name: deviceName
-      });
+      await axios.put(
+        `/api/v1/public/portal/${licenseKey}/device/${hwidId}/name`,
+        {
+          device_name: deviceName,
+        }
+      );
       setEditingDevice(null);
       setDeviceName("");
       loadLicenseData();
@@ -75,12 +82,18 @@ export default function LicensePortal() {
     return (
       <>
         <PublicNav />
-        <div style={{ paddingTop: 120, paddingBottom: 80, textAlign: "center" }}>
+        <div
+          style={{ paddingTop: 120, paddingBottom: 80, textAlign: "center" }}
+        >
           <div className="container">
             <div style={{ fontSize: "4rem", marginBottom: 24 }}>❌</div>
             <h1 style={{ marginBottom: 16 }}>License Not Found</h1>
-            <p style={{ color: "var(--text-muted)", marginBottom: 32 }}>{error}</p>
-            <a href="/" className="btn btnPrimary">Go to Homepage</a>
+            <p style={{ color: "var(--text-muted)", marginBottom: 32 }}>
+              {error}
+            </p>
+            <a href="/" className="btn btnPrimary">
+              Go to Homepage
+            </a>
           </div>
         </div>
         <PublicFooter />
@@ -97,12 +110,14 @@ export default function LicensePortal() {
   return (
     <>
       <PublicNav />
-      
+
       <div style={{ paddingTop: 100, paddingBottom: 80 }}>
         <div className="container" style={{ maxWidth: 900 }}>
           {/* Header */}
           <div style={{ textAlign: "center", marginBottom: 48 }}>
-            <div className="kicker" style={{ marginBottom: 16 }}>🔐 LICENSE PORTAL</div>
+            <div className="kicker" style={{ marginBottom: 16 }}>
+              🔐 LICENSE PORTAL
+            </div>
             <h1 style={{ fontSize: "2.5rem", marginBottom: 16 }}>
               Your License Details
             </h1>
@@ -113,60 +128,105 @@ export default function LicensePortal() {
 
           {/* License Status Card */}
           <div className="card" style={{ padding: 32, marginBottom: 32 }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: 24,
+              }}
+            >
               <h2 style={{ margin: 0 }}>License Status</h2>
               {license.is_active ? (
-                <span className="badge badgeSuccess" style={{ fontSize: "1rem", padding: "8px 16px" }}>
+                <span
+                  className="badge badgeSuccess"
+                  style={{ fontSize: "1rem", padding: "8px 16px" }}
+                >
                   ✓ Active
                 </span>
               ) : license.is_banned ? (
-                <span className="badge badgeDanger" style={{ fontSize: "1rem", padding: "8px 16px" }}>
+                <span
+                  className="badge badgeDanger"
+                  style={{ fontSize: "1rem", padding: "8px 16px" }}
+                >
                   Banned
                 </span>
               ) : (
-                <span className="badge badgeDanger" style={{ fontSize: "1rem", padding: "8px 16px" }}>
+                <span
+                  className="badge badgeDanger"
+                  style={{ fontSize: "1rem", padding: "8px 16px" }}
+                >
                   Expired
                 </span>
               )}
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 24 }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                gap: 24,
+              }}
+            >
               <div>
-                <div style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: 8 }}>
+                <div
+                  style={{
+                    fontSize: "0.85rem",
+                    color: "var(--text-muted)",
+                    marginBottom: 8,
+                  }}
+                >
                   License Key
                 </div>
-                <code style={{ 
-                  fontSize: "0.9rem",
-                  background: "var(--bg)",
-                  padding: "8px 12px",
-                  borderRadius: 6,
-                  display: "block",
-                  wordBreak: "break-all"
-                }}>
+                <code
+                  style={{
+                    fontSize: "0.9rem",
+                    background: "var(--bg)",
+                    padding: "8px 12px",
+                    borderRadius: 6,
+                    display: "block",
+                    wordBreak: "break-all",
+                  }}
+                >
                   {license.license_key.substring(0, 32)}...
                 </code>
               </div>
 
               <div>
-                <div style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: 8 }}>
+                <div
+                  style={{
+                    fontSize: "0.85rem",
+                    color: "var(--text-muted)",
+                    marginBottom: 8,
+                  }}
+                >
                   Expires On
                 </div>
                 <div style={{ fontSize: "1.1rem", fontWeight: 500 }}>
                   {expirationDate.toLocaleDateString()}
                 </div>
                 {!isExpired && daysRemaining <= 7 && (
-                  <div style={{ 
-                    fontSize: "0.85rem", 
-                    color: "var(--warning)",
-                    marginTop: 4
-                  }}>
-                    ⚠️ {daysRemaining} day{daysRemaining !== 1 ? 's' : ''} remaining
+                  <div
+                    style={{
+                      fontSize: "0.85rem",
+                      color: "var(--warning)",
+                      marginTop: 4,
+                    }}
+                  >
+                    ⚠️ {daysRemaining} day{daysRemaining !== 1 ? "s" : ""}{" "}
+                    remaining
                   </div>
                 )}
               </div>
 
               <div>
-                <div style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: 8 }}>
+                <div
+                  style={{
+                    fontSize: "0.85rem",
+                    color: "var(--text-muted)",
+                    marginBottom: 8,
+                  }}
+                >
                   Device Slots
                 </div>
                 <div style={{ fontSize: "1.1rem", fontWeight: 500 }}>
@@ -181,7 +241,13 @@ export default function LicensePortal() {
             <h2 style={{ marginBottom: 24 }}>Bound Devices</h2>
 
             {license.hwid_bindings.length === 0 ? (
-              <div style={{ textAlign: "center", padding: 40, color: "var(--text-muted)" }}>
+              <div
+                style={{
+                  textAlign: "center",
+                  padding: 40,
+                  color: "var(--text-muted)",
+                }}
+              >
                 <div style={{ fontSize: "3rem", marginBottom: 16 }}>🖥️</div>
                 <p>No devices bound yet</p>
                 <p style={{ fontSize: "0.9rem" }}>
@@ -189,20 +255,37 @@ export default function LicensePortal() {
                 </p>
               </div>
             ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              <div
+                style={{ display: "flex", flexDirection: "column", gap: 16 }}
+              >
                 {license.hwid_bindings.map((binding: any) => (
-                  <div 
+                  <div
                     key={binding.id}
                     className="card"
-                    style={{ 
+                    style={{
                       padding: 20,
                       background: "var(--bg-secondary)",
-                      border: "1px solid var(--border)"
+                      border: "1px solid var(--border)",
                     }}
                   >
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 16 }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        flexWrap: "wrap",
+                        gap: 16,
+                      }}
+                    >
                       <div style={{ flex: 1, minWidth: 200 }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 12,
+                            marginBottom: 8,
+                          }}
+                        >
                           <div style={{ fontSize: "1.5rem" }}>🖥️</div>
                           {editingDevice === binding.id ? (
                             <input
@@ -215,23 +298,40 @@ export default function LicensePortal() {
                               autoFocus
                             />
                           ) : (
-                            <div style={{ fontSize: "1.1rem", fontWeight: 500 }}>
+                            <div
+                              style={{ fontSize: "1.1rem", fontWeight: 500 }}
+                            >
                               {binding.device_name}
                             </div>
                           )}
                         </div>
-                        
-                        <div style={{ display: "flex", flexDirection: "column", gap: 4, fontSize: "0.85rem", color: "var(--text-muted)" }}>
+
+                        <div
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 4,
+                            fontSize: "0.85rem",
+                            color: "var(--text-muted)",
+                          }}
+                        >
                           <div>
-                            HWID: <code style={{ fontSize: "0.8rem" }}>{binding.hwid_hash}</code>
+                            HWID:{" "}
+                            <code style={{ fontSize: "0.8rem" }}>
+                              {binding.hwid_hash}
+                            </code>
                           </div>
                           <div>
-                            Last Seen: {new Date(binding.last_seen).toLocaleString()}
+                            Last Seen:{" "}
+                            {new Date(binding.last_seen).toLocaleString()}
                           </div>
                           {binding.unbind_count > 0 && (
                             <div>
-                              Unbinds: {binding.unbind_count} 
-                              {binding.last_unbind_at && ` (Last: ${new Date(binding.last_unbind_at).toLocaleDateString()})`}
+                              Unbinds: {binding.unbind_count}
+                              {binding.last_unbind_at &&
+                                ` (Last: ${new Date(
+                                  binding.last_unbind_at
+                                ).toLocaleDateString()})`}
                             </div>
                           )}
                         </div>
@@ -243,7 +343,10 @@ export default function LicensePortal() {
                             <button
                               onClick={() => handleUpdateDeviceName(binding.id)}
                               className="btn btnPrimary"
-                              style={{ fontSize: "0.85rem", padding: "8px 16px" }}
+                              style={{
+                                fontSize: "0.85rem",
+                                padding: "8px 16px",
+                              }}
                             >
                               Save
                             </button>
@@ -253,7 +356,10 @@ export default function LicensePortal() {
                                 setDeviceName("");
                               }}
                               className="btn"
-                              style={{ fontSize: "0.85rem", padding: "8px 16px" }}
+                              style={{
+                                fontSize: "0.85rem",
+                                padding: "8px 16px",
+                              }}
                             >
                               Cancel
                             </button>
@@ -266,16 +372,26 @@ export default function LicensePortal() {
                                 setDeviceName(binding.device_name);
                               }}
                               className="btn"
-                              style={{ fontSize: "0.85rem", padding: "8px 16px" }}
+                              style={{
+                                fontSize: "0.85rem",
+                                padding: "8px 16px",
+                              }}
                             >
                               ✏️ Rename
                             </button>
                             <button
                               onClick={() => handleUnbind(binding.id)}
                               className="btn btnDanger"
-                              style={{ fontSize: "0.85rem", padding: "8px 16px" }}
+                              style={{
+                                fontSize: "0.85rem",
+                                padding: "8px 16px",
+                              }}
                               disabled={!binding.can_unbind}
-                              title={!binding.can_unbind ? "You can only unbind once every 7 days" : ""}
+                              title={
+                                !binding.can_unbind
+                                  ? "You can only unbind once every 7 days"
+                                  : ""
+                              }
                             >
                               🗑️ Unbind
                             </button>

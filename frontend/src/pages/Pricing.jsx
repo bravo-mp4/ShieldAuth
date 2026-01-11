@@ -6,7 +6,8 @@ import PublicNav from "../components/PublicNav";
 // @ts-expect-error - JSX component
 import PublicFooter from "../components/PublicFooter";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 
 export default function Pricing() {
   const [billingInterval, setBillingInterval] = useState("monthly");
@@ -70,7 +71,7 @@ export default function Pricing() {
     },
     {
       name: "Developer",
-      price: { monthly: 2.99, yearly: 29.90 },
+      price: { monthly: 2.99, yearly: 29.9 },
       description: "For indie developers building apps",
       sections: [
         {
@@ -123,7 +124,7 @@ export default function Pricing() {
     },
     {
       name: "Seller",
-      price: { monthly: 4.99, yearly: 49.90 },
+      price: { monthly: 4.99, yearly: 49.9 },
       description: "Best for selling software products",
       sections: [
         {
@@ -180,7 +181,7 @@ export default function Pricing() {
     },
     {
       name: "Pro",
-      price: { monthly: 39.99, yearly: 399.90 },
+      price: { monthly: 39.99, yearly: 399.9 },
       description: "Complete protection solution",
       badge: "NEW",
       sections: [
@@ -411,7 +412,8 @@ export default function Pricing() {
                     position: "absolute",
                     top: -12,
                     right: 20,
-                    background: "linear-gradient(135deg, var(--primary), var(--primary-light))",
+                    background:
+                      "linear-gradient(135deg, var(--primary), var(--primary-light))",
                     color: "white",
                     padding: "4px 12px",
                     borderRadius: 12,
@@ -544,7 +546,13 @@ export default function Pricing() {
             }}
           >
             {testimonials.length === 0 ? (
-              <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: 40 }}>
+              <div
+                style={{
+                  gridColumn: "1 / -1",
+                  textAlign: "center",
+                  padding: 40,
+                }}
+              >
                 <div className="muted">Loading testimonials...</div>
               </div>
             ) : (
@@ -560,8 +568,12 @@ export default function Pricing() {
                   >
                     "{testimonial.quote}"
                   </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <div style={{ fontSize: "2.5rem" }}>{testimonial.author_avatar_url}</div>
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 12 }}
+                  >
+                    <div style={{ fontSize: "2.5rem" }}>
+                      {testimonial.author_avatar_url}
+                    </div>
                     <div>
                       <div style={{ fontWeight: 600, marginBottom: 2 }}>
                         {testimonial.author_name}
@@ -572,7 +584,8 @@ export default function Pricing() {
                           color: "var(--text-muted)",
                         }}
                       >
-                        {testimonial.author_role} at {testimonial.author_company}
+                        {testimonial.author_role} at{" "}
+                        {testimonial.author_company}
                       </div>
                     </div>
                   </div>

@@ -5,7 +5,8 @@ import PublicNav from "../components/PublicNav";
 // @ts-expect-error - JSX component
 import PublicFooter from "../components/PublicFooter";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
 
 interface ChangelogEntry {
   version: string;
@@ -29,7 +30,9 @@ export default function Changelog() {
 
   const loadChangelog = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/v1/public/changelog`);
+      const response = await axios.get(
+        `${API_BASE_URL}/api/v1/public/changelog`
+      );
       setVersions(response.data);
     } catch (error) {
       console.error("Failed to load changelog:", error);
@@ -95,7 +98,9 @@ export default function Changelog() {
         ) : versions.length === 0 ? (
           <div className="card" style={{ padding: 60, textAlign: "center" }}>
             <div style={{ fontSize: "3rem", marginBottom: 16 }}>📋</div>
-            <div style={{ fontSize: "1.2rem", fontWeight: 600, marginBottom: 8 }}>
+            <div
+              style={{ fontSize: "1.2rem", fontWeight: 600, marginBottom: 8 }}
+            >
               No changelog entries yet
             </div>
             <div className="muted">Check back soon for updates!</div>
@@ -131,7 +136,9 @@ export default function Changelog() {
                 </div>
 
                 {/* Changes */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+                <div
+                  style={{ display: "flex", flexDirection: "column", gap: 24 }}
+                >
                   {(
                     [
                       "new",

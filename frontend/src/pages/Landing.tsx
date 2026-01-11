@@ -280,11 +280,17 @@ export default function Landing() {
 
         <div className="heroStats">
           <div className="stat">
-            <div className="statValue">{loading ? "..." : (totalLicenses / 1000).toFixed(1) + "K+"}</div>
+            <div className="statValue">
+              {loading ? "..." : (totalLicenses / 1000).toFixed(1) + "K+"}
+            </div>
             <div className="statLabel">Total Licenses</div>
           </div>
           <div className="stat">
-            <div className="statValue">{loading ? "..." : Math.floor(totalLicenses / 5).toLocaleString() + "+"}</div>
+            <div className="statValue">
+              {loading
+                ? "..."
+                : Math.floor(totalLicenses / 5).toLocaleString() + "+"}
+            </div>
             <div className="statLabel">Developers</div>
           </div>
           <div className="stat">

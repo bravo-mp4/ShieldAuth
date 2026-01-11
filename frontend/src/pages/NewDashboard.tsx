@@ -97,6 +97,9 @@ export default function Dashboard() {
             className="btn btnPrimary"
             style={{ padding: "12px 20px", justifyContent: "flex-start" }}
             onClick={() => navigate("/users")}
+          >
+            👤 Create User
+          </button>
           <button
             className="btn btnPrimary"
             style={{ padding: "12px 20px", justifyContent: "flex-start" }}
@@ -288,14 +291,16 @@ export default function Dashboard() {
         }}
       >
         <div className="card" style={{ padding: 20 }}>
+          <h3 style={{ fontSize: "1.1rem", fontWeight: 600, marginBottom: 16 }}>
+            Recent Activity
+          </h3>
           <div
             style={{
-              fontSize: "2rem",
-              marginBottom: 8,
+              display: "flex",
+              flexDirection: "column",
             }}
           >
-            {/* Removed fake activity items */}
-              },
+            {[
               {
                 type: "success",
                 icon: "✓",
