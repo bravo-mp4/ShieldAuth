@@ -62,6 +62,18 @@ import AdminBlog from "./pages/admin/AdminBlog";
 import AdminChangelog from "./pages/admin/AdminChangelog";
 import "./App.css";
 
+export default function App() {
+  useEffect(() => {
+    // Add keyboard shortcut listener for command palette
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        window.dispatchEvent(new CustomEvent('toggle-command-palette'));
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
   return (
@@ -70,57 +82,51 @@ import "./App.css";
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Landing />} />
-  return (
-    <Routes>
-      {/* Public Routes */}
-      <Route path="/" element={<Landing />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/signup" element={<Signup />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
-      <Route path="/features" element={<Features />} />
-      <Route path="/pricing" element={<Pricing />} />
-      <Route path="/use-cases" element={<UseCases />} />
-      <Route path="/security" element={<SecurityPage />} />
-      <Route path="/api-demo" element={<APIDemo />} />
-      <Route path="/status" element={<Status />} />
-      <Route path="/blog" element={<Blog />} />
-      <Route path="/blog/:slug" element={<BlogPost />} />
-      <Route path="/about" element={<About />} />
-      <Route path="/contact" element={<Contact />} />
-      <Route path="/terms" element={<Terms />} />
-      <Route path="/privacy" element={<Privacy />} />
-      <Route path="/changelog" element={<Changelog />} />
-      <Route path="/docs" element={<Documentation />} />
-      <Route path="/portal/:licenseKey" element={<LicensePortal />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/features" element={<Features />} />
+        <Route path="/pricing" element={<Pricing />} />
+        <Route path="/use-cases" element={<UseCases />} />
+        <Route path="/security" element={<SecurityPage />} />
+        <Route path="/api-demo" element={<APIDemo />} />
+        <Route path="/status" element={<Status />} />
+        <Route path="/blog" element={<Blog />} />
+        <Route path="/blog/:slug" element={<BlogPost />} />
+        <Route path="/about" element={<About />} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/changelog" element={<Changelog />} />
+        <Route path="/docs" element={<Documentation />} />
+        <Route path="/portal/:licenseKey" element={<LicensePortal />} />
 
-      {/* Protected Routes */}
-      <Route element={<ProtectedRoute />}>
-        <Route element={<Layout />}>
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/applications" element={<Applications />} />
-          <Route path="/applications/:id" element={<ApplicationDetail />} />
-          <Route path="/users" element={<Users />} />
-          <Route path="/licenses" element={<Licenses />} />
-          <Route path="/logs" element={<Logs />} />
-          <Route path="/analytics" element={<Analytics />} />
-          <Route path="/downloads" element={<Downloads />} />
-          <Route path="/support" element={<Support />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          
-          {/* Admin Routes */}
-          <Route path="/admin" element={<AdminDashboard />} />
-          <Route path="/admin/users" element={<AdminUsers />} />
-          <Route path="/admin/blog" element={<AdminBlog />} />
-          <Route path="/admin/changelog" element={<AdminChangelog />} />
+        {/* Protected Routes */}
+        <Route element={<ProtectedRoute />}>
+          <Route element={<Layout />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/applications" element={<Applications />} />
+            <Route path="/applications/:id" element={<ApplicationDetail />} />
+            <Route path="/users" element={<Users />} />
+            <Route path="/licenses" element={<Licenses />} />
+            <Route path="/logs" element={<Logs />} />
+            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/downloads" element={<Downloads />} />
+            <Route path="/support" element={<Support />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            
+            {/* Admin Routes */}
+            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin/users" element={<AdminUsers />} />
+            <Route path="/admin/blog" element={<AdminBlog />} />
+            <Route path="/admin/changelog" element={<AdminChangelog />} />
+          </Route>
         </Route>
-      </Route>
 
-      {/* Fallback */}
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </>
-  );
-}   </Routes>
   );
 }
