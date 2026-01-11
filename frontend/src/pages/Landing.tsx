@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { Shield, Zap, Lock } from "lucide-react";
 // @ts-expect-error - JSX component
 import PublicNav from "../components/PublicNav";
 // @ts-expect-error - JSX component
@@ -57,7 +58,9 @@ export default function Landing() {
             marginBottom: 16,
           }}
         >
-          <div className="kicker">🔐 ENTERPRISE-GRADE SECURITY</div>
+          <div className="kicker" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Shield size={16} style={{ display: 'inline' }} /> ENTERPRISE-GRADE SECURITY
+          </div>
           <div
             style={{
               background: "var(--success-bg)",
@@ -357,7 +360,9 @@ export default function Landing() {
             className="card"
             style={{ padding: "32px", transition: "all 0.3s ease" }}
           >
-            <div style={{ fontSize: "2.5rem", marginBottom: "16px" }}>🔐</div>
+            <div style={{ marginBottom: "16px" }}>
+              <Lock size={40} className="text-primary-500" />
+            </div>
             <div
               className="cardTitle"
               style={{ marginBottom: "12px", fontSize: "1.2rem" }}

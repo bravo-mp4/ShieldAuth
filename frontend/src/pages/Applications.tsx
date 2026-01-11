@@ -127,7 +127,7 @@ export default function Applications() {
           {/* Applications Grid */}
           {apps.length === 0 ? (
             <EmptyState
-              icon="📦"
+              icon={<Package size={48} className="text-gray-600" />}
               title="No applications yet"
               description="Create your first application to get started"
               action={
