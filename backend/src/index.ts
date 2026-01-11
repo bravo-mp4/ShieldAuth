@@ -3,6 +3,8 @@ import cors from "cors";
 import dotenv from "dotenv";
 import routes from "./routes";
 import { pool } from "./database";
+import { securityHeaders, apiLimiter } from "./middleware/security";
+import logger from "./logger";
 
 dotenv.config();
 
@@ -21,10 +23,13 @@ if (missingEnvVars.length > 0) {
   process.exit(1);
 }
 
-console.log("✓ All required environment variables present");
+logger.info("All required environment variables present");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// Apply security headers
+app.use(securityHeaders);
 
 // Configure CORS for production
 const allowedOrigins = [
@@ -52,10 +57,13 @@ app.use(
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
-
 app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+
+// Apply rate limiting to all API routes
+app.use("/api", apiLimiter);
+
+// Health check endpointimit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 
 // Health check endpoint
@@ -75,9 +83,6 @@ app.get("/health", async (req, res) => {
     });
   }
 });
-
-app.use("/api/v1", routes);
-
 // Global error handler
 app.use(
   (
@@ -86,23 +91,26 @@ app.use(
     res: express.Response,
     next: express.NextFunction
   ) => {
-    console.error("Global error handler:", err);
+    logger.error("Global error handler", { error: err.message, stack: err.stack });
     res.status(err.status || 500).json({
       message: err.message || "Internal server error",
       error: process.env.NODE_ENV === "development" ? err.stack : undefined,
     });
   }
-);
-
+);    error: process.env.NODE_ENV === "development" ? err.stack : undefined,
+    });
 // Graceful shutdown
 process.on("SIGTERM", async () => {
-  console.log("SIGTERM received, closing database pool...");
+  logger.info("SIGTERM received, closing database pool...");
   await pool.end();
   process.exit(0);
 });
 
 app.listen(PORT, () => {
-  console.log(`ShieldAuth API running on port ${PORT}`);
+  logger.info(`ShieldAuth API running on port ${PORT}`);
+  logger.info(`Environment: ${process.env.NODE_ENV || "development"}`);
+  logger.info(`Allowed origins: ${allowedOrigins.join(", ")}`);
+});onsole.log(`ShieldAuth API running on port ${PORT}`);
   console.log(`Environment: ${process.env.NODE_ENV || "development"}`);
   console.log(`Allowed origins: ${allowedOrigins.join(", ")}`);
 });

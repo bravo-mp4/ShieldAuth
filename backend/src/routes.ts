@@ -12,6 +12,8 @@ import {
 } from "./database";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
+import { requireAdmin, auditLog, authLimiter } from "./middleware/security";
+import * as AdminRoutes from "./admin-routes";
 
 const router = Router();
 const JWT_SECRET =
@@ -36,7 +38,7 @@ const authenticateToken = (req: Request, res: Response, next: any) => {
 };
 
 // Auth: Login (using database)
-router.post("/auth/login", async (req: Request, res: Response) => {
+router.post("/auth/login", authLimiter, async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
   if (!email || !password) {
@@ -313,6 +315,35 @@ router.post("/heartbeat", async (req: Request, res: Response) => {
 
   res.json({ success: true });
 });
+
+// ============================================
+// ADMIN ROUTES
+// ============================================
+
+// Admin Stats
+router.get("/admin/stats", requireAdmin, AdminRoutes.getAdminStats);
+
+// User Management
+router.get("/admin/users", requireAdmin, AdminRoutes.getAllUsers);
+router.put("/admin/users/:id/ban", requireAdmin, auditLog("ban_user"), AdminRoutes.banUser);
+router.put("/admin/users/:id/role", requireAdmin, auditLog("change_role"), AdminRoutes.changeUserRole);
+
+// Blog Management
+router.post("/admin/blog", requireAdmin, auditLog("create_blog"), AdminRoutes.createBlogPost);
+router.put("/admin/blog/:id", requireAdmin, auditLog("update_blog"), AdminRoutes.updateBlogPost);
+router.delete("/admin/blog/:id", requireAdmin, auditLog("delete_blog"), AdminRoutes.deleteBlogPost);
+
+// Changelog Management
+router.post("/admin/changelog", requireAdmin, auditLog("create_changelog"), AdminRoutes.createChangelog);
+router.put("/admin/changelog/:id", requireAdmin, auditLog("update_changelog"), AdminRoutes.updateChangelog);
+router.delete("/admin/changelog/:id", requireAdmin, auditLog("delete_changelog"), AdminRoutes.deleteChangelog);
+
+// License Management
+router.put("/admin/licenses/:key/extend", requireAdmin, auditLog("extend_license"), AdminRoutes.extendLicense);
+router.put("/admin/licenses/:key/expire", requireAdmin, auditLog("expire_license"), AdminRoutes.forceExpireLicense);
+
+// HWID Blacklist
+router.post("/admin/hwid/blacklist", requireAdmin, auditLog("blacklist_hwid"), AdminRoutes.blacklistHWID);
 
 export default router;
 

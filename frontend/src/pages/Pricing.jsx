@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import { Shield } from "lucide-react";
 // @ts-expect-error - JSX component
 import PublicNav from "../components/PublicNav";
 // @ts-expect-error - JSX component

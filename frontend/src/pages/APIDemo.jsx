@@ -28,7 +28,10 @@ export default function APIDemo() {
               marginBottom: 24,
             }}
           >
-            ⚡ Interactive Demo
+            <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <Zap size={24} />
+              Interactive Demo
+            </span>
           </div>
           <h1
             style={{

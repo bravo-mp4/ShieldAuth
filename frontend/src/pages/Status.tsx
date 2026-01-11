@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
+import { Sparkles, CheckCircle2, AlertCircle, AlertTriangle, Activity } from "lucide-react";
 // @ts-expect-error - JSX component
 import PublicNav from "../components/PublicNav";
 // @ts-expect-error - JSX component
@@ -253,7 +254,9 @@ export default function Status() {
 
               {incidents.length === 0 ? (
                 <div style={{ textAlign: "center", padding: 40 }}>
-                  <div style={{ fontSize: "2.5rem", marginBottom: 16 }}>✨</div>
+                  <div style={{ marginBottom: 16, display: "flex", justifyContent: "center" }}>
+                    <Sparkles size={40} className="text-primary-500" />
+                  </div>
                   <div
                     style={{
                       fontSize: "1.1rem",

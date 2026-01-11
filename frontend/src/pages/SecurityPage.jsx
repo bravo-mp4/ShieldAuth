@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Shield, Lock, Zap, Server, CheckCircle2, AlertTriangle } from "lucide-react";
 // @ts-expect-error - JSX component
 import PublicNav from "../components/PublicNav";
 // @ts-expect-error - JSX component
@@ -14,7 +15,9 @@ export default function Security() {
       >
         {/* Hero */}
         <div style={{ textAlign: "center", marginBottom: 80 }}>
-          <div style={{ fontSize: "4rem", marginBottom: 24 }}>🔒</div>
+          <div style={{ marginBottom: 24, display: "flex", justifyContent: "center" }}>
+            <Lock size={64} className="text-primary-500" />
+          </div>
           <h1
             style={{
               fontSize: "3.5rem",
@@ -39,8 +42,9 @@ export default function Security() {
 
         {/* Infrastructure */}
         <div className="card" style={{ padding: 48, marginBottom: 40 }}>
-          <h2 style={{ fontSize: "2rem", fontWeight: 700, marginBottom: 32 }}>
-            🏗️ Infrastructure & Architecture
+          <h2 style={{ fontSize: "2rem", fontWeight: 700, marginBottom: 32, display: "flex", alignItems: "center", gap: 12 }}>
+            <Server size={32} className="text-primary-500" />
+            Infrastructure & Architecture
           </h2>
           <div
             style={{
@@ -53,7 +57,7 @@ export default function Security() {
               {
                 title: "99.9% Uptime SLA",
                 desc: "Multi-region redundancy with automatic failover",
-                icon: "⚡",
+                icon: <Zap size={24} className="text-primary-500" />,
               },
               {
                 title: "Global CDN",
@@ -102,8 +106,9 @@ export default function Security() {
 
         {/* Encryption */}
         <div className="card" style={{ padding: 48, marginBottom: 40 }}>
-          <h2 style={{ fontSize: "2rem", fontWeight: 700, marginBottom: 32 }}>
-            🔐 Encryption & Data Protection
+          <h2 style={{ fontSize: "2rem", fontWeight: 700, marginBottom: 32, display: "flex", alignItems: "center", gap: 12 }}>
+            <Shield size={32} className="text-primary-500" />
+            Encryption & Data Protection
           </h2>
           <div
             style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32 }}
@@ -246,8 +251,9 @@ export default function Security() {
 
         {/* Security Practices */}
         <div className="card" style={{ padding: 48, marginBottom: 40 }}>
-          <h2 style={{ fontSize: "2rem", fontWeight: 700, marginBottom: 32 }}>
-            🛡️ Security Practices
+          <h2 style={{ fontSize: "2rem", fontWeight: 700, marginBottom: 32, display: "flex", alignItems: "center", gap: 12 }}>
+            <Shield size={32} className="text-primary-500" />
+            Security Practices
           </h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
             {[

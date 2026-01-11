@@ -84,7 +84,10 @@ export default function Dashboard() {
         }}
       >
         <div style={{ marginBottom: 16, fontWeight: 600, fontSize: "1.1rem" }}>
-          ⚡ Quick Actions
+          <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <Zap size={20} />
+            Quick Actions
+          </span>
         </div>
         <div
           style={{
@@ -119,7 +122,10 @@ export default function Dashboard() {
             style={{ padding: "12px 20px", justifyContent: "flex-start" }}
             onClick={() => navigate("/analytics")}
           >
-            📊 View Analytics
+            <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <BarChart3 size={16} />
+              View Analytics
+            </span>
           </button>
           <button
             className="btn btnGhost"

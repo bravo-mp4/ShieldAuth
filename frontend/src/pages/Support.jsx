@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { BarChart3 } from "lucide-react";
 // @ts-expect-error - JSX component
 import TopBar from "../components/TopBar";
 

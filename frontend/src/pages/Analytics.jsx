@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { BarChart3, Download } from "lucide-react";
 import axios from "axios";
 // @ts-expect-error - JSX component
 import TopBar from "../components/TopBar";
@@ -160,7 +161,10 @@ export default function Analytics() {
               <option value="90d">Last 90 Days</option>
               <option value="1y">Last Year</option>
             </select>
-            <button className="btn btnPrimary">📊 Export Report</button>
+            <button className="btn btnPrimary" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <Download size={16} />
+              Export Report
+            </button>
           </>
         }
       />

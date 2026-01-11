@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { Rocket, Zap, Lightbulb, Circle, Wrench, Webhook } from "lucide-react";
 // @ts-expect-error - JSX component
 import PublicNav from "../components/PublicNav";
 // @ts-expect-error - JSX component
@@ -10,14 +11,14 @@ export default function Documentation() {
   const [activeSdk, setActiveSdk] = useState("cpp");
 
   const sections = [
-    { id: "getting-started", title: "Getting Started", icon: "🚀" },
-    { id: "cpp-sdk", title: "C++ SDK", icon: "⚡" },
+    { id: "getting-started", title: "Getting Started", icon: <Rocket size={20} /> },
+    { id: "cpp-sdk", title: "C++ SDK", icon: <Zap size={20} /> },
     { id: "csharp-sdk", title: "C# SDK", icon: "🟪" },
     { id: "python-sdk", title: "Python SDK", icon: "🐍" },
-    { id: "nodejs-sdk", title: "Node.js SDK", icon: "🟢" },
-    { id: "api-reference", title: "API Reference", icon: "🔧" },
-    { id: "webhooks", title: "Webhooks", icon: "🪝" },
-    { id: "examples", title: "Examples", icon: "💡" },
+    { id: "nodejs-sdk", title: "Node.js SDK", icon: <Circle size={20} className="text-success" /> },
+    { id: "api-reference", title: "API Reference", icon: <Wrench size={20} /> },
+    { id: "webhooks", title: "Webhooks", icon: <Webhook size={20} /> },
+    { id: "examples", title: "Examples", icon: <Lightbulb size={20} /> },
   ];
 
   return (
