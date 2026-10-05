@@ -25,14 +25,8 @@ ShieldAuth/
 ├── backend/         # Express + TypeScript API
 ├── frontend/        # React + TypeScript app (Vite)
 ├── sdk/             # Client SDKs (C++, C#, Python)
-├── docs/
-│   ├── guides/      # Setup and deployment guides
-│   ├── reference/   # Architecture and API references
-│   └── archive/     # Historical planning/progress docs
 └── README.md
 ```
-
-See `/home/runner/work/ShieldAuth/ShieldAuth/docs/README.md` for documentation navigation.
 
 ## Environment Variables
 
