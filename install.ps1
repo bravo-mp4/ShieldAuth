@@ -89,11 +89,11 @@ Write-Host "5. Visit http://localhost:5173"
 Write-Host "6. Login and navigate to /admin"
 Write-Host ""
 Write-Host "Manual Tasks Remaining:" -ForegroundColor Yellow
-Write-Host "- Replace emojis (see docs/archive/IMPLEMENTATION_STATUS.md)"
+Write-Host "- Replace emojis in UI copy where needed"
 Write-Host "- Add CommandPalette to App.tsx"
 Write-Host "- Add admin routes to App.tsx"
 Write-Host ""
 Write-Host "Installation Complete!" -ForegroundColor Green
 Write-Host "======================================" -ForegroundColor Blue
 Write-Host ""
-Write-Host "Read docs/guides/QUICK_START_GUIDE.md for detailed next steps" -ForegroundColor Cyan
+Write-Host "Read README.md for detailed next steps" -ForegroundColor Cyan
