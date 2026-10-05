@@ -18,6 +18,16 @@ A comprehensive authentication and license management platform combining secure 
 - **Database**: PostgreSQL (Supabase)
 - **Hosting**: Vercel (Frontend) + Railway (Backend)
 
+## Project Structure
+
+```text
+ShieldAuth/
+├── backend/         # Express + TypeScript API
+├── frontend/        # React + TypeScript app (Vite)
+├── sdk/             # Client SDKs (C++, C#, Python)
+└── README.md
+```
+
 ## Environment Variables
 
 ### Backend (.env)
