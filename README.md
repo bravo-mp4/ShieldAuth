@@ -1,24 +1,26 @@
 # ShieldAuth
 
-A comprehensive authentication and license management platform combining secure authentication with hardware ID validation.
+ShieldAuth is an authentication and license management platform. It handles user auth, license issuance, and hardware ID binding so software can be licensed per-device with a central dashboard to manage it all.
 
-## Features
+Built as a personal project to explore full-stack auth systems, license validation flows, and SDK design across multiple languages.
 
-- 🔐 **User Authentication** - Secure registration and login with JWT tokens
-- 🛡️ **License Management** - Create and manage software licenses
-- 💻 **Hardware ID Binding** - Bind licenses to specific hardware
-- 📊 **Analytics Dashboard** - Track usage and monitor licenses
-- 🔑 **API Key Management** - Generate and manage API keys
-- 📝 **Audit Logs** - Complete activity tracking
+## What it does
 
-## Tech Stack
+- Handles user registration/login with JWT-based auth
+- Issues and manages software licenses
+- Binds licenses to hardware IDs to prevent sharing
+- Tracks usage and license status through an analytics dashboard
+- Generates and manages API keys for integrations
+- Logs activity for auditing
 
-- **Frontend**: React + TypeScript + Vite
-- **Backend**: Node.js + Express + TypeScript
-- **Database**: PostgreSQL (Supabase)
-- **Hosting**: Vercel (Frontend) + Railway (Backend)
+## Stack
 
-## Project Structure
+- **Frontend**: React, TypeScript, Vite
+- **Backend**: Node.js, Express, TypeScript
+- **Database**: PostgreSQL via Supabase
+- **Hosting**: Vercel (frontend), Railway (backend)
+
+## Structure
 
 ```text
 ShieldAuth/
@@ -28,9 +30,11 @@ ShieldAuth/
 └── README.md
 ```
 
-## Environment Variables
+## Setup
 
-### Backend (.env)
+### Environment variables
+
+Backend (`.env`):
 
 ```env
 DATABASE_URL=postgresql://user:password@host:5432/database
@@ -39,28 +43,26 @@ FRONTEND_URL=https://your-frontend-url.vercel.app
 PORT=3000
 ```
 
-### Frontend (.env)
+Frontend (`.env`):
 
 ```env
 VITE_API_URL=https://your-backend-url.up.railway.app/api/v1
 ```
 
-## Database Setup
+### Database
 
-1. Run migrations on Supabase:
+Run the migrations against Supabase:
 
 ```bash
 psql $DATABASE_URL < backend/migrations/init.sql
 psql $DATABASE_URL < backend/migrations/seed.sql
 ```
 
-2. The seed script creates an admin user:
-   - Email: `admin@shieldlabs.com`
-   - Password: `admin123`
+The seed script creates a default admin account — change the password immediately if you're running this anywhere beyond local testing.
 
-## Local Development
+### Running locally
 
-### Backend
+Backend:
 
 ```bash
 cd backend
@@ -68,7 +70,7 @@ npm install
 npm run dev
 ```
 
-### Frontend
+Frontend:
 
 ```bash
 cd frontend
@@ -78,23 +80,14 @@ npm run dev
 
 ## Deployment
 
-### Vercel (Frontend)
+- **Frontend (Vercel)** — connected to GitHub, auto-deploys on push to `main`. Needs `VITE_API_URL` set.
+- **Backend (Railway)** — connected to GitHub, auto-deploys on push to `main`. Needs `DATABASE_URL`, `JWT_SECRET`, `FRONTEND_URL`, `PORT`.
 
-- Connected to GitHub
-- Auto-deploys on push to main
-- Environment variable: `VITE_API_URL`
+## API
 
-### Railway (Backend)
+### Auth
 
-- Connected to GitHub
-- Auto-deploys on push to main
-- Environment variables: `DATABASE_URL`, `JWT_SECRET`, `FRONTEND_URL`, `PORT`
-
-## API Documentation
-
-### Authentication
-
-**POST** `/api/v1/auth/register`
+`POST /api/v1/auth/register`
 
 ```json
 {
@@ -104,7 +97,7 @@ npm run dev
 }
 ```
 
-**POST** `/api/v1/auth/login`
+`POST /api/v1/auth/login`
 
 ```json
 {
@@ -113,9 +106,9 @@ npm run dev
 }
 ```
 
-### License Validation
+### License validation
 
-**POST** `/api/v1/validate`
+`POST /api/v1/validate`
 
 ```json
 {
@@ -126,14 +119,18 @@ npm run dev
 }
 ```
 
-## Security
+## Security notes
 
 - Passwords hashed with bcrypt (10 rounds)
-- JWT tokens for authentication
-- CORS configured for production
-- Environment variables for sensitive data
-- Hardware ID validation for license binding
+- JWT-based session auth
+- CORS locked down for production
+- Secrets kept out of source via environment variables
+- Licenses bound to hardware ID to limit sharing
+
+## Notes
+
+This was built as a learning project, with AI tools used to help design parts of the architecture and write portions of the code. All core logic was reviewed and tested manually.
 
 ## License
 
-Proprietary - All rights reserved
+Proprietary — all rights reserved.
