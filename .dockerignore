@@ -38,10 +38,3 @@ frontend/
 
 # Documentation
 *.md
-!backend/README.md
-
-# Git cleanup scripts
-cleanup-git-lock.*
-
-# Testing plan
-TESTING_PLAN.md
