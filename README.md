@@ -58,7 +58,7 @@ psql $DATABASE_URL < backend/migrations/init.sql
 psql $DATABASE_URL < backend/migrations/seed.sql
 ```
 
-The seed script creates a default admin account — change the password immediately if you're running this anywhere beyond local testing.
+The seed script creates a default admin account; change the password immediately if you're running this anywhere beyond local testing.
 
 ### Running locally
 
@@ -80,8 +80,8 @@ npm run dev
 
 ## Deployment
 
-- **Frontend (Vercel)** — connected to GitHub, auto-deploys on push to `main`. Needs `VITE_API_URL` set.
-- **Backend (Railway)** — connected to GitHub, auto-deploys on push to `main`. Needs `DATABASE_URL`, `JWT_SECRET`, `FRONTEND_URL`, `PORT`.
+- **Frontend (Vercel)** - connected to GitHub, auto-deploys on push to `main`. Needs `VITE_API_URL` set.
+- **Backend (Railway)** - connected to GitHub, auto-deploys on push to `main`. Needs `DATABASE_URL`, `JWT_SECRET`, `FRONTEND_URL`, `PORT`.
 
 ## API
 
@@ -133,4 +133,4 @@ This was built as a learning project, with AI tools used to help design parts of
 
 ## License
 
-Proprietary — all rights reserved.
+Proprietary - all rights reserved.
