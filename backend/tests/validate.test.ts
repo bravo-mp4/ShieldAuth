@@ -35,7 +35,7 @@ describe("POST /validate", () => {
     const { appId, licenseKey } = await setup({ max_hwid_slots: 1 });
     await validate(appId, licenseKey, "machine-1");
     const second = await validate(appId, licenseKey, "machine-2");
-    expect(second.body).toEqual({ valid: false, message: "HWID limit reached" });
+    expect(second.body).toMatchObject({ valid: false, message: "HWID limit reached" });
   });
 
   it("never over-fills HWID slots under concurrent requests", async () => {

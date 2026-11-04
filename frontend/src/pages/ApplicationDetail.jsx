@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { BarChart3, Package } from "lucide-react";
-import { applications } from "../services/api";
+import api, { applications } from "../services/api";
 import TopBar from "../components/TopBar";
 
 export default function ApplicationDetail() {
@@ -9,10 +9,15 @@ export default function ApplicationDetail() {
   const [activeTab, setActiveTab] = useState("overview");
   const [app, setApp] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [publicKey, setPublicKey] = useState("");
 
   useEffect(() => {
     loadApp();
   }, [id]);
+
+  useEffect(() => {
+    api.get("/public/signing-key").then((response) => setPublicKey(response.data.public_key_pem));
+  }, []);
 
   const loadApp = async () => {
     try {
@@ -161,7 +166,7 @@ export default function ApplicationDetail() {
                 className="muted"
                 style={{ fontSize: "0.85rem", marginBottom: 12 }}
               >
-                Quick Start:
+                Quick start (Node.js; the other SDKs take the same three values):
               </div>
               <pre
                 style={{
@@ -172,12 +177,27 @@ export default function ApplicationDetail() {
                   fontSize: "0.9rem",
                 }}
               >
-                {`#include "shieldauth.h"
+                {`const shield = new ShieldAuth("${app.id}", {
+  apiUrl: "${window.location.origin}/api/v1",
+  publicKey: SHIELDAUTH_PUBLIC_KEY, // below
+});
 
-ShieldAuth::Initialize("${app.id}");
-if (!ShieldAuth::Validate(license_key)) {
-    exit(1);
-}`}
+if (!(await shield.validate(licenseKey))) process.exit(1);
+shield.startHeartbeat();`}
+              </pre>
+            </div>
+
+            <div style={{ marginTop: 24 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                <label className="muted" style={{ fontSize: "0.85rem" }}>
+                  Signing public key: pin this in your app so it only trusts real answers
+                </label>
+                <button className="btn btnGhost" onClick={() => copyToClipboard(publicKey)} disabled={!publicKey}>
+                  📋 Copy
+                </button>
+              </div>
+              <pre style={{ background: "var(--bg)", padding: 16, borderRadius: 8, overflow: "auto", fontSize: "0.8rem" }}>
+                {publicKey || "Loading..."}
               </pre>
             </div>
 

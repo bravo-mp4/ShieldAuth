@@ -17,7 +17,8 @@ import {
   licenseValidationLimiter,
   publicWriteLimiter,
 } from "./middleware/security";
-import { heartbeat, validateInputError, validateLicense } from "./license";
+import { heartbeat, isBoundedString, NONCE_PATTERN, validateInputError, validateLicense } from "./license";
+import { publicKeyPem, signHeartbeat, signValidate } from "./signing";
 import { requestPasswordReset, resetPassword, sendVerificationEmail, setPassword, verifyEmail } from "./account";
 import { sendWebhook, triggerWebhook, validateWebhookUrl } from "./webhooks";
 import * as AdminRoutes from "./admin-routes";
@@ -233,14 +234,40 @@ router.post("/validate", licenseValidationLimiter, async (req: Request, res: Res
     ip: req.ip || "",
     userAgent: req.get("user-agent") || "",
   });
-  res.json(response);
+
+  res.json({
+    ...response,
+    ...signValidate({
+      app_id: body.app_id,
+      license_key: body.license_key,
+      hwid: body.hwid,
+      nonce: body.nonce ?? "",
+      valid: response.valid,
+      session_id: response.session_id,
+      expires_at: response.expires_at,
+    }),
+  });
 });
 
 router.post("/heartbeat", licenseValidationLimiter, async (req: Request, res: Response) => {
   // The SDKs send session_id in the body; older clients used a header.
   const sessionId = req.body?.session_id ?? req.get("session-id");
+  const nonce = req.body?.nonce;
+  if (nonce !== undefined && (typeof nonce !== "string" || !NONCE_PATTERN.test(nonce))) {
+    return res.status(400).json({ valid: false, message: "nonce must be 16-64 characters of A-Z, a-z, 0-9, _ or -" });
+  }
+
   const result = await heartbeat(sessionId);
-  res.status(result.valid ? 200 : 401).json(result);
+  const signature = isBoundedString(sessionId, 64)
+    ? signHeartbeat({ session_id: sessionId, nonce: nonce ?? "", valid: result.valid })
+    : {};
+  res.status(result.valid ? 200 : 401).json({ ...result, ...signature });
+});
+
+// Public key the SDKs use to check signed answers. Pin it in your app
+// rather than fetching it at run time.
+router.get("/public/signing-key", (_req: Request, res: Response) => {
+  res.json({ algorithm: "ECDSA-P256-SHA256", format: "ieee-p1363", public_key_pem: publicKeyPem });
 });
 
 // ============================================

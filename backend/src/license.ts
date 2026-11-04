@@ -15,14 +15,28 @@ interface ValidateInput {
 
 const GENERIC_FAILURE = "Invalid or expired license";
 
-function isBoundedString(value: unknown, max: number): value is string {
-  return typeof value === "string" && value.length > 0 && value.length <= max;
+// Control characters are refused: signed answers join fields with "\n",
+// so a field must never contain one.
+// eslint-disable-next-line no-control-regex
+const CONTROL_CHARS = /[\u0000-\u001f\u007f]/;
+
+export function isBoundedString(value: unknown, max: number): value is string {
+  return typeof value === "string" && value.length > 0 && value.length <= max && !CONTROL_CHARS.test(value);
 }
 
-export function validateInputError(input: Pick<ValidateInput, "app_id" | "license_key" | "hwid">): string | null {
+// SDKs send a random nonce that comes back inside the signed answer, which
+// stops an old "valid" response from being replayed.
+export const NONCE_PATTERN = /^[A-Za-z0-9_-]{16,64}$/;
+
+export function validateInputError(
+  input: Pick<ValidateInput, "app_id" | "license_key" | "hwid"> & { nonce?: unknown }
+): string | null {
   if (!isBoundedString(input.app_id, 32)) return "app_id is required";
   if (!isBoundedString(input.license_key, 64)) return "license_key is required";
   if (!isBoundedString(input.hwid, 128)) return "hwid is required";
+  if (input.nonce !== undefined && (typeof input.nonce !== "string" || !NONCE_PATTERN.test(input.nonce))) {
+    return "nonce must be 16-64 characters of A-Z, a-z, 0-9, _ or -";
+  }
   return null;
 }
 

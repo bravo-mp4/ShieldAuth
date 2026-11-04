@@ -22,7 +22,8 @@
     "seed": "tsx scripts/seed-demo.ts",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "keygen": "tsx scripts/keygen.ts"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
