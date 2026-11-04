@@ -27,7 +27,7 @@ async function main() {
 
   const passwordHash = await bcrypt.hash(DEMO_PASSWORD, 10);
   await pool.query(
-    `INSERT INTO users (email, password_hash, name, role) VALUES ($1, $2, 'Demo Developer', 'admin')
+    `INSERT INTO users (email, password_hash, name, role, email_verified_at) VALUES ($1, $2, 'Demo Developer', 'admin', NOW())
      ON CONFLICT (email) DO UPDATE SET password_hash = EXCLUDED.password_hash, role = 'admin', is_banned = false`,
     [DEMO_EMAIL, passwordHash]
   );
