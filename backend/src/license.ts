@@ -129,12 +129,6 @@ export async function validateLicense(input: ValidateInput): Promise<ValidateRes
   }
 
   await logValidation(input, outcome.result, outcome.error);
-  if (outcome.result === "success") {
-    await pool.query(
-      "INSERT INTO api_analytics (app_id, endpoint, method, status_code, ip_address) VALUES ($1, '/validate', 'POST', 200, $2)",
-      [appId, input.ip]
-    );
-  }
   return outcome.response;
 }
 

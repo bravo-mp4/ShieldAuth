@@ -20,8 +20,8 @@ export default function Signup() {
       return;
     }
 
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters");
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters");
       return;
     }
 
@@ -157,28 +157,6 @@ export default function Signup() {
               Sign in
             </Link>
           </span>
-        </div>
-
-        <div
-          style={{
-            marginTop: 24,
-            paddingTop: 24,
-            borderTop: "1px solid var(--border)",
-          }}
-        >
-          <p
-            className="muted"
-            style={{ fontSize: "0.75rem", textAlign: "center" }}
-          >
-            By signing up, you agree to our{" "}
-            <a href="/terms" style={{ color: "var(--primary)" }}>
-              Terms of Service
-            </a>{" "}
-            and{" "}
-            <a href="/privacy" style={{ color: "var(--primary)" }}>
-              Privacy Policy
-            </a>
-          </p>
         </div>
       </div>
     </div>

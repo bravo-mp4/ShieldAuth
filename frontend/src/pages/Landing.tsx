@@ -1,619 +1,151 @@
 import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { Shield, Zap, Lock, BarChart3 } from "lucide-react";
+import { Shield, KeyRound, Cpu, Activity, Webhook, Lock, FileSignature } from "lucide-react";
 import PublicNav from "../components/PublicNav";
 import PublicFooter from "../components/PublicFooter";
 
+const FEATURES = [
+  {
+    icon: KeyRound,
+    title: "License keys per app",
+    body: "Issue keys with an expiry and a device limit. Ban, unban, annotate or bulk-delete them from the dashboard, or export them as CSV.",
+  },
+  {
+    icon: Cpu,
+    title: "Hardware binding",
+    body: "A key binds to the first machines that use it. Slots are assigned under a database row lock, so parallel requests can't over-fill them.",
+  },
+  {
+    icon: FileSignature,
+    title: "Signed responses",
+    body: "Every validation and heartbeat is signed with ECDSA P-256. The SDKs check the signature and a fresh nonce, so a fake server or a replayed answer won't unlock your app.",
+  },
+  {
+    icon: Activity,
+    title: "Sessions and logs",
+    body: "Clients keep a session alive with heartbeats. A ban reaches running copies at the next heartbeat, and every attempt is logged for you.",
+  },
+  {
+    icon: Webhook,
+    title: "Signed webhooks",
+    body: "Get license events at your own endpoint, signed with HMAC-SHA256. URLs are checked so they can't be pointed at private networks.",
+  },
+  {
+    icon: Lock,
+    title: "Customer portal",
+    body: "Your users see their license, rename devices, and free one slot a week when they get a new computer, without emailing you.",
+  },
+];
+
+const STEPS = [
+  ["Register your app", "Sign up and create an application to get its App ID."],
+  ["Issue keys", "Create license keys with an expiry and a number of device slots."],
+  ["Validate from your code", "Call the SDK at start-up. It returns a verified yes or no, then sends heartbeats."],
+];
+
+const SNIPPET = `import { ShieldAuth } from "shieldauth";
+
+const shield = new ShieldAuth(APP_ID, {
+  apiUrl: "https://your-shieldauth-host/api/v1",
+  publicKey: SHIELDAUTH_PUBLIC_KEY, // from GET /public/signing-key
+});
+
+if (!(await shield.validate(licenseKey))) {
+  console.error("This copy isn't licensed.");
+  process.exit(1);
+}
+shield.startHeartbeat(); // stops the app if the license is revoked`;
+
 export default function Landing() {
-  const [liveValidations, setLiveValidations] = useState(0);
-  const [totalLicenses, setTotalLicenses] = useState(0);
-  const [activeLicenses, setActiveLicenses] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<{ validations_today: number; active_licenses: number; total_licenses: number } | null>(null);
 
   useEffect(() => {
-    // Fetch real stats from API
-    const fetchStats = async () => {
-      try {
-        const response = await axios.get("/api/v1/public/stats");
-        setLiveValidations(response.data.validations_today);
-        setTotalLicenses(response.data.total_licenses);
-        setActiveLicenses(response.data.active_licenses);
-        setLoading(false);
-      } catch (err) {
-        // Show zeros rather than invented numbers if the API is unreachable.
-        setLoading(false);
-      }
-    };
-
-    fetchStats();
+    // Real counters from this instance. If the API is down they just don't show.
+    axios
+      .get("/api/v1/public/stats")
+      .then((response) => setStats(response.data))
+      .catch(() => setStats(null));
   }, []);
+
   return (
     <>
       <PublicNav />
-      <div
-        className="hero"
-        style={{ paddingTop: "120px", paddingBottom: "80px" }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 8,
-            marginBottom: 16,
-          }}
-        >
-          <div className="kicker" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Shield size={16} style={{ display: 'inline' }} /> ENTERPRISE-GRADE SECURITY
-          </div>
-          <div
-            style={{
-              background: "var(--success-bg)",
-              color: "var(--success)",
-              padding: "4px 12px",
-              borderRadius: 12,
-              fontSize: "0.75rem",
-              fontWeight: 600,
-              animation: "pulse 2s ease-in-out infinite",
-            }}
-          >
-            ● {liveValidations.toLocaleString()} validations today
-          </div>
+      <div className="hero" style={{ paddingTop: 120, paddingBottom: 64 }}>
+        <div className="kicker" style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center" }}>
+          <Shield size={16} /> SOFTWARE LICENSING API
         </div>
-        <h1
-          className="heroTitle"
-          style={{ marginBottom: "24px", maxWidth: "900px", margin: "0 auto" }}
-        >
-          Protect Your Software with{" "}
-          <span className="heroAccent">ShieldAuth</span>
+        <h1 className="heroTitle" style={{ maxWidth: 900, margin: "16px auto 24px" }}>
+          License keys for your <span className="heroAccent">desktop software</span>
         </h1>
-        <p
-          className="heroDesc"
-          style={{
-            fontSize: "1.2rem",
-            marginBottom: "48px",
-            maxWidth: "650px",
-          }}
-        >
-          Advanced HWID authentication and licensing system. Prevent
-          unauthorized access, protect your revenue, and scale with confidence.
+        <p className="heroDesc" style={{ fontSize: "1.15rem", maxWidth: 680, margin: "0 auto 40px" }}>
+          ShieldAuth issues license keys, binds them to your users&apos; machines, and answers your app&apos;s
+          &ldquo;is this copy licensed?&rdquo; check with a signed response. SDKs for C++, C#, Python and Node.js.
         </p>
 
-        <div className="heroCtas" style={{ marginBottom: "48px" }}>
-          <Link
-            className="btn btnPrimary"
-            to="/signup"
-            style={{ padding: "16px 40px", fontSize: "1.1rem" }}
-          >
-            Protect Your App in 5 Minutes →
+        <div className="heroCtas" style={{ marginBottom: 48 }}>
+          <Link className="btn btnPrimary" to="/signup" style={{ padding: "14px 36px", fontSize: "1.05rem" }}>
+            Create an account
           </Link>
-          <Link
-            className="btn btnGhost"
-            to="/docs"
-            style={{ padding: "16px 32px" }}
-          >
-            📚 Documentation
+          <Link className="btn btnGhost" to="/docs" style={{ padding: "14px 28px" }}>
+            Read the docs
           </Link>
         </div>
 
-        {/* Product Screenshot */}
-        <div
-          style={{
-            maxWidth: "1100px",
-            margin: "0 auto 60px",
-            position: "relative",
-            borderRadius: 16,
-            overflow: "hidden",
-            border: "1px solid var(--border)",
-            boxShadow: "0 20px 60px rgba(0,0,0,0.5)",
-            background: "var(--bg-card)",
-          }}
-        >
-          <div
-            style={{
-              padding: "12px 16px",
-              background: "var(--bg-elevated)",
-              borderBottom: "1px solid var(--border)",
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-            }}
-          >
-            <div
-              style={{
-                width: 12,
-                height: 12,
-                borderRadius: "50%",
-                background: "#ef4444",
-              }}
-            ></div>
-            <div
-              style={{
-                width: 12,
-                height: 12,
-                borderRadius: "50%",
-                background: "#f59e0b",
-              }}
-            ></div>
-            <div
-              style={{
-                width: 12,
-                height: 12,
-                borderRadius: "50%",
-                background: "#10b981",
-              }}
-            ></div>
-            <div
-              style={{
-                flex: 1,
-                textAlign: "center",
-                fontSize: "0.85rem",
-                color: "var(--text-muted)",
-              }}
-            >
-              ShieldAuth Dashboard
+        {stats && (
+          <div className="heroStats">
+            <div className="stat">
+              <div className="statValue">{stats.validations_today.toLocaleString()}</div>
+              <div className="statLabel">Validations today</div>
+            </div>
+            <div className="stat">
+              <div className="statValue">{stats.active_licenses.toLocaleString()}</div>
+              <div className="statLabel">Active licenses</div>
+            </div>
+            <div className="stat">
+              <div className="statValue">{stats.total_licenses.toLocaleString()}</div>
+              <div className="statLabel">Licenses issued</div>
             </div>
           </div>
-          <div
-            style={{
-              padding: 40,
-              background: "linear-gradient(135deg, #0a0a0f 0%, #131318 100%)",
-            }}
-          >
-            <div className="grid3" style={{ gap: 16, marginBottom: 24 }}>
-              <div className="card" style={{ padding: 20 }}>
-                <div
-                  style={{
-                    fontSize: "0.75rem",
-                    color: "var(--text-muted)",
-                    marginBottom: 8,
-                  }}
-                >
-                  Active Licenses
-                </div>
-                <div
-                  style={{
-                    fontSize: "2rem",
-                    fontWeight: 700,
-                    color: "var(--success)",
-                  }}
-                >
-                  {loading ? "..." : activeLicenses.toLocaleString()}
-                </div>
-              </div>
-              <div className="card" style={{ padding: 20 }}>
-                <div
-                  style={{
-                    fontSize: "0.75rem",
-                    color: "var(--text-muted)",
-                    marginBottom: 8,
-                  }}
-                >
-                  Validations Today
-                </div>
-                <div
-                  style={{
-                    fontSize: "2rem",
-                    fontWeight: 700,
-                    color: "var(--primary)",
-                  }}
-                >
-                  {liveValidations.toLocaleString()}
-                </div>
-              </div>
-              <div className="card" style={{ padding: 20 }}>
-                <div
-                  style={{
-                    fontSize: "0.75rem",
-                    color: "var(--text-muted)",
-                    marginBottom: 8,
-                  }}
-                >
-                  Total Licenses
-                </div>
-                <div style={{ fontSize: "2rem", fontWeight: 700 }}>
-                  {loading ? "..." : totalLicenses.toLocaleString()}
-                </div>
-              </div>
-            </div>
-            <div className="card" style={{ padding: 24 }}>
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  marginBottom: 16,
-                }}
-              >
-                <div style={{ fontWeight: 600 }}>Recent Activity</div>
-                <div
-                  style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}
-                >
-                  Last 24 hours
-                </div>
-              </div>
-              {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  style={{
-                    display: "flex",
-                    gap: 12,
-                    padding: "12px 0",
-                    borderBottom: i < 3 ? "1px solid var(--border)" : "none",
-                  }}
-                >
-                  <div
-                    style={{
-                      width: 8,
-                      height: 8,
-                      borderRadius: "50%",
-                      background: "var(--success)",
-                      marginTop: 6,
-                    }}
-                  ></div>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: "0.9rem", marginBottom: 4 }}>
-                      License validated successfully
-                    </div>
-                    <div
-                      style={{ fontSize: "0.8rem", color: "var(--text-muted)" }}
-                    >
-                      user_{i}234 • App_Premium • {i * 2}m ago
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="heroStats">
-          <div className="stat">
-            <div className="statValue">
-              {loading ? "..." : totalLicenses.toLocaleString()}
-            </div>
-            <div className="statLabel">Total Licenses</div>
-          </div>
-          <div className="stat">
-            <div className="statValue">
-              {loading ? "..." : activeLicenses.toLocaleString()}
-            </div>
-            <div className="statLabel">Active Licenses</div>
-          </div>
-          <div className="stat">
-            <div className="statValue">
-              {loading ? "..." : liveValidations.toLocaleString()}
-            </div>
-            <div className="statLabel">Validations Today</div>
-          </div>
-        </div>
-
-        {/* Customer Logos */}
-        <div style={{ marginTop: 80, textAlign: "center" }}>
-          <div
-            style={{
-              fontSize: "0.85rem",
-              color: "var(--text-muted)",
-              marginBottom: 32,
-              fontWeight: 500,
-            }}
-          >
-            BUILT FOR
-          </div>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              gap: 48,
-              flexWrap: "wrap",
-              opacity: 0.6,
-            }}
-          >
-            {[
-              "Unity Games",
-              "Electron Apps",
-              "Desktop Tools",
-              "SaaS Platforms",
-              "Gaming Studios",
-              "Enterprise",
-            ].map((name) => (
-              <div
-                key={name}
-                style={{
-                  padding: "12px 24px",
-                  background: "var(--bg-card)",
-                  borderRadius: 8,
-                  border: "1px solid var(--border)",
-                  fontSize: "0.9rem",
-                  fontWeight: 600,
-                  color: "var(--text-secondary)",
-                }}
-              >
-                {name}
-              </div>
-            ))}
-          </div>
-        </div>
+        )}
       </div>
 
-      <div className="section" style={{ padding: "100px 40px" }}>
-        <div className="sectionTitle" style={{ marginBottom: "64px" }}>
-          Why ShieldAuth?
-        </div>
-        <div className="grid3" style={{ gap: "24px" }}>
-          <div
-            className="card"
-            style={{ padding: "32px", transition: "all 0.3s ease" }}
-          >
-            <div style={{ marginBottom: "16px" }}>
-              <Lock size={40} className="text-primary-500" />
-            </div>
-            <div
-              className="cardTitle"
-              style={{ marginBottom: "12px", fontSize: "1.2rem" }}
-            >
-              Hardware ID Locking
-            </div>
-            <div className="panelBody">
-              Lock licenses to specific hardware fingerprints. Prevent
-              unauthorized license sharing and protect your revenue stream.
-            </div>
-          </div>
-          <div
-            className="card"
-            style={{ padding: "32px", transition: "all 0.3s ease" }}
-          >
-            <div style={{ marginBottom: "16px" }}>
-              <Zap size={40} className="text-primary-500" />
-            </div>
-            <div
-              className="cardTitle"
-              style={{ marginBottom: "12px", fontSize: "1.2rem" }}
-            >
-              Lightning Fast
-            </div>
-            <div className="muted" style={{ lineHeight: "1.7" }}>
-              Sub-100ms validation times with global CDN distribution. Your
-              users won't even notice the authentication layer.
-            </div>
-          </div>
-          <div
-            className="card"
-            style={{ padding: "32px", transition: "all 0.3s ease" }}
-          >
-            <div style={{ marginBottom: "16px" }}>
-              <Shield size={40} className="text-primary-500" />
-            </div>
-            <div
-              className="cardTitle"
-              style={{ marginBottom: "12px", fontSize: "1.2rem" }}
-            >
-              Checked Server-Side
-            </div>
-            <div className="muted" style={{ lineHeight: "1.7" }}>
-              Every validation is checked on the server, scoped to your app,
-              and logged, so shared or leaked keys show up in your dashboard.
-            </div>
-          </div>
-          <div
-            className="card"
-            style={{ padding: "32px", transition: "all 0.3s ease" }}
-          >
-            <div style={{ marginBottom: "16px" }}>
-              <BarChart3 size={40} className="text-primary-500" />
-            </div>
-            <div
-              className="cardTitle"
-              style={{ marginBottom: "12px", fontSize: "1.2rem" }}
-            >
-              Real-Time Analytics
-            </div>
-            <div className="muted" style={{ lineHeight: "1.7" }}>
-              Monitor license usage, track authentication attempts, and get
-              insights into your user base with our advanced dashboard.
-            </div>
-          </div>
-          <div
-            className="card"
-            style={{ padding: "32px", transition: "all 0.3s ease" }}
-          >
-            <div style={{ fontSize: "2.5rem", marginBottom: "16px" }}>🔄</div>
-            <div
-              className="cardTitle"
-              style={{ marginBottom: "12px", fontSize: "1.2rem" }}
-            >
-              Easy Integration
-            </div>
-            <div className="muted" style={{ lineHeight: "1.7" }}>
-              Simple REST API with SDKs for C++, C#, Python, and more. Get up
-              and running in minutes, not hours.
-            </div>
-          </div>
-          <div
-            className="card"
-            style={{ padding: "32px", transition: "all 0.3s ease" }}
-          >
-            <div style={{ fontSize: "2.5rem", marginBottom: "16px" }}>💼</div>
-            <div
-              className="cardTitle"
-              style={{ marginBottom: "12px", fontSize: "1.2rem" }}
-            >
-              Enterprise Ready
-            </div>
-            <div className="muted" style={{ lineHeight: "1.7" }}>
-              Scalable infrastructure, 24/7 support, SLA guarantees, and custom
-              solutions for enterprise clients.
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="section">
-        <div className="sectionTitle">Simple, Transparent Pricing</div>
+      <section className="section" style={{ maxWidth: 1100, margin: "0 auto", padding: "40px 24px" }}>
+        <h2 style={{ fontSize: "1.8rem", fontWeight: 700, textAlign: "center", marginBottom: 32 }}>How it works</h2>
         <div className="grid3">
-          <div className="card">
-            <div className="cardTitle">Starter</div>
-            <div
-              style={{
-                fontSize: "2.5rem",
-                fontWeight: "700",
-                margin: "16px 0",
-                color: "var(--text)",
-              }}
-            >
-              $29
-              <span style={{ fontSize: "1rem", color: "var(--text-muted)" }}>
-                /mo
-              </span>
+          {STEPS.map(([title, body], index) => (
+            <div key={title} className="card" style={{ padding: 28 }}>
+              <div className="kicker" style={{ marginBottom: 8 }}>STEP {index + 1}</div>
+              <div className="cardTitle" style={{ fontSize: "1.15rem", marginBottom: 8 }}>{title}</div>
+              <div className="muted" style={{ lineHeight: 1.6 }}>{body}</div>
             </div>
-            <div className="muted" style={{ marginBottom: "24px" }}>
-              Perfect for indie developers
-            </div>
-            <ul
-              style={{
-                listStyle: "none",
-                padding: 0,
-                display: "flex",
-                flexDirection: "column",
-                gap: "12px",
-              }}
-            >
-              <li style={{ color: "var(--text-secondary)" }}>
-                ✓ Up to 1,000 licenses
-              </li>
-              <li style={{ color: "var(--text-secondary)" }}>
-                ✓ HWID authentication
-              </li>
-              <li style={{ color: "var(--text-secondary)" }}>
-                ✓ Basic analytics
-              </li>
-              <li style={{ color: "var(--text-secondary)" }}>
-                ✓ Email support
-              </li>
-            </ul>
-            <button
-              className="btn btnGhost"
-              style={{ marginTop: "24px", width: "100%" }}
-            >
-              Choose Plan
-            </button>
-          </div>
-
-          <div className="card" style={{ border: "2px solid var(--primary)" }}>
-            <div className="cardTitle" style={{ color: "var(--primary)" }}>
-              Professional
-              <span
-                style={{
-                  fontSize: "0.7rem",
-                  marginLeft: "8px",
-                  padding: "2px 8px",
-                  background: "var(--primary)",
-                  color: "white",
-                  borderRadius: "4px",
-                }}
-              >
-                POPULAR
-              </span>
-            </div>
-            <div
-              style={{
-                fontSize: "2.5rem",
-                fontWeight: "700",
-                margin: "16px 0",
-                color: "var(--text)",
-              }}
-            >
-              $79
-              <span style={{ fontSize: "1rem", color: "var(--text-muted)" }}>
-                /mo
-              </span>
-            </div>
-            <div className="muted" style={{ marginBottom: "24px" }}>
-              For growing businesses
-            </div>
-            <ul
-              style={{
-                listStyle: "none",
-                padding: 0,
-                display: "flex",
-                flexDirection: "column",
-                gap: "12px",
-              }}
-            >
-              <li style={{ color: "var(--text-secondary)" }}>
-                ✓ Up to 10,000 licenses
-              </li>
-              <li style={{ color: "var(--text-secondary)" }}>
-                ✓ Advanced analytics
-              </li>
-              <li style={{ color: "var(--text-secondary)" }}>
-                ✓ Priority support
-              </li>
-              <li style={{ color: "var(--text-secondary)" }}>
-                ✓ Custom branding
-              </li>
-              <li style={{ color: "var(--text-secondary)" }}>
-                ✓ Webhooks & API access
-              </li>
-            </ul>
-            <button
-              className="btn btnPrimary"
-              style={{ marginTop: "24px", width: "100%" }}
-            >
-              Choose Plan
-            </button>
-          </div>
-
-          <div className="card">
-            <div className="cardTitle">Enterprise</div>
-            <div
-              style={{
-                fontSize: "2.5rem",
-                fontWeight: "700",
-                margin: "16px 0",
-                color: "var(--text)",
-              }}
-            >
-              Custom
-            </div>
-            <div className="muted" style={{ marginBottom: "24px" }}>
-              Tailored to your needs
-            </div>
-            <ul
-              style={{
-                listStyle: "none",
-                padding: 0,
-                display: "flex",
-                flexDirection: "column",
-                gap: "12px",
-              }}
-            >
-              <li style={{ color: "var(--text-secondary)" }}>
-                ✓ Unlimited licenses
-              </li>
-              <li style={{ color: "var(--text-secondary)" }}>
-                ✓ Dedicated infrastructure
-              </li>
-              <li style={{ color: "var(--text-secondary)" }}>
-                ✓ 24/7 phone support
-              </li>
-              <li style={{ color: "var(--text-secondary)" }}>
-                ✓ SLA guarantees
-              </li>
-              <li style={{ color: "var(--text-secondary)" }}>
-                ✓ Custom integrations
-              </li>
-            </ul>
-            <button
-              className="btn btnGhost"
-              style={{ marginTop: "24px", width: "100%" }}
-            >
-              Contact Sales
-            </button>
-          </div>
+          ))}
         </div>
-      </div>
+      </section>
+
+      <section className="section" style={{ maxWidth: 1100, margin: "0 auto", padding: "40px 24px" }}>
+        <h2 style={{ fontSize: "1.8rem", fontWeight: 700, textAlign: "center", marginBottom: 32 }}>What you get</h2>
+        <div className="grid3">
+          {FEATURES.map(({ icon: Icon, title, body }) => (
+            <div key={title} className="card" style={{ padding: 28 }}>
+              <Icon size={28} style={{ color: "var(--primary)", marginBottom: 12 }} />
+              <div className="cardTitle" style={{ fontSize: "1.1rem", marginBottom: 8 }}>{title}</div>
+              <div className="muted" style={{ lineHeight: 1.6 }}>{body}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="section" style={{ maxWidth: 900, margin: "0 auto", padding: "40px 24px 80px" }}>
+        <h2 style={{ fontSize: "1.8rem", fontWeight: 700, textAlign: "center", marginBottom: 12 }}>A few lines in your app</h2>
+        <p className="muted" style={{ textAlign: "center", marginBottom: 24 }}>
+          Node.js shown; the C++, C# and Python SDKs work the same way.
+        </p>
+        <pre className="codeBlock" style={{ padding: 24, overflowX: "auto", lineHeight: 1.6 }}>{SNIPPET}</pre>
+        <div style={{ textAlign: "center", marginTop: 32 }}>
+          <Link className="btn btnPrimary" to="/docs">See the full integration guide</Link>
+        </div>
+      </section>
 
       <PublicFooter />
     </>

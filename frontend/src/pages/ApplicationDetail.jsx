@@ -9,7 +9,6 @@ export default function ApplicationDetail() {
   const [activeTab, setActiveTab] = useState("overview");
   const [app, setApp] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [showSecret, setShowSecret] = useState(false);
 
   useEffect(() => {
     loadApp();
@@ -148,38 +147,6 @@ export default function ApplicationDetail() {
                 </div>
               </div>
 
-              <div>
-                <label
-                  className="muted"
-                  style={{
-                    fontSize: "0.85rem",
-                    marginBottom: 8,
-                    display: "block",
-                  }}
-                >
-                  App Secret
-                </label>
-                <div style={{ display: "flex", gap: 8 }}>
-                  <input
-                    type={showSecret ? "text" : "password"}
-                    value={app.secret}
-                    readOnly
-                    style={{ flex: 1 }}
-                  />
-                  <button
-                    className="btn btnGhost"
-                    onClick={() => setShowSecret(!showSecret)}
-                  >
-                    {showSecret ? "👁️ Hide" : "👁️ Show"}
-                  </button>
-                  <button
-                    className="btn btnGhost"
-                    onClick={() => copyToClipboard(app.secret)}
-                  >
-                    📋 Copy
-                  </button>
-                </div>
-              </div>
             </div>
 
             <div
@@ -215,9 +182,9 @@ if (!ShieldAuth::Validate(license_key)) {
             </div>
 
             <div style={{ marginTop: 16, display: "flex", gap: 12 }}>
-              <Link to="/downloads" className="btn btnPrimary">
-                Download SDK
-              </Link>
+              <a href="https://github.com/bravo-mp4/ShieldAuth/tree/master/sdk" className="btn btnPrimary" target="_blank" rel="noreferrer">
+                Get the SDKs
+              </a>
               <Link to="/docs" className="btn btnSecondary">
                 View Full Docs
               </Link>

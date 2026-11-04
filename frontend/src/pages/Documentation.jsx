@@ -163,7 +163,7 @@ export default function Documentation() {
                   {["C++", "C#", "Python", "Node.js"].map((lang) => (
                     <Link
                       key={lang}
-                      to="/downloads"
+                      to="/docs"
                       className="card"
                       style={{
                         padding: 20,
@@ -584,7 +584,7 @@ target_link_libraries(your_project shieldauth)`}
                 <div className="muted" style={{ marginBottom: 24 }}>
                   Check back later for complete example implementations
                 </div>
-                <Link to="/downloads" className="btn btnPrimary">
+                <Link to="/docs" className="btn btnPrimary">
                   View Downloads
                 </Link>
               </div>

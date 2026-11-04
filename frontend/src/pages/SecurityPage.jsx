@@ -1,410 +1,117 @@
 import { Link } from "react-router-dom";
-import { Shield, Lock, Zap, Server } from "lucide-react";
+import { Shield, Lock, KeyRound, FileSignature, Gauge, Webhook, Users, AlertTriangle } from "lucide-react";
 import PublicNav from "../components/PublicNav";
 import PublicFooter from "../components/PublicFooter";
 
-export default function Security() {
+// Everything listed here is implemented and covered by the API test suite.
+const CONTROLS = [
+  {
+    icon: Lock,
+    title: "Passwords",
+    points: [
+      "bcrypt with cost 12; 8 to 72 bytes",
+      "Unknown emails still run a bcrypt compare, so timing doesn't reveal accounts",
+      "Reset links are single-use, expire after 30 minutes and sign out every other session",
+    ],
+  },
+  {
+    icon: KeyRound,
+    title: "Sessions",
+    points: [
+      "HS256 JWTs with the algorithm pinned and a 12-hour expiry",
+      "Each request re-reads the account, so bans and role changes apply at once",
+      "Changing or resetting a password invalidates existing tokens",
+    ],
+  },
+  {
+    icon: Users,
+    title: "Tenant isolation",
+    points: [
+      "Every dashboard query is scoped to your own applications",
+      "Platform-admin routes need a role stored in the database, not in the token",
+      "Tests try cross-tenant reads, deletes, bans and bulk actions",
+    ],
+  },
+  {
+    icon: FileSignature,
+    title: "License checks",
+    points: [
+      "Validation and heartbeat responses are signed with ECDSA P-256",
+      "SDKs verify the signature and a client nonce, so answers can't be forged or replayed",
+      "Device slots are assigned under a row lock; sessions end when a license is banned",
+    ],
+  },
+  {
+    icon: Webhook,
+    title: "Webhooks",
+    points: [
+      "Payloads signed with HMAC-SHA256 over timestamp and body",
+      "https only; private, loopback and link-local addresses refused",
+      "Redirects aren't followed, and the address is re-checked at send time",
+    ],
+  },
+  {
+    icon: Gauge,
+    title: "Abuse limits",
+    points: [
+      "Separate rate limits for sign-in, validation and public write endpoints",
+      "Proxy trust is explicit, so X-Forwarded-For can't be spoofed",
+      "Parameterised SQL, 100 kB body limit, typed and length-checked input",
+    ],
+  },
+];
+
+export default function SecurityPage() {
   return (
-    <>
+    <div style={{ background: "var(--bg)", minHeight: "100vh" }}>
       <PublicNav />
-      <div
-        className="page"
-        style={{ maxWidth: "1200px", margin: "0 auto", padding: "80px 40px" }}
-      >
-        {/* Hero */}
-        <div style={{ textAlign: "center", marginBottom: 80 }}>
-          <div style={{ marginBottom: 24, display: "flex", justifyContent: "center" }}>
-            <Lock size={64} className="text-primary-500" />
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "120px 24px 80px" }}>
+        <div style={{ textAlign: "center", marginBottom: 56 }}>
+          <div className="kicker" style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 8 }}>
+            <Shield size={16} /> SECURITY
           </div>
-          <h1
-            style={{
-              fontSize: "3.5rem",
-              fontWeight: 800,
-              marginBottom: 24,
-              background:
-                "linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-            }}
-          >
-            Enterprise-Grade Security
+          <h1 className="heroTitle" style={{ fontSize: "2.6rem", margin: "16px 0" }}>
+            How ShieldAuth protects your keys
           </h1>
-          <p
-            className="muted"
-            style={{ fontSize: "1.2rem", maxWidth: 700, margin: "0 auto" }}
-          >
-            Your security and privacy are our top priorities. Here's how we
-            protect your data and keep your systems safe.
+          <p className="muted" style={{ maxWidth: 680, margin: "0 auto", lineHeight: 1.7 }}>
+            The controls below are the ones in the code today. The source and the tests that exercise them are on{" "}
+            <a href="https://github.com/bravo-mp4/ShieldAuth" style={{ color: "var(--primary)" }}>GitHub</a>.
           </p>
         </div>
 
-        {/* Infrastructure */}
-        <div className="card" style={{ padding: 48, marginBottom: 40 }}>
-          <h2 style={{ fontSize: "2rem", fontWeight: 700, marginBottom: 32, display: "flex", alignItems: "center", gap: 12 }}>
-            <Server size={32} className="text-primary-500" />
-            Infrastructure & Architecture
-          </h2>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-              gap: 24,
-            }}
-          >
-            {[
-              {
-                title: "99.9% Uptime SLA",
-                desc: "Multi-region redundancy with automatic failover",
-                icon: <Zap size={24} className="text-primary-500" />,
-              },
-              {
-                title: "Global CDN",
-                desc: "Sub-100ms response times worldwide",
-                icon: "🌍",
-              },
-              {
-                title: "DDoS Protection",
-                desc: "Enterprise-grade CloudFlare protection",
-                icon: "🛡️",
-              },
-              {
-                title: "Auto-Scaling",
-                desc: "Handle traffic spikes seamlessly",
-                icon: "📈",
-              },
-            ].map((item, idx) => (
-              <div
-                key={idx}
-                style={{
-                  padding: 20,
-                  background: "var(--bg-elevated)",
-                  borderRadius: 12,
-                  border: "1px solid var(--border)",
-                }}
-              >
-                <div style={{ fontSize: "2rem", marginBottom: 12 }}>
-                  {item.icon}
-                </div>
-                <div
-                  style={{
-                    fontWeight: 600,
-                    marginBottom: 8,
-                    fontSize: "1.05rem",
-                  }}
-                >
-                  {item.title}
-                </div>
-                <div className="muted" style={{ fontSize: "0.9rem" }}>
-                  {item.desc}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Encryption */}
-        <div className="card" style={{ padding: 48, marginBottom: 40 }}>
-          <h2 style={{ fontSize: "2rem", fontWeight: 700, marginBottom: 32, display: "flex", alignItems: "center", gap: 12 }}>
-            <Shield size={32} className="text-primary-500" />
-            Encryption & Data Protection
-          </h2>
-          <div
-            style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 32 }}
-          >
-            <div>
-              <h3
-                style={{
-                  fontSize: "1.3rem",
-                  fontWeight: 600,
-                  marginBottom: 16,
-                  color: "var(--primary)",
-                }}
-              >
-                In Transit
-              </h3>
-              <ul
-                style={{
-                  listStyle: "none",
-                  padding: 0,
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 12,
-                }}
-              >
-                <li style={{ display: "flex", gap: 8 }}>
-                  <span style={{ color: "var(--success)" }}>✓</span>
-                  <span>TLS 1.3 encryption for all API calls</span>
-                </li>
-                <li style={{ display: "flex", gap: 8 }}>
-                  <span style={{ color: "var(--success)" }}>✓</span>
-                  <span>Certificate pinning for SDK connections</span>
-                </li>
-                <li style={{ display: "flex", gap: 8 }}>
-                  <span style={{ color: "var(--success)" }}>✓</span>
-                  <span>End-to-end encryption for sensitive data</span>
-                </li>
-                <li style={{ display: "flex", gap: 8 }}>
-                  <span style={{ color: "var(--success)" }}>✓</span>
-                  <span>Perfect Forward Secrecy (PFS)</span>
-                </li>
+        <div className="grid3" style={{ marginBottom: 48 }}>
+          {CONTROLS.map(({ icon: Icon, title, points }) => (
+            <div key={title} className="card" style={{ padding: 28 }}>
+              <Icon size={26} style={{ color: "var(--primary)", marginBottom: 12 }} />
+              <div className="cardTitle" style={{ fontSize: "1.1rem", marginBottom: 12 }}>{title}</div>
+              <ul className="muted" style={{ paddingLeft: 18, lineHeight: 1.7, margin: 0 }}>
+                {points.map((point) => (
+                  <li key={point}>{point}</li>
+                ))}
               </ul>
             </div>
-            <div>
-              <h3
-                style={{
-                  fontSize: "1.3rem",
-                  fontWeight: 600,
-                  marginBottom: 16,
-                  color: "var(--primary)",
-                }}
-              >
-                At Rest
-              </h3>
-              <ul
-                style={{
-                  listStyle: "none",
-                  padding: 0,
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 12,
-                }}
-              >
-                <li style={{ display: "flex", gap: 8 }}>
-                  <span style={{ color: "var(--success)" }}>✓</span>
-                  <span>AES-256 encryption for all stored data</span>
-                </li>
-                <li style={{ display: "flex", gap: 8 }}>
-                  <span style={{ color: "var(--success)" }}>✓</span>
-                  <span>Encrypted database backups (daily)</span>
-                </li>
-                <li style={{ display: "flex", gap: 8 }}>
-                  <span style={{ color: "var(--success)" }}>✓</span>
-                  <span>Secure key management (AWS KMS)</span>
-                </li>
-                <li style={{ display: "flex", gap: 8 }}>
-                  <span style={{ color: "var(--success)" }}>✓</span>
-                  <span>Hashed & salted passwords (bcrypt)</span>
-                </li>
-              </ul>
-            </div>
-          </div>
+          ))}
         </div>
 
-        {/* Compliance */}
-        <div className="card" style={{ padding: 48, marginBottom: 40 }}>
-          <h2 style={{ fontSize: "2rem", fontWeight: 700, marginBottom: 32 }}>
-            📋 Security Controls in Place
-          </h2>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-              gap: 20,
-            }}
-          >
-            {[
-              { name: "bcrypt password hashing", icon: "🔑", status: "In place" },
-              { name: "Per-tenant data isolation", icon: "🧱", status: "In place" },
-              { name: "HMAC-signed webhooks", icon: "✍️", status: "In place" },
-              { name: "Rate-limited auth and validation", icon: "⏱️", status: "In place" },
-            ].map((item, idx) => (
-              <div
-                key={idx}
-                style={{
-                  padding: 24,
-                  background: "var(--bg-elevated)",
-                  borderRadius: 12,
-                  border: "1px solid var(--border)",
-                  textAlign: "center",
-                }}
-              >
-                <div style={{ fontSize: "2.5rem", marginBottom: 12 }}>
-                  {item.icon}
-                </div>
-                <div style={{ fontWeight: 600, marginBottom: 4 }}>
-                  {item.name}
-                </div>
-                <div
-                  style={{
-                    fontSize: "0.8rem",
-                    padding: "4px 8px",
-                    background:
-                      item.status === "In place"
-                        ? "var(--success-bg)"
-                        : "var(--warning-bg)",
-                    color:
-                      item.status === "In place"
-                        ? "var(--success)"
-                        : "var(--warning)",
-                    borderRadius: 4,
-                    display: "inline-block",
-                  }}
-                >
-                  {item.status}
-                </div>
-              </div>
-            ))}
+        <div className="card" style={{ padding: 28 }}>
+          <div className="cardTitle" style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+            <AlertTriangle size={20} style={{ color: "var(--warning)" }} /> Limits worth knowing
           </div>
+          <ul className="muted" style={{ paddingLeft: 18, lineHeight: 1.7, margin: 0 }}>
+            <li>
+              Client-side licensing raises the cost of piracy; it can&apos;t stop someone who patches the check out of
+              your binary. Pair it with server-side features where you can.
+            </li>
+            <li>Dashboard tokens are kept in the browser&apos;s localStorage.</li>
+            <li>Hardware IDs come from the client, so a determined user can fake one. Device limits still cap sharing.</li>
+          </ul>
         </div>
 
-        {/* Security Practices */}
-        <div className="card" style={{ padding: 48, marginBottom: 40 }}>
-          <h2 style={{ fontSize: "2rem", fontWeight: 700, marginBottom: 32, display: "flex", alignItems: "center", gap: 12 }}>
-            <Shield size={32} className="text-primary-500" />
-            Security Practices
-          </h2>
-          <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-            {[
-              {
-                title: "Penetration Testing",
-                desc: "Annual third-party security audits and continuous vulnerability scanning",
-                features: [
-                  "Annual pen tests",
-                  "Bug bounty program",
-                  "Automated scanning",
-                  "Responsible disclosure",
-                ],
-              },
-              {
-                title: "Access Controls",
-                desc: "Strict access management with least privilege principle and audit logging",
-                features: [
-                  "Role-based access",
-                  "2FA required",
-                  "IP whitelisting",
-                  "Session management",
-                ],
-              },
-              {
-                title: "Monitoring & Response",
-                desc: "24/7 security monitoring with automated threat detection and incident response",
-                features: [
-                  "Real-time alerts",
-                  "Automated blocking",
-                  "Incident response team",
-                  "Security logs",
-                ],
-              },
-              {
-                title: "Data Privacy",
-                desc: "Your data is yours. We never sell or share customer data with third parties",
-                features: [
-                  "No data selling",
-                  "Right to deletion",
-                  "Data portability",
-                  "Transparent policies",
-                ],
-              },
-            ].map((practice, idx) => (
-              <div
-                key={idx}
-                style={{
-                  padding: 24,
-                  background: "var(--bg-elevated)",
-                  borderRadius: 12,
-                  border: "1px solid var(--border)",
-                }}
-              >
-                <h3
-                  style={{
-                    fontSize: "1.3rem",
-                    fontWeight: 600,
-                    marginBottom: 8,
-                  }}
-                >
-                  {practice.title}
-                </h3>
-                <p className="muted" style={{ marginBottom: 16 }}>
-                  {practice.desc}
-                </p>
-                <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-                  {practice.features.map((feature, i) => (
-                    <div
-                      key={i}
-                      style={{
-                        padding: "6px 12px",
-                        background: "var(--bg-card)",
-                        border: "1px solid var(--border)",
-                        borderRadius: 6,
-                        fontSize: "0.85rem",
-                      }}
-                    >
-                      ✓ {feature}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Transparency */}
-        <div
-          className="card"
-          style={{
-            padding: 48,
-            marginBottom: 40,
-            background: "var(--bg-elevated)",
-          }}
-        >
-          <h2 style={{ fontSize: "2rem", fontWeight: 700, marginBottom: 16 }}>
-            🔍 Transparency & Trust
-          </h2>
-          <p
-            className="muted"
-            style={{ fontSize: "1.05rem", marginBottom: 32, lineHeight: 1.7 }}
-          >
-            We believe in being open about our security practices. All incidents
-            are disclosed on our status page, and we maintain detailed security
-            documentation for enterprise customers.
-          </p>
-          <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-            <Link
-              to="/status"
-              className="btn btnPrimary"
-              style={{ padding: "12px 24px" }}
-            >
-              View Status Page →
-            </Link>
-            <Link
-              to="/docs"
-              className="btn btnGhost"
-              style={{ padding: "12px 24px" }}
-            >
-              Security Documentation
-            </Link>
-            <a
-              href="mailto:security@example.com"
-              className="btn btnGhost"
-              style={{ padding: "12px 24px" }}
-            >
-              Report Vulnerability
-            </a>
-          </div>
-        </div>
-
-        {/* Contact */}
-        <div style={{ textAlign: "center", padding: "40px 20px" }}>
-          <h2 style={{ fontSize: "2rem", fontWeight: 700, marginBottom: 16 }}>
-            Questions About Security?
-          </h2>
-          <p
-            className="muted"
-            style={{ fontSize: "1.05rem", marginBottom: 24 }}
-          >
-            Our security team is here to help enterprise customers with
-            compliance requirements
-          </p>
-          <Link
-            to="/contact"
-            className="btn btnPrimary"
-            style={{ padding: "14px 32px", fontSize: "1.05rem" }}
-          >
-            Contact Security Team
-          </Link>
+        <div style={{ textAlign: "center", marginTop: 48 }}>
+          <Link to="/docs" className="btn btnPrimary">Read the integration docs</Link>
         </div>
       </div>
       <PublicFooter />
-    </>
+    </div>
   );
 }

@@ -4,7 +4,6 @@ import { Zap, BarChart3 } from "lucide-react";
 import axios from "axios";
 import TopBar from "../components/TopBar";
 import StatCard from "../components/StatCard";
-import OnboardingWizard from "../components/OnboardingWizard";
 
 interface DashboardStats {
   totalLicenses: number;
@@ -25,16 +24,9 @@ export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
     loadStats();
-
-    // Check if user has completed onboarding
-    const hasCompletedOnboarding = localStorage.getItem("onboarding_completed");
-    if (!hasCompletedOnboarding) {
-      setShowOnboarding(true);
-    }
   }, []);
 
   const loadStats = async () => {
@@ -505,14 +497,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {showOnboarding && (
-        <OnboardingWizard
-          onComplete={() => {
-            localStorage.setItem("onboarding_completed", "true");
-            setShowOnboarding(false);
-          }}
-        />
-      )}
     </div>
   );
 }

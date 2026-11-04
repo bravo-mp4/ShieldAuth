@@ -182,14 +182,6 @@ router.put("/platform/licenses/:key/extend", requireAdmin, auditLog("extend_lice
 router.put("/platform/licenses/:key/expire", requireAdmin, auditLog("expire_license"), AdminRoutes.forceExpireLicense);
 router.post("/platform/hwid/blacklist", requireAdmin, auditLog("blacklist_hwid"), AdminRoutes.blacklistHWID);
 
-// Site content (blog, changelog) is edited by platform admins only.
-router.post("/admin/blog", requireAdmin, auditLog("create_blog"), AdminRoutes.createBlogPost);
-router.put("/admin/blog/:id", requireAdmin, auditLog("update_blog"), AdminRoutes.updateBlogPost);
-router.delete("/admin/blog/:id", requireAdmin, auditLog("delete_blog"), AdminRoutes.deleteBlogPost);
-router.post("/admin/changelog", requireAdmin, auditLog("create_changelog"), AdminRoutes.createChangelog);
-router.put("/admin/changelog/:id", requireAdmin, auditLog("update_changelog"), AdminRoutes.updateChangelog);
-router.delete("/admin/changelog/:id", requireAdmin, auditLog("delete_changelog"), AdminRoutes.deleteChangelog);
-
 // ============================================
 // DASHBOARD: everything below is scoped to the signed-in developer's apps
 // ============================================
@@ -265,19 +257,18 @@ router.post("/admin/app/create", authenticateToken, async (req: Request, res: Re
   }
 
   const appId = crypto.randomBytes(16).toString("hex");
-  const appSecret = crypto.randomBytes(32).toString("hex");
 
   await pool.query(
-    "INSERT INTO applications (app_id, app_secret, owner_email, name, version) VALUES ($1, $2, $3, $4, $5)",
-    [appId, appSecret, ownerEmail(req), name, version]
+    "INSERT INTO applications (app_id, owner_email, name, version) VALUES ($1, $2, $3, $4)",
+    [appId, ownerEmail(req), name, version]
   );
 
-  res.status(201).json({ app_id: appId, app_secret: appSecret, name, version });
+  res.status(201).json({ app_id: appId, name, version });
 });
 
 router.get("/admin/app/:app_id", authenticateToken, async (req: Request, res: Response) => {
   const result = await pool.query(
-    `SELECT a.app_id, a.app_secret, a.name, a.version, a.created_at,
+    `SELECT a.app_id, a.name, a.version, a.created_at,
        (SELECT COUNT(*) FROM licenses WHERE app_id = a.app_id) AS license_count,
        (SELECT COUNT(*) FROM validation_logs WHERE app_id = a.app_id) AS validation_count
      FROM applications a
@@ -297,7 +288,6 @@ router.get("/admin/app/:app_id", authenticateToken, async (req: Request, res: Re
     users: Number.parseInt(app.license_count, 10) || 0,
     validations: Number.parseInt(app.validation_count, 10) || 0,
     created: app.created_at,
-    secret: app.app_secret,
   });
 });
 
@@ -574,7 +564,7 @@ router.get("/admin/license/:license_key/hwids", authenticateToken, async (req: R
     return res.status(404).json({ message: "License not found" });
   }
   const result = await pool.query(
-    `SELECT id, hwid_hash, device_name, last_seen, ip_address, unbind_count, last_unbind_at
+    `SELECT id, hwid_hash, device_name, last_seen, ip_address
      FROM hwid_slots WHERE license_key = $1 ORDER BY last_seen DESC`,
     [license_key]
   );
@@ -589,48 +579,6 @@ router.delete("/admin/license/:license_key/hwid/:hwid_id", authenticateToken, as
   await pool.query("DELETE FROM hwid_slots WHERE license_key = $1 AND id = $2", [
     license_key,
     clampInt(hwid_id, 0, 2147483647, 0),
-  ]);
-  res.json({ success: true });
-});
-
-// --- License templates ---
-
-router.get("/admin/templates", authenticateToken, async (req: Request, res: Response) => {
-  const result = await pool.query(
-    `SELECT template_id, name, days_valid, max_hwid_slots, metadata, created_at
-     FROM license_templates WHERE owner_email = $1 ORDER BY created_at DESC`,
-    [ownerEmail(req)]
-  );
-  res.json(result.rows);
-});
-
-router.post("/admin/templates", authenticateToken, async (req: Request, res: Response) => {
-  const name = optionalText(req.body?.name, 100);
-  if (!name) {
-    return res.status(400).json({ message: "Template name is required" });
-  }
-  const metadata = req.body?.metadata && typeof req.body.metadata === "object" ? req.body.metadata : {};
-  const templateId = crypto.randomBytes(16).toString("hex");
-
-  await pool.query(
-    `INSERT INTO license_templates (template_id, owner_email, name, days_valid, max_hwid_slots, metadata)
-     VALUES ($1, $2, $3, $4, $5, $6)`,
-    [
-      templateId,
-      ownerEmail(req),
-      name,
-      clampInt(req.body.days_valid, 1, 3650, 30),
-      clampInt(req.body.max_hwid_slots, 1, 100, 1),
-      metadata,
-    ]
-  );
-  res.status(201).json({ template_id: templateId });
-});
-
-router.delete("/admin/templates/:template_id", authenticateToken, async (req: Request, res: Response) => {
-  await pool.query("DELETE FROM license_templates WHERE template_id = $1 AND owner_email = $2", [
-    req.params.template_id,
-    ownerEmail(req),
   ]);
   res.json({ success: true });
 });
@@ -689,7 +637,7 @@ router.get("/admin/analytics/:app_id", authenticateToken, async (req: Request, r
   const days = clampInt(req.query.days, 1, 365, 7);
   const window = "created_at >= NOW() - make_interval(days => $2)";
 
-  const [byDay, successRate, geo, errors] = await Promise.all([
+  const [byDay, successRate, errors] = await Promise.all([
     pool.query(
       `SELECT DATE(created_at) AS date, result, COUNT(*) AS count FROM validation_logs
        WHERE app_id = $1 AND ${window} GROUP BY DATE(created_at), result ORDER BY date DESC`,
@@ -697,12 +645,6 @@ router.get("/admin/analytics/:app_id", authenticateToken, async (req: Request, r
     ),
     pool.query(
       `SELECT result, COUNT(*) AS count FROM validation_logs WHERE app_id = $1 AND ${window} GROUP BY result`,
-      [app_id, days]
-    ),
-    pool.query(
-      `SELECT country_code, COUNT(*) AS count FROM api_analytics
-       WHERE app_id = $1 AND ${window} AND country_code IS NOT NULL
-       GROUP BY country_code ORDER BY count DESC LIMIT 10`,
       [app_id, days]
     ),
     pool.query(
@@ -716,7 +658,6 @@ router.get("/admin/analytics/:app_id", authenticateToken, async (req: Request, r
   res.json({
     validationsByDay: byDay.rows,
     successRate: successRate.rows,
-    geoDistribution: geo.rows,
     errorBreakdown: errors.rows,
   });
 });
@@ -842,98 +783,6 @@ router.post("/admin/webhooks/:webhook_id/test", authenticateToken, async (req: R
   }
 });
 
-// --- API keys ---
-
-router.get("/admin/api-keys", authenticateToken, async (req: Request, res: Response) => {
-  const result = await pool.query(
-    `SELECT key_id, name, app_id, scopes, last_used_at, expires_at, created_at
-     FROM api_keys WHERE owner_email = $1 ORDER BY created_at DESC`,
-    [ownerEmail(req)]
-  );
-  res.json(result.rows);
-});
-
-router.post("/admin/api-keys", authenticateToken, async (req: Request, res: Response) => {
-  const { app_id, scopes } = req.body ?? {};
-  const name = optionalText(req.body?.name, 100);
-  const email = ownerEmail(req);
-
-  if (!name || !Array.isArray(scopes) || scopes.length === 0 || !scopes.every((s) => typeof s === "string")) {
-    return res.status(400).json({ message: "Name and scopes are required" });
-  }
-  if (app_id && !(await userOwnsApp(email, app_id))) {
-    return res.status(403).json({ message: "Application not found or access denied" });
-  }
-
-  const keyId = `sk_${crypto.randomBytes(12).toString("hex")}`;
-  const apiKey = `${keyId}_${crypto.randomBytes(24).toString("hex")}`;
-  // Keys are 192 bits of randomness, so a fast hash is enough here; only
-  // the hash is stored.
-  const keyHash = crypto.createHash("sha256").update(apiKey).digest("hex");
-  const days = req.body.expires_in_days ? clampInt(req.body.expires_in_days, 1, 3650, 365) : null;
-  const expiresAt = days ? new Date(Date.now() + days * 24 * 60 * 60 * 1000) : null;
-
-  await pool.query(
-    `INSERT INTO api_keys (key_id, key_hash, owner_email, app_id, name, scopes, expires_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-    [keyId, keyHash, email, app_id || null, name, scopes, expiresAt]
-  );
-
-  res.status(201).json({
-    key_id: keyId,
-    api_key: apiKey,
-    message: "Save this key securely - it won't be shown again",
-  });
-});
-
-router.delete("/admin/api-keys/:key_id", authenticateToken, async (req: Request, res: Response) => {
-  await pool.query("DELETE FROM api_keys WHERE key_id = $1 AND owner_email = $2", [
-    req.params.key_id,
-    ownerEmail(req),
-  ]);
-  res.json({ success: true });
-});
-
-// --- Fraud alerts ---
-
-router.get("/admin/fraud-alerts", authenticateToken, async (req: Request, res: Response) => {
-  const { severity, is_resolved } = req.query;
-  const params: unknown[] = [ownerEmail(req)];
-  let query = `
-    SELECT fa.id, fa.license_key, fa.alert_type, fa.severity, fa.details,
-           fa.trust_score, fa.is_resolved, fa.auto_banned, fa.created_at
-    FROM fraud_alerts fa
-    JOIN licenses l ON fa.license_key = l.license_key
-    JOIN applications a ON l.app_id = a.app_id
-    WHERE a.owner_email = $1`;
-
-  if (typeof severity === "string" && severity) {
-    params.push(severity);
-    query += ` AND fa.severity = $${params.length}`;
-  }
-  if (is_resolved !== undefined) {
-    params.push(is_resolved === "true");
-    query += ` AND fa.is_resolved = $${params.length}`;
-  }
-
-  const result = await pool.query(`${query} ORDER BY fa.created_at DESC LIMIT 100`, params);
-  res.json(result.rows);
-});
-
-router.put("/admin/fraud-alerts/:alert_id/resolve", authenticateToken, async (req: Request, res: Response) => {
-  const result = await pool.query(
-    `UPDATE fraud_alerts SET is_resolved = TRUE
-     WHERE id = $1 AND license_key IN (
-       SELECT l.license_key FROM licenses l JOIN applications a ON l.app_id = a.app_id WHERE a.owner_email = $2
-     )`,
-    [clampInt(req.params.alert_id, 0, 2147483647, 0), ownerEmail(req)]
-  );
-  if (result.rowCount === 0) {
-    return res.status(404).json({ message: "Alert not found" });
-  }
-  res.json({ success: true });
-});
-
 // ============================================
 // PUBLIC: CUSTOMER LICENSE PORTAL
 // The license key itself is the credential here (128 random bits).
@@ -953,7 +802,7 @@ router.get("/public/portal/:license_key", async (req: Request, res: Response) =>
 
   const [hwids, lastUnbind] = await Promise.all([
     pool.query(
-      `SELECT id, hwid_hash, device_name, last_seen, unbind_count, last_unbind_at
+      `SELECT id, hwid_hash, device_name, last_seen
        FROM hwid_slots WHERE license_key = $1 ORDER BY last_seen DESC`,
       [license_key]
     ),
@@ -979,8 +828,6 @@ router.get("/public/portal/:license_key", async (req: Request, res: Response) =>
       hwid_hash: row.hwid_hash.substring(0, 16) + "...",
       device_name: row.device_name || "Unknown Device",
       last_seen: row.last_seen,
-      unbind_count: row.unbind_count,
-      last_unbind_at: row.last_unbind_at,
       can_unbind: canUnbind,
     })),
   });
@@ -1064,345 +911,6 @@ router.get("/public/stats", async (_req: Request, res: Response) => {
     total_licenses: Number.parseInt(total.rows[0].count, 10),
     active_licenses: Number.parseInt(active.rows[0].count, 10),
   });
-});
-
-// ============================================
-// PUBLIC SITE CONTENT
-// ============================================
-
-router.get("/public/blog", async (req: Request, res: Response) => {
-  const { category, featured } = req.query;
-  const limit = clampInt(req.query.limit, 1, 50, 10);
-  const offset = clampInt(req.query.offset, 0, 10000, 0);
-
-  const params: unknown[] = [];
-  let query = `
-    SELECT post_id, title, slug, excerpt, featured_emoji, category,
-           read_time_minutes, published_at, views, likes
-    FROM blog_posts WHERE is_published = true`;
-
-  if (typeof category === "string" && category) {
-    params.push(category);
-    query += ` AND category = $${params.length}`;
-  }
-  if (featured === "true") {
-    query += " AND is_featured = true";
-  }
-
-  const result = await pool.query(
-    `${query} ORDER BY published_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
-    [...params, limit, offset]
-  );
-  const count = await pool.query("SELECT COUNT(*) FROM blog_posts WHERE is_published = true");
-
-  res.json({ posts: result.rows, total: Number.parseInt(count.rows[0].count, 10), limit, offset });
-});
-
-router.get("/public/blog/:slug", async (req: Request, res: Response) => {
-  const result = await pool.query(
-    `UPDATE blog_posts SET views = views + 1 WHERE slug = $1 AND is_published = true
-     RETURNING post_id, title, slug, excerpt, content, featured_emoji, category, read_time_minutes,
-               published_at, updated_at, views, likes`,
-    [req.params.slug]
-  );
-  if (result.rows.length === 0) {
-    return res.status(404).json({ message: "Blog post not found" });
-  }
-  res.json(result.rows[0]);
-});
-
-router.post("/public/blog/:slug/like", publicWriteLimiter, async (req: Request, res: Response) => {
-  await pool.query("UPDATE blog_posts SET likes = likes + 1 WHERE slug = $1 AND is_published = true", [
-    req.params.slug,
-  ]);
-  res.json({ success: true });
-});
-
-router.get("/public/changelog", async (_req: Request, res: Response) => {
-  const entries = await pool.query(
-    "SELECT * FROM changelog_entries WHERE is_published = true ORDER BY release_date DESC"
-  );
-
-  const result = await Promise.all(
-    entries.rows.map(async (entry: any) => {
-      const changes = await pool.query(
-        "SELECT change_type, description FROM changelog_changes WHERE entry_id = $1 ORDER BY sort_order, change_id",
-        [entry.entry_id]
-      );
-      const grouped: Record<string, string[]> = { new: [], improved: [], fixed: [], deprecated: [], security: [] };
-      for (const change of changes.rows) {
-        grouped[change.change_type]?.push(change.description);
-      }
-      return { entry_id: entry.entry_id, version: entry.version, date: entry.release_date, changes: grouped };
-    })
-  );
-
-  res.json(result);
-});
-
-router.get("/public/status", async (_req: Request, res: Response) => {
-  const monitors = await pool.query(
-    `SELECT m.*,
-       (SELECT status FROM service_status_logs WHERE monitor_id = m.monitor_id ORDER BY checked_at DESC LIMIT 1) AS current_status,
-       (SELECT response_time_ms FROM service_status_logs WHERE monitor_id = m.monitor_id ORDER BY checked_at DESC LIMIT 1) AS last_response_time
-     FROM service_monitors m WHERE is_active = true`
-  );
-
-  const services = await Promise.all(
-    monitors.rows.map(async (monitor: any) => {
-      const uptime = await pool.query(
-        `SELECT COUNT(*) AS total_checks, COUNT(*) FILTER (WHERE status = 'operational') AS operational_checks
-         FROM service_status_logs WHERE monitor_id = $1 AND checked_at > NOW() - INTERVAL '30 days'`,
-        [monitor.monitor_id]
-      );
-      const total = Number.parseInt(uptime.rows[0].total_checks, 10);
-      const operational = Number.parseInt(uptime.rows[0].operational_checks, 10);
-      return {
-        name: monitor.service_name,
-        description: monitor.service_description,
-        status: monitor.current_status || "operational",
-        uptime: `${total > 0 ? ((operational / total) * 100).toFixed(2) : "100.00"}%`,
-        response_time_ms: monitor.last_response_time,
-      };
-    })
-  );
-
-  const incidents = await pool.query(
-    `SELECT i.*, m.service_name FROM status_incidents i
-     JOIN service_monitors m ON i.monitor_id = m.monitor_id
-     WHERE i.resolved_at IS NULL ORDER BY i.started_at DESC`
-  );
-
-  res.json({
-    overall_status: services.every((s) => s.status === "operational") ? "operational" : "degraded",
-    services,
-    active_incidents: incidents.rows,
-  });
-});
-
-router.get("/public/status/incidents", async (req: Request, res: Response) => {
-  const result = await pool.query(
-    `SELECT i.*, m.service_name,
-       (SELECT json_agg(json_build_object('message', message, 'status', status, 'posted_at', posted_at) ORDER BY posted_at DESC)
-        FROM incident_updates WHERE incident_id = i.incident_id) AS updates
-     FROM status_incidents i
-     JOIN service_monitors m ON i.monitor_id = m.monitor_id
-     ORDER BY i.started_at DESC
-     LIMIT $1`,
-    [clampInt(req.query.limit, 1, 50, 10)]
-  );
-  res.json(result.rows);
-});
-
-router.post("/admin/status/incident", requireAdmin, auditLog("create_incident"), async (req: Request, res: Response) => {
-  const { monitor_id, title, description, severity } = req.body ?? {};
-  const result = await pool.query(
-    `INSERT INTO status_incidents (monitor_id, title, description, severity, started_at)
-     VALUES ($1, $2, $3, $4, NOW()) RETURNING *`,
-    [monitor_id, optionalText(title, 255), optionalText(description, 5000), severity]
-  );
-  res.status(201).json(result.rows[0]);
-});
-
-router.post(
-  "/admin/status/incident/:incident_id/update",
-  requireAdmin,
-  auditLog("update_incident"),
-  async (req: Request, res: Response) => {
-    const { message, status } = req.body ?? {};
-    await pool.query("INSERT INTO incident_updates (incident_id, message, status) VALUES ($1, $2, $3)", [
-      req.params.incident_id,
-      optionalText(message, 5000),
-      status,
-    ]);
-    await pool.query(
-      `UPDATE status_incidents
-       SET status = $1, resolved_at = CASE WHEN $1 = 'resolved' THEN NOW() ELSE resolved_at END
-       WHERE incident_id = $2`,
-      [status, req.params.incident_id]
-    );
-    res.json({ success: true });
-  }
-);
-
-router.get("/public/testimonials", async (req: Request, res: Response) => {
-  let query = "SELECT * FROM testimonials WHERE is_approved = true";
-  if (req.query.featured === "true") {
-    query += " AND is_featured = true";
-  }
-  const result = await pool.query(`${query} ORDER BY display_order, testimonial_id DESC LIMIT $1`, [
-    clampInt(req.query.limit, 1, 50, 20),
-  ]);
-  res.json(result.rows);
-});
-
-router.post("/admin/testimonials", requireAdmin, auditLog("create_testimonial"), async (req: Request, res: Response) => {
-  const { author_name, author_role, author_company, author_avatar_url, quote, rating, is_featured } = req.body ?? {};
-  const result = await pool.query(
-    `INSERT INTO testimonials (author_name, author_role, author_company, author_avatar_url,
-       quote, rating, is_featured, is_approved, approved_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, true, NOW()) RETURNING *`,
-    [author_name, author_role, author_company, author_avatar_url, quote, clampInt(rating, 1, 5, 5), Boolean(is_featured)]
-  );
-  res.status(201).json(result.rows[0]);
-});
-
-router.get("/public/faqs", async (req: Request, res: Response) => {
-  const params: unknown[] = [];
-  let query = "SELECT * FROM faqs WHERE is_published = true";
-  if (typeof req.query.category === "string" && req.query.category) {
-    params.push(req.query.category);
-    query += " AND category = $1";
-  }
-  params.push(clampInt(req.query.limit, 1, 100, 50));
-  const result = await pool.query(`${query} ORDER BY display_order, faq_id LIMIT $${params.length}`, params);
-  res.json(result.rows);
-});
-
-router.post("/public/faqs/:faq_id/helpful", publicWriteLimiter, async (req: Request, res: Response) => {
-  // Column name comes from a fixed pair, never from user input.
-  const column = req.body?.helpful ? "helpful_yes" : "helpful_no";
-  await pool.query(`UPDATE faqs SET ${column} = ${column} + 1, views = views + 1 WHERE faq_id = $1`, [
-    clampInt(req.params.faq_id, 0, 2147483647, 0),
-  ]);
-  res.json({ success: true });
-});
-
-router.post("/admin/faqs", requireAdmin, auditLog("create_faq"), async (req: Request, res: Response) => {
-  const { question, answer, category, display_order } = req.body ?? {};
-  const result = await pool.query(
-    "INSERT INTO faqs (question, answer, category, display_order) VALUES ($1, $2, $3, $4) RETURNING *",
-    [question, answer, category, clampInt(display_order, 0, 1000, 0)]
-  );
-  res.status(201).json(result.rows[0]);
-});
-
-// ============================================
-// SUPPORT TICKETS (signed-in users, own tickets only)
-// ============================================
-
-router.get("/support/tickets", authenticateToken, async (req: Request, res: Response) => {
-  const result = await pool.query(
-    `SELECT t.*, (SELECT COUNT(*) FROM ticket_messages WHERE ticket_id = t.ticket_id) AS message_count
-     FROM support_tickets t WHERE user_email = $1 ORDER BY created_at DESC`,
-    [ownerEmail(req)]
-  );
-  res.json(result.rows);
-});
-
-router.get("/support/tickets/:ticket_number", authenticateToken, async (req: Request, res: Response) => {
-  const ticket = await pool.query("SELECT * FROM support_tickets WHERE ticket_number = $1 AND user_email = $2", [
-    req.params.ticket_number,
-    ownerEmail(req),
-  ]);
-  if (ticket.rows.length === 0) {
-    return res.status(404).json({ message: "Ticket not found" });
-  }
-  const messages = await pool.query(
-    "SELECT * FROM ticket_messages WHERE ticket_id = $1 AND is_internal_note = false ORDER BY created_at",
-    [ticket.rows[0].ticket_id]
-  );
-  res.json({ ticket: ticket.rows[0], messages: messages.rows });
-});
-
-router.post("/support/tickets", authenticateToken, async (req: Request, res: Response) => {
-  const { priority, category } = req.body ?? {};
-  const subject = optionalText(req.body?.subject, 255);
-  const message = optionalText(req.body?.message, 10000);
-  if (!subject || !message) {
-    return res.status(400).json({ message: "Subject and message are required" });
-  }
-
-  // Random suffix rather than COUNT(*)+1, which collides under concurrency.
-  const ticketNumber = `TKT-${crypto.randomBytes(4).toString("hex").toUpperCase()}`;
-  const ticket = await pool.query(
-    `INSERT INTO support_tickets (ticket_number, user_email, subject, priority, category)
-     VALUES ($1, $2, $3, $4, $5) RETURNING *`,
-    [
-      ticketNumber,
-      ownerEmail(req),
-      subject,
-      ["low", "medium", "high", "urgent"].includes(priority) ? priority : "medium",
-      optionalText(category, 50),
-    ]
-  );
-  await pool.query("INSERT INTO ticket_messages (ticket_id, sender_email, message) VALUES ($1, $2, $3)", [
-    ticket.rows[0].ticket_id,
-    ownerEmail(req),
-    message,
-  ]);
-  res.status(201).json(ticket.rows[0]);
-});
-
-router.post("/support/tickets/:ticket_number/messages", authenticateToken, async (req: Request, res: Response) => {
-  const message = optionalText(req.body?.message, 10000);
-  if (!message) {
-    return res.status(400).json({ message: "Message is required" });
-  }
-  const ticket = await pool.query("SELECT ticket_id FROM support_tickets WHERE ticket_number = $1 AND user_email = $2", [
-    req.params.ticket_number,
-    ownerEmail(req),
-  ]);
-  if (ticket.rows.length === 0) {
-    return res.status(404).json({ message: "Ticket not found" });
-  }
-
-  const ticketId = ticket.rows[0].ticket_id;
-  await pool.query("INSERT INTO ticket_messages (ticket_id, sender_email, message) VALUES ($1, $2, $3)", [
-    ticketId,
-    ownerEmail(req),
-    message,
-  ]);
-  await pool.query(
-    "UPDATE support_tickets SET updated_at = NOW(), last_customer_reply_at = NOW(), status = 'open' WHERE ticket_id = $1",
-    [ticketId]
-  );
-  res.json({ success: true });
-});
-
-// ============================================
-// CONTACT FORM
-// ============================================
-
-router.post("/public/contact", publicWriteLimiter, async (req: Request, res: Response) => {
-  const name = optionalText(req.body?.name, 255);
-  const email = optionalText(req.body?.email, 255);
-  const subject = optionalText(req.body?.subject, 255);
-  const message = optionalText(req.body?.message, 5000);
-
-  if (!name || !email || !EMAIL_PATTERN.test(email) || !message) {
-    return res.status(400).json({ message: "Name, a valid email and a message are required" });
-  }
-
-  await pool.query(
-    `INSERT INTO contact_submissions (name, email, subject, message, ip_address, user_agent)
-     VALUES ($1, $2, $3, $4, $5, $6)`,
-    [name, email, subject, message, req.ip || "", (req.get("user-agent") || "").slice(0, 500)]
-  );
-
-  res.json({ success: true, message: "Thanks for getting in touch." });
-});
-
-// Contact submissions contain visitors' personal details: admins only.
-router.get("/admin/contact", requireAdmin, async (req: Request, res: Response) => {
-  const params: unknown[] = [];
-  let query = "SELECT * FROM contact_submissions WHERE is_spam = false";
-  if (req.query.is_read !== undefined) {
-    params.push(req.query.is_read === "true");
-    query += ` AND is_read = $${params.length}`;
-  }
-  const result = await pool.query(
-    `${query} ORDER BY created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
-    [...params, clampInt(req.query.limit, 1, 200, 50), clampInt(req.query.offset, 0, 100000, 0)]
-  );
-  res.json(result.rows);
-});
-
-router.get("/public/about/milestones", async (_req: Request, res: Response) => {
-  const result = await pool.query(
-    "SELECT * FROM company_milestones WHERE is_published = true ORDER BY year DESC, month DESC, display_order"
-  );
-  res.json(result.rows);
 });
 
 export default router;

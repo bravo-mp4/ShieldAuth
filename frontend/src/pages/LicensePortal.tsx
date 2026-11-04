@@ -414,16 +414,6 @@ export default function LicensePortal() {
               <li>Contact support if you need to reset your license</li>
             </ul>
           </div>
-
-          {/* Support Link */}
-          <div style={{ textAlign: "center", marginTop: 48 }}>
-            <p style={{ color: "var(--text-muted)", marginBottom: 16 }}>
-              Need help with your license?
-            </p>
-            <a href="/support" className="btn btnPrimary">
-              Contact Support
-            </a>
-          </div>
         </div>
       </div>
 

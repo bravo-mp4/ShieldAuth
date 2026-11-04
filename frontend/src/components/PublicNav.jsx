@@ -1,5 +1,7 @@
 import { Link, NavLink } from "react-router-dom";
 
+const navClass = ({ isActive }) => `navTab ${isActive ? "active" : ""}`;
+
 export default function PublicNav() {
   return (
     <header className="topBar">
@@ -8,48 +10,15 @@ export default function PublicNav() {
           <div className="brandName">ShieldAuth</div>
         </Link>
         <nav className="floatingNav">
-          <NavLink
-            className={({ isActive }) => `navTab ${isActive ? "active" : ""}`}
-            to="/features"
-          >
-            Features
-          </NavLink>
-          <NavLink
-            className={({ isActive }) => `navTab ${isActive ? "active" : ""}`}
-            to="/pricing"
-          >
-            Pricing
-          </NavLink>
-          <NavLink
-            className={({ isActive }) => `navTab ${isActive ? "active" : ""}`}
-            to="/use-cases"
-          >
-            Use Cases
-          </NavLink>
-          <NavLink
-            className={({ isActive }) => `navTab ${isActive ? "active" : ""}`}
-            to="/security"
-          >
-            Security
-          </NavLink>
-          <NavLink
-            className={({ isActive }) => `navTab ${isActive ? "active" : ""}`}
-            to="/docs"
-          >
+          <NavLink className={navClass} to="/docs">
             Docs
           </NavLink>
-          <NavLink
-            className={({ isActive }) => `navTab ${isActive ? "active" : ""}`}
-            to="/status"
-          >
-            Status
+          <NavLink className={navClass} to="/security">
+            Security
           </NavLink>
-          <NavLink
-            className={({ isActive }) => `navTab ${isActive ? "active" : ""}`}
-            to="/blog"
-          >
-            Blog
-          </NavLink>
+          <a className="navTab" href="https://github.com/bravo-mp4/ShieldAuth" target="_blank" rel="noreferrer">
+            GitHub
+          </a>
         </nav>
         <div className="topBarActions">
           <Link to="/login" className="btn btnGhost">

@@ -93,8 +93,8 @@ describe("platform admin routes", () => {
       api().get("/api/v1/platform/users"),
       api().get("/api/v1/platform/stats"),
       api().put(`/api/v1/platform/licenses/${aliceLicense}/extend`).send({ days: 30 }),
-      api().post("/api/v1/admin/blog").send({ title: "Defaced", content: "x" }),
-      api().get("/api/v1/admin/contact"),
+      api().put(`/api/v1/platform/licenses/${aliceLicense}/expire`),
+      api().post("/api/v1/platform/hwid/blacklist").send({ hwid: "someone" }),
     ];
     for (const call of calls) {
       const res = await call.set(auth(bob.token));

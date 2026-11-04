@@ -34,7 +34,6 @@ export default function Layout() {
     { to: "/analytics", label: "Analytics", icon: "📈" },
     { to: "/logs", label: "Logs", icon: "📋" },
     { to: "/settings", label: "Settings", icon: "⚙️" },
-    { to: "/support", label: "Support", icon: "💬" },
   ];
 
   return (

@@ -4,7 +4,7 @@ import type { Pool } from "pg";
 
 // When compiled, this file runs from dist/migrations/ but the .sql files stay
 // in the source migrations/ folder.
-const MIGRATIONS_DIR = fs.existsSync(path.join(__dirname, "001_init.sql"))
+const MIGRATIONS_DIR = fs.readdirSync(__dirname).some((file) => file.endsWith(".sql"))
   ? __dirname
   : path.resolve(__dirname, "../../migrations");
 

@@ -8,26 +8,12 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
-import Features from "./pages/Features";
-import Pricing from "./pages/Pricing";
-import Status from "./pages/Status";
-import Blog from "./pages/Blog";
-import BlogPost from "./pages/BlogPost";
-import About from "./pages/About";
-import Contact from "./pages/Contact";
-import Terms from "./pages/Terms";
-import Privacy from "./pages/Privacy";
-import Changelog from "./pages/Changelog";
 import Documentation from "./pages/Documentation";
-import UseCases from "./pages/UseCases";
 import SecurityPage from "./pages/SecurityPage";
-import APIDemo from "./pages/APIDemo";
 import Dashboard from "./pages/NewDashboard";
 import Applications from "./pages/Applications";
 import ApplicationDetail from "./pages/ApplicationDetail";
 import Analytics from "./pages/Analytics";
-import Downloads from "./pages/Downloads";
-import Support from "./pages/Support";
 import Users from "./pages/Users";
 import Logs from "./pages/Logs";
 import SettingsPage from "./pages/Settings";
@@ -35,51 +21,37 @@ import Licenses from "./pages/Licenses";
 import LicensePortal from "./pages/LicensePortal";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import AdminUsers from "./pages/admin/AdminUsers";
-import AdminBlog from "./pages/admin/AdminBlog";
-import AdminChangelog from "./pages/admin/AdminChangelog";
 import "./App.css";
 
 export default function App() {
   useEffect(() => {
-    // Add keyboard shortcut listener for command palette
+    // Ctrl/Cmd+K opens the command palette
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
-        window.dispatchEvent(new CustomEvent('toggle-command-palette'));
+        window.dispatchEvent(new CustomEvent("toggle-command-palette"));
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
   return (
     <>
       <CommandPalette />
       <Routes>
-        {/* Public Routes */}
+        {/* Public */}
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/features" element={<Features />} />
-        <Route path="/pricing" element={<Pricing />} />
-        <Route path="/use-cases" element={<UseCases />} />
         <Route path="/security" element={<SecurityPage />} />
-        <Route path="/api-demo" element={<APIDemo />} />
-        <Route path="/status" element={<Status />} />
-        <Route path="/blog" element={<Blog />} />
-        <Route path="/blog/:slug" element={<BlogPost />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/terms" element={<Terms />} />
-        <Route path="/privacy" element={<Privacy />} />
-        <Route path="/changelog" element={<Changelog />} />
         <Route path="/docs" element={<Documentation />} />
         <Route path="/portal/:licenseKey" element={<LicensePortal />} />
 
-        {/* Protected Routes */}
+        {/* Signed-in dashboard */}
         <Route element={<ProtectedRoute />}>
           <Route element={<Layout />}>
             <Route path="/dashboard" element={<Dashboard />} />
@@ -89,19 +61,14 @@ export default function App() {
             <Route path="/licenses" element={<Licenses />} />
             <Route path="/logs" element={<Logs />} />
             <Route path="/analytics" element={<Analytics />} />
-            <Route path="/downloads" element={<Downloads />} />
-            <Route path="/support" element={<Support />} />
             <Route path="/settings" element={<SettingsPage />} />
-            
-            {/* Admin Routes */}
+
+            {/* Platform admin */}
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/admin/users" element={<AdminUsers />} />
-            <Route path="/admin/blog" element={<AdminBlog />} />
-            <Route path="/admin/changelog" element={<AdminChangelog />} />
           </Route>
         </Route>
 
-        {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </>

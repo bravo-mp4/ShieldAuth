@@ -46,8 +46,8 @@ async function main() {
   for (const app of apps) {
     const appId = hex(16);
     await pool.query(
-      "INSERT INTO applications (app_id, app_secret, owner_email, name, version, created_at) VALUES ($1, $2, $3, $4, $5, $6)",
-      [appId, hex(32), DEMO_EMAIL, app.name, app.version, daysFromNow(-40)]
+      "INSERT INTO applications (app_id, owner_email, name, version, created_at) VALUES ($1, $2, $3, $4, $5)",
+      [appId, DEMO_EMAIL, app.name, app.version, daysFromNow(-40)]
     );
 
     for (let i = 0; i < app.licenses; i++) {
