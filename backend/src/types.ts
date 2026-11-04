@@ -11,18 +11,17 @@ export interface ValidateResponse {
   session_id?: string;
 }
 
-export interface JWTUser {
+export interface AuthUser {
+  id: number;
   email: string;
-  user_id?: number;
-  iat?: number;
-  exp?: number;
+  role: string;
 }
 
-// Extend Express Request type to include user property
+// Extend Express Request type to include the authenticated user
 declare global {
   namespace Express {
     interface Request {
-      user?: JWTUser;
+      user?: AuthUser;
     }
   }
 }

@@ -309,25 +309,13 @@ INSERT INTO blog_posts (title, slug, excerpt, content, featured_emoji, category,
 
 -- Changelog Entries
 INSERT INTO changelog_entries (version, release_date) VALUES
-('1.6.0', '2026-01-10'),
-('1.5.0', '2026-01-05'),
-('1.4.2', '2025-12-28');
+('1.0.0', '2026-01-10');
 
-INSERT INTO changelog_changes (entry_id, change_type, description) VALUES
-(1, 'new', 'Dynamic content management system for blog, changelog, and documentation'),
-(1, 'new', 'Real-time service status monitoring with incident tracking'),
-(1, 'new', 'Full support ticket system with admin management'),
-(1, 'improved', 'Enhanced admin dashboard with content management tools'),
-(1, 'improved', 'Better mobile responsiveness across all pages'),
-(1, 'fixed', 'Resolved node-fetch import issues'),
-(2, 'new', 'Team management for Business plan users'),
-(2, 'new', 'Webhook event filtering'),
-(2, 'improved', 'License validation speed improved by 20%'),
-(2, 'improved', 'Dashboard loading performance optimized'),
-(2, 'fixed', 'Fixed HWID detection on certain Windows systems'),
-(3, 'new', 'Export analytics reports as CSV/PDF'),
-(3, 'improved', 'Updated C++ SDK with better error handling'),
-(3, 'fixed', 'Fixed license key generation race condition');
+INSERT INTO changelog_changes (entry_id, change_type, description, sort_order) VALUES
+(1, 'new', 'License keys with per-device HWID binding', 0),
+(1, 'new', 'Self-service license portal for end users', 1),
+(1, 'new', 'Signed webhooks for license events', 2),
+(1, 'new', 'SDKs for C++, C#, Python and Node.js', 3);
 
 -- Service Monitors
 INSERT INTO service_monitors (service_name, service_description, endpoint_url) VALUES
@@ -336,65 +324,7 @@ INSERT INTO service_monitors (service_name, service_description, endpoint_url) V
 ('License Validation', 'License validation service', 'https://api.shieldauth.com/v1/validate'),
 ('Webhooks', 'Webhook delivery system', 'https://api.shieldauth.com/webhooks/health');
 
--- FAQs
+-- FAQs (only claims the code actually backs up)
 INSERT INTO faqs (question, answer, category, display_order) VALUES
-('How long does integration take?', 'Most developers integrate ShieldAuth in under 10 minutes. Our SDKs handle all the complexity, so you only need to add a few lines of code to your application.', 'Technical Integration', 1),
-('What happens if my API key is compromised?', 'You can instantly rotate your API key from the dashboard. All existing licenses continue to work, but the old API key is immediately invalidated.', 'Security & Privacy', 2),
-('Can users transfer licenses between computers?', 'Yes! Users can unbind devices from their license portal. You set the maximum number of HWID slots per license (1-10), and users can manage them freely within that limit.', 'Account Management', 3),
-('Do you offer refunds?', 'We offer a 14-day money-back guarantee on all paid plans. If you''re not satisfied, contact support for a full refund, no questions asked.', 'Billing & Pricing', 4),
-('What''s your uptime guarantee?', 'We maintain 99.9% uptime with multi-region redundancy. Enterprise plans include an SLA with compensation for any downtime beyond our guarantee.', 'Technical Integration', 5),
-('How do I migrate from another licensing system?', 'We offer free migration assistance for all paid plans. Contact our support team, and we''ll help you import your existing licenses and configure your applications.', 'Technical Integration', 6),
-('Can I white-label the customer portal?', 'Yes! Business and Enterprise plans include custom branding options, including custom domain, logo, and colors for the customer-facing license portal.', 'Account Management', 7),
-('What programming languages do you support?', 'We provide official SDKs for C++, C#, Python, and Node.js. Our REST API works with any language that can make HTTP requests.', 'Technical Integration', 8);
-
--- Testimonials
-INSERT INTO testimonials (author_name, author_role, author_company, author_avatar_url, quote, rating, is_featured, is_verified, is_approved, approved_at) VALUES
-('Alex Chen', 'Game Developer', 'PixelForge Studios', '👨‍💻', 'ShieldAuth cut our piracy rate by 87% in the first month. The HWID locking is bulletproof and the integration took literally 10 minutes.', 5, true, true, true, NOW()),
-('Sarah Martinez', 'CTO', 'DataSync Pro', '👩‍💼', 'We switched from building in-house and saved $2,400/year while getting better features. The binary protection alone is worth 10x the price.', 5, true, true, true, NOW()),
-('Mike Johnson', 'Indie Developer', 'Solo Creator', '🧑‍🎨', 'As a solo dev, I needed something that just works. ShieldAuth dashboard is so intuitive I never have to check the docs anymore.', 5, true, true, true, NOW()),
-('Emily Rodriguez', 'Product Manager', 'CloudForce', '👩‍💼', 'The webhook system is incredible. We get real-time notifications for every license event and can automate our entire onboarding flow.', 5, false, true, true, NOW()),
-('David Kim', 'Software Architect', 'TechNova', '👨‍💻', 'Migrating from our legacy system was painless. ShieldAuth support team helped us import 50,000+ licenses in under an hour.', 5, false, true, true, NOW());
-
--- Company Milestones
-INSERT INTO company_milestones (year, month, title, milestone_type, display_order) VALUES
-(2026, 1, 'Launched dynamic content management system', 'feature', 1),
-(2025, 12, 'Reached 10,000+ active developers', 'growth', 2),
-(2025, 11, 'Introduced webhooks and API key management', 'feature', 3),
-(2025, 10, 'Expanded SDK support to Python and Node.js', 'feature', 4),
-(2025, 9, 'Achieved 99.9% uptime for Q3', 'growth', 5),
-(2025, 6, 'Series A funding round completed', 'funding', 6),
-(2025, 3, 'Launched public beta program', 'launch', 7),
-(2025, 1, 'ShieldAuth officially founded', 'launch', 8);
-
--- Initial service status logs (all operational)
-INSERT INTO service_status_logs (monitor_id, status, response_time_ms, checked_at)
-SELECT 
-  monitor_id,
-  'operational',
-  FLOOR(RANDOM() * 100 + 20)::INT,
-  NOW() - (INTERVAL '1 minute' * generate_series)
-FROM service_monitors
-CROSS JOIN generate_series(0, 60);
-
--- ================================================================
--- COMPLETION MESSAGE
--- ================================================================
-
-DO $$
-BEGIN
-  RAISE NOTICE '✅ ShieldAuth dynamic content system migration completed successfully!';
-  RAISE NOTICE '📊 Created 17 new tables with indexes';
-  RAISE NOTICE '🌱 Seeded with sample content:';
-  RAISE NOTICE '   - 3 blog posts';
-  RAISE NOTICE '   - 3 changelog versions with 14 changes';
-  RAISE NOTICE '   - 4 service monitors';
-  RAISE NOTICE '   - 8 FAQs across categories';
-  RAISE NOTICE '   - 5 testimonials';
-  RAISE NOTICE '   - 8 company milestones';
-  RAISE NOTICE '   - 244 initial status logs (1 hour of data)';
-  RAISE NOTICE '';
-  RAISE NOTICE '🚀 Next steps:';
-  RAISE NOTICE '   1. Deploy updated backend with new API endpoints';
-  RAISE NOTICE '   2. Update frontend components to fetch from APIs';
-  RAISE NOTICE '   3. Create admin management interfaces';
-END $$;
+('Can users move a license to a new computer?', 'Yes. Each license has a number of hardware ID slots (1-100). Users can free a slot from the license portal once every 7 days.', 'Account Management', 1),
+('Which languages have SDKs?', 'C++, C#, Python and Node.js. The REST API works from any language that can make an HTTPS request.', 'Technical Integration', 2);

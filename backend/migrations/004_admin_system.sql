@@ -1,5 +1,4 @@
 -- Admin System Migration
--- Run this after your existing dynamic_content_system.sql
 
 -- ============================================
 -- 1. AUDIT LOGGING
@@ -314,34 +313,3 @@ SELECT
 FROM applications
 ORDER BY timestamp DESC
 LIMIT 100;
-
--- ============================================
--- 15. SAMPLE ADMIN USER (CHANGE PASSWORD!)
--- ============================================
-
--- Create sample admin (use your own email)
-UPDATE users 
-SET role = 'admin', subscription_tier = 'pro'
-WHERE email = 'your-email@example.com';
-
--- ============================================
--- MIGRATION COMPLETE
--- ============================================
-
--- Verify migration
-DO $$ 
-BEGIN
-  RAISE NOTICE 'Migration completed successfully!';
-  RAISE NOTICE 'Tables created: audit_logs, hwid_blacklist, webhook_logs, support_tickets, api_usage, feature_flags, referral_codes';
-  RAISE NOTICE 'User enhancements: role, is_banned, last_login, subscription_tier';
-  RAISE NOTICE 'Application enhancements: approval_status, approved_by, approved_at';
-  RAISE NOTICE 'API key enhancements: prefix, last_used_at, expires_at, ip_whitelist, scopes';
-  RAISE NOTICE 'Indexes created for performance optimization';
-  RAISE NOTICE 'Views created: admin_stats, recent_activity';
-  RAISE NOTICE '';
-  RAISE NOTICE 'IMPORTANT: Update the admin email in line 336 before running!';
-  RAISE NOTICE 'IMPORTANT: Set ADMIN_EMAILS environment variable in your backend';
-  RAISE NOTICE '';
-  RAISE NOTICE 'Note: All foreign key constraints removed for compatibility';
-  RAISE NOTICE 'Tables use email/string references instead of integer foreign keys';
-END $$;
