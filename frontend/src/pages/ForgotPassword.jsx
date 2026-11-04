@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { auth } from "../services/api";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -13,7 +14,7 @@ export default function ForgotPassword() {
     setLoading(true);
 
     try {
-      // await auth.forgotPassword(email);
+      await auth.forgotPassword(email);
       setSubmitted(true);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to send reset email");

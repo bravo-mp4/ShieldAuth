@@ -15,6 +15,7 @@ const TABLES = [
   "hwid_blacklist",
   "licenses",
   "applications",
+  "auth_tokens",
   "users",
 ];
 

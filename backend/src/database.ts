@@ -41,7 +41,7 @@ export async function createUser(email: string, password: string, name?: string)
   const passwordHash = await bcrypt.hash(password, config.bcryptRounds);
   try {
     const result = await pool.query(
-      "INSERT INTO users (email, password_hash, name) VALUES ($1, $2, $3) RETURNING id, email, name, role, created_at",
+      "INSERT INTO users (email, password_hash, name) VALUES ($1, $2, $3) RETURNING id, email, name, role, token_version, email_verified_at, created_at",
       [email.toLowerCase().trim(), passwordHash, name?.trim() || null]
     );
     return result.rows[0];
@@ -55,7 +55,7 @@ export async function createUser(email: string, password: string, name?: string)
 
 export async function getUserByEmail(email: string) {
   const result = await pool.query(
-    "SELECT id, email, password_hash, name, role, is_banned, created_at FROM users WHERE email = $1",
+    "SELECT id, email, password_hash, name, role, is_banned, token_version, email_verified_at, created_at FROM users WHERE email = $1",
     [email.toLowerCase().trim()]
   );
   return result.rows[0] || null;
@@ -63,7 +63,7 @@ export async function getUserByEmail(email: string) {
 
 export async function getUserById(id: number) {
   const result = await pool.query(
-    "SELECT id, email, name, role, is_banned FROM users WHERE id = $1",
+    "SELECT id, email, password_hash, name, role, is_banned, token_version, email_verified_at FROM users WHERE id = $1",
     [id]
   );
   return result.rows[0] || null;

@@ -3,6 +3,7 @@ import crypto from "crypto";
 import {
   createUser,
   getUserByEmail,
+  getUserById,
   verifyPassword,
   pool,
   PASSWORD_MIN_LENGTH,
@@ -12,10 +13,12 @@ import { authenticateToken, requireAdmin, signToken } from "./middleware/auth";
 import {
   auditLog,
   authLimiter,
+  emailLimiter,
   licenseValidationLimiter,
   publicWriteLimiter,
 } from "./middleware/security";
 import { heartbeat, validateInputError, validateLicense } from "./license";
+import { requestPasswordReset, resetPassword, sendVerificationEmail, setPassword, verifyEmail } from "./account";
 import { sendWebhook, triggerWebhook, validateWebhookUrl } from "./webhooks";
 import * as AdminRoutes from "./admin-routes";
 import logger from "./logger";
@@ -76,6 +79,27 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // AUTH
 // ============================================
 
+function publicUser(user: any) {
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    role: user.role,
+    email_verified: Boolean(user.email_verified_at),
+  };
+}
+
+/** Returns a message if the password breaks the rules, otherwise null. */
+function passwordProblem(password: unknown): string | null {
+  if (typeof password !== "string" || password.length < PASSWORD_MIN_LENGTH) {
+    return `Password must be at least ${PASSWORD_MIN_LENGTH} characters`;
+  }
+  if (Buffer.byteLength(password, "utf8") > PASSWORD_MAX_BYTES) {
+    return `Password must be at most ${PASSWORD_MAX_BYTES} bytes`;
+  }
+  return null;
+}
+
 router.post("/auth/login", authLimiter, async (req: Request, res: Response) => {
   const { email, password } = req.body ?? {};
 
@@ -94,10 +118,7 @@ router.post("/auth/login", authLimiter, async (req: Request, res: Response) => {
 
   await pool.query("UPDATE users SET last_login = NOW() WHERE id = $1", [user.id]);
 
-  return res.json({
-    token: signToken(user),
-    user: { id: user.id, email: user.email, name: user.name, role: user.role },
-  });
+  return res.json({ token: signToken(user), user: publicUser(user) });
 });
 
 router.post("/auth/register", authLimiter, async (req: Request, res: Response) => {
@@ -109,11 +130,9 @@ router.post("/auth/register", authLimiter, async (req: Request, res: Response) =
   if (email.length > 255 || !EMAIL_PATTERN.test(email)) {
     return res.status(400).json({ message: "Invalid email format" });
   }
-  if (password.length < PASSWORD_MIN_LENGTH) {
-    return res.status(400).json({ message: `Password must be at least ${PASSWORD_MIN_LENGTH} characters` });
-  }
-  if (Buffer.byteLength(password, "utf8") > PASSWORD_MAX_BYTES) {
-    return res.status(400).json({ message: `Password must be at most ${PASSWORD_MAX_BYTES} bytes` });
+  const problem = passwordProblem(password);
+  if (problem) {
+    return res.status(400).json({ message: problem });
   }
 
   let user;
@@ -126,10 +145,10 @@ router.post("/auth/register", authLimiter, async (req: Request, res: Response) =
     throw error;
   }
 
-  return res.status(201).json({
-    token: signToken(user),
-    user: { id: user.id, email: user.email, name: user.name, role: user.role },
-  });
+  // A failed email shouldn't fail sign-up; the user can resend from Settings.
+  await sendVerificationEmail(user).catch((err) => logger.warn("Verification email failed", { error: err.message }));
+
+  return res.status(201).json({ token: signToken(user), user: publicUser(user) });
 });
 
 // Tokens are stateless; the client discards its copy. Bans and deletions
@@ -138,8 +157,62 @@ router.post("/auth/logout", authenticateToken, (_req: Request, res: Response) =>
   res.json({ message: "Logged out successfully" });
 });
 
-router.get("/auth/me", authenticateToken, (req: Request, res: Response) => {
-  res.json({ user: req.user });
+router.get("/auth/me", authenticateToken, async (req: Request, res: Response) => {
+  res.json({ user: publicUser(await getUserById(req.user!.id)) });
+});
+
+// Same answer whether or not the email has an account.
+router.post("/auth/forgot-password", emailLimiter, async (req: Request, res: Response) => {
+  const { email } = req.body ?? {};
+  if (typeof email === "string" && email.length <= 255 && EMAIL_PATTERN.test(email)) {
+    await requestPasswordReset(email);
+  }
+  res.json({ message: "If that email has an account, a reset link is on its way." });
+});
+
+router.post("/auth/reset-password", authLimiter, async (req: Request, res: Response) => {
+  const { token, password } = req.body ?? {};
+  const problem = passwordProblem(password);
+  if (problem) {
+    return res.status(400).json({ message: problem });
+  }
+  if (!(await resetPassword(token, password))) {
+    return res.status(400).json({ message: "This reset link is invalid or has expired" });
+  }
+  res.json({ message: "Password updated. Sign in with your new password." });
+});
+
+router.post("/auth/change-password", authenticateToken, authLimiter, async (req: Request, res: Response) => {
+  const { current_password, new_password } = req.body ?? {};
+  const problem = passwordProblem(new_password);
+  if (problem) {
+    return res.status(400).json({ message: problem });
+  }
+
+  const user = await getUserById(req.user!.id);
+  if (typeof current_password !== "string" || !(await verifyPassword(current_password, user.password_hash))) {
+    return res.status(400).json({ message: "Current password is incorrect" });
+  }
+
+  // Every other session is signed out; this one gets a fresh token.
+  const updated = await setPassword(user.id, new_password);
+  res.json({ token: signToken(updated), message: "Password changed" });
+});
+
+router.post("/auth/verify-email", authLimiter, async (req: Request, res: Response) => {
+  if (!(await verifyEmail(req.body?.token))) {
+    return res.status(400).json({ message: "This verification link is invalid or has expired" });
+  }
+  res.json({ message: "Email confirmed" });
+});
+
+router.post("/auth/resend-verification", authenticateToken, emailLimiter, async (req: Request, res: Response) => {
+  const user = await getUserById(req.user!.id);
+  if (user.email_verified_at) {
+    return res.json({ message: "Email already confirmed" });
+  }
+  await sendVerificationEmail(user);
+  res.json({ message: "Verification email sent" });
 });
 
 // ============================================

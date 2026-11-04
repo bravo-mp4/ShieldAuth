@@ -40,6 +40,19 @@ export const auth = {
   register: (email, password, name) =>
     api.post("/auth/register", { email, password, name }),
 
+  me: () => api.get("/auth/me"),
+
+  forgotPassword: (email) => api.post("/auth/forgot-password", { email }),
+
+  resetPassword: (token, password) => api.post("/auth/reset-password", { token, password }),
+
+  changePassword: (currentPassword, newPassword) =>
+    api.post("/auth/change-password", { current_password: currentPassword, new_password: newPassword }),
+
+  verifyEmail: (token) => api.post("/auth/verify-email", { token }),
+
+  resendVerification: () => api.post("/auth/resend-verification"),
+
   logout: () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");

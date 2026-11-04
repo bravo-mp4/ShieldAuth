@@ -26,6 +26,9 @@ export const authLimiter = limiter(15 * 60 * 1000, 10, "Too many attempts, pleas
   skipSuccessfulRequests: true,
 });
 
+// Endpoints that send email: every request counts, success or not.
+export const emailLimiter = limiter(15 * 60 * 1000, 5, "Too many emails requested, please try again later.");
+
 // SDK clients validate on start-up and then send heartbeats.
 export const licenseValidationLimiter = limiter(60 * 1000, 60, "License validation rate limit exceeded");
 

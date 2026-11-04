@@ -1,304 +1,153 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { auth } from "../services/api";
+
+interface Account {
+  id: number;
+  email: string;
+  name: string | null;
+  role: string;
+  email_verified: boolean;
+}
 
 export default function Settings() {
-  const [activeTab, setActiveTab] = useState<"general" | "security" | "api">(
-    "general"
-  );
+  const [account, setAccount] = useState<Account | null>(null);
+  const [verifyNote, setVerifyNote] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordNote, setPasswordNote] = useState<{ ok: boolean; text: string } | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    auth.me().then((response: any) => setAccount(response.data.user));
+  }, []);
+
+  const resend = async () => {
+    try {
+      const response = await auth.resendVerification();
+      setVerifyNote(response.data.message);
+    } catch (err: any) {
+      setVerifyNote(err.response?.data?.message || "Couldn't send the email");
+    }
+  };
+
+  const changePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword !== confirmPassword) {
+      setPasswordNote({ ok: false, text: "New passwords don't match" });
+      return;
+    }
+    setSaving(true);
+    try {
+      const response = await auth.changePassword(currentPassword, newPassword);
+      // Other sessions are now signed out; keep this one with the new token.
+      localStorage.setItem("token", response.data.token);
+      setPasswordNote({ ok: true, text: "Password changed. Other devices have been signed out." });
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+    } catch (err: any) {
+      setPasswordNote({ ok: false, text: err.response?.data?.message || "Couldn't change the password" });
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="page">
       <div className="pageHeader">
         <div>
           <div className="pageTitle">Settings</div>
-          <div className="pageSub">Configure your application settings</div>
+          <div className="pageSub">Your account and password</div>
         </div>
       </div>
 
-      <div style={{ display: "flex", gap: 16, marginBottom: 24 }}>
-        <button
-          className={`btn ${
-            activeTab === "general" ? "btnPrimary" : "btnGhost"
-          }`}
-          onClick={() => setActiveTab("general")}
-        >
-          General
-        </button>
-        <button
-          className={`btn ${
-            activeTab === "security" ? "btnPrimary" : "btnGhost"
-          }`}
-          onClick={() => setActiveTab("security")}
-        >
-          Security
-        </button>
-        <button
-          className={`btn ${activeTab === "api" ? "btnPrimary" : "btnGhost"}`}
-          onClick={() => setActiveTab("api")}
-        >
-          API Keys
-        </button>
+      <div className="grid2">
+        <div className="card" style={{ padding: 24 }}>
+          <div className="cardTitle" style={{ marginBottom: 16 }}>Account</div>
+          {account ? (
+            <div style={{ display: "grid", gap: 12 }}>
+              <div>
+                <div className="muted" style={{ fontSize: "0.85rem" }}>Email</div>
+                <div>{account.email}</div>
+              </div>
+              <div>
+                <div className="muted" style={{ fontSize: "0.85rem" }}>Name</div>
+                <div>{account.name || "Not set"}</div>
+              </div>
+              <div>
+                <div className="muted" style={{ fontSize: "0.85rem" }}>Role</div>
+                <div>{account.role === "admin" ? "Platform admin" : "Developer"}</div>
+              </div>
+              <div>
+                <div className="muted" style={{ fontSize: "0.85rem" }}>Email status</div>
+                {account.email_verified ? (
+                  <span className="badge badgeSuccess">Confirmed</span>
+                ) : (
+                  <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+                    <span className="badge badgeWarning">Not confirmed</span>
+                    <button className="btn btnGhost" onClick={resend}>
+                      Send confirmation email
+                    </button>
+                  </div>
+                )}
+                {verifyNote && (
+                  <div className="muted" style={{ marginTop: 8, fontSize: "0.85rem" }}>
+                    {verifyNote}
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="muted">Loading...</div>
+          )}
+        </div>
+
+        <div className="card" style={{ padding: 24 }}>
+          <div className="cardTitle" style={{ marginBottom: 16 }}>Change password</div>
+          <form className="form" onSubmit={changePassword}>
+            <div className="field">
+              <label>Current password</label>
+              <input
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                autoComplete="current-password"
+                required
+              />
+            </div>
+            <div className="field">
+              <label>New password (8+ characters)</label>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                autoComplete="new-password"
+                minLength={8}
+                required
+              />
+            </div>
+            <div className="field">
+              <label>Confirm new password</label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                autoComplete="new-password"
+                required
+              />
+            </div>
+            {passwordNote && (
+              <div className={passwordNote.ok ? "alertSuccess" : "alertError"} style={{ marginBottom: 12 }}>
+                {passwordNote.text}
+              </div>
+            )}
+            <button className="btn btnPrimary" disabled={saving}>
+              {saving ? "Saving..." : "Change password"}
+            </button>
+          </form>
+        </div>
       </div>
-
-      {activeTab === "general" && (
-        <div className="grid2">
-          <div className="card">
-            <div className="cardTitle">Account Information</div>
-            <form className="form">
-              <div className="field">
-                <label>Email Address</label>
-                <input type="email" defaultValue="admin@example.com" />
-              </div>
-              <div className="field">
-                <label>Username</label>
-                <input type="text" defaultValue="admin" />
-              </div>
-              <button className="btn btnPrimary">Save Changes</button>
-            </form>
-          </div>
-
-          <div className="card">
-            <div className="cardTitle">Notifications</div>
-            <form className="form">
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  padding: "12px 0",
-                }}
-              >
-                <div>
-                  <div
-                    style={{
-                      fontWeight: 500,
-                      color: "var(--text)",
-                      marginBottom: 4,
-                    }}
-                  >
-                    Email Notifications
-                  </div>
-                  <div className="muted" style={{ fontSize: "0.85rem" }}>
-                    Receive email alerts for important events
-                  </div>
-                </div>
-                <input type="checkbox" defaultChecked />
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  padding: "12px 0",
-                }}
-              >
-                <div>
-                  <div
-                    style={{
-                      fontWeight: 500,
-                      color: "var(--text)",
-                      marginBottom: 4,
-                    }}
-                  >
-                    Failed Auth Alerts
-                  </div>
-                  <div className="muted" style={{ fontSize: "0.85rem" }}>
-                    Get notified of failed login attempts
-                  </div>
-                </div>
-                <input type="checkbox" defaultChecked />
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  padding: "12px 0",
-                }}
-              >
-                <div>
-                  <div
-                    style={{
-                      fontWeight: 500,
-                      color: "var(--text)",
-                      marginBottom: 4,
-                    }}
-                  >
-                    Weekly Reports
-                  </div>
-                  <div className="muted" style={{ fontSize: "0.85rem" }}>
-                    Receive weekly usage summaries
-                  </div>
-                </div>
-                <input type="checkbox" />
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {activeTab === "security" && (
-        <div className="grid2">
-          <div className="card">
-            <div className="cardTitle">Change Password</div>
-            <form className="form">
-              <div className="field">
-                <label>Current Password</label>
-                <input type="password" />
-              </div>
-              <div className="field">
-                <label>New Password</label>
-                <input type="password" />
-              </div>
-              <div className="field">
-                <label>Confirm New Password</label>
-                <input type="password" />
-              </div>
-              <button className="btn btnPrimary">Update Password</button>
-            </form>
-          </div>
-
-          <div className="card">
-            <div className="cardTitle">Two-Factor Authentication</div>
-            <div className="muted" style={{ marginBottom: 20 }}>
-              Add an extra layer of security to your account
-            </div>
-            <button className="btn btnPrimary">Enable 2FA</button>
-          </div>
-
-          <div className="card">
-            <div className="cardTitle">Active Sessions</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              <div
-                style={{
-                  padding: 12,
-                  background: "var(--bg-elevated)",
-                  borderRadius: 8,
-                  border: "1px solid var(--border)",
-                }}
-              >
-                <div style={{ fontWeight: 500, marginBottom: 4 }}>
-                  Current Session
-                </div>
-                <div className="muted" style={{ fontSize: "0.85rem" }}>
-                  Windows • Chrome • 192.168.1.100
-                </div>
-              </div>
-            </div>
-            <button className="btn btnDanger" style={{ marginTop: 16 }}>
-              Revoke All Sessions
-            </button>
-          </div>
-        </div>
-      )}
-
-      {activeTab === "api" && (
-        <div className="grid2">
-          <div className="card">
-            <div className="cardTitle">API Keys</div>
-            <div className="muted" style={{ marginBottom: 20 }}>
-              Use these keys to integrate with your applications
-            </div>
-
-            <div style={{ marginBottom: 16 }}>
-              <div
-                className="muted"
-                style={{ fontSize: "0.85rem", marginBottom: 8 }}
-              >
-                Production Key
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  gap: 8,
-                  background: "var(--bg-elevated)",
-                  padding: 12,
-                  borderRadius: 8,
-                  border: "1px solid var(--border)",
-                }}
-              >
-                <code
-                  style={{
-                    flex: 1,
-                    fontSize: "0.9rem",
-                    color: "var(--primary-light)",
-                    fontFamily: "monospace",
-                  }}
-                >
-                  sk_••••••••••••••••••••
-                </code>
-                <button
-                  className="btn btnGhost"
-                  style={{ padding: "4px 12px" }}
-                >
-                  Copy
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <div
-                className="muted"
-                style={{ fontSize: "0.85rem", marginBottom: 8 }}
-              >
-                Test Key
-              </div>
-              <div
-                style={{
-                  display: "flex",
-                  gap: 8,
-                  background: "var(--bg-elevated)",
-                  padding: 12,
-                  borderRadius: 8,
-                  border: "1px solid var(--border)",
-                }}
-              >
-                <code
-                  style={{
-                    flex: 1,
-                    fontSize: "0.9rem",
-                    color: "var(--primary-light)",
-                    fontFamily: "monospace",
-                  }}
-                >
-                  sk_test_xyz987uvw654rst321opq098lmn765
-                </code>
-                <button
-                  className="btn btnGhost"
-                  style={{ padding: "4px 12px" }}
-                >
-                  Copy
-                </button>
-              </div>
-            </div>
-
-            <button className="btn btnSecondary" style={{ marginTop: 20 }}>
-              Generate New Key
-            </button>
-          </div>
-
-          <div className="card">
-            <div className="cardTitle">Webhooks</div>
-            <div className="muted" style={{ marginBottom: 20 }}>
-              Configure webhook endpoints for real-time notifications
-            </div>
-
-            <form className="form">
-              <div className="field">
-                <label>Webhook URL</label>
-                <input type="url" placeholder="https://yoursite.com/webhook" />
-              </div>
-              <div className="field">
-                <label>Secret Key</label>
-                <input
-                  type="text"
-                  placeholder="Optional signature verification"
-                />
-              </div>
-              <button className="btn btnPrimary">Add Webhook</button>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

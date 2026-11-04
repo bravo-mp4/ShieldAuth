@@ -1,8 +1,11 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
+import { auth } from "../services/api";
 
 export default function ResetPassword() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get("token") || "";
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
@@ -25,8 +28,8 @@ export default function ResetPassword() {
     setLoading(true);
 
     try {
-      // await auth.resetPassword(token, password);
-      navigate("/login");
+      await auth.resetPassword(token, password);
+      navigate("/login?reset=1");
     } catch (err) {
       setError(err.response?.data?.message || "Failed to reset password");
     } finally {

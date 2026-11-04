@@ -68,6 +68,10 @@ export function loadConfig() {
     corsOrigins: [...devOrigins, ...listFromEnv("FRONTEND_URL")],
     trustProxy: trustProxyFromEnv(),
     allowPrivateWebhookUrls: env.ALLOW_PRIVATE_WEBHOOK_URLS === "true",
+    // Base URL of the dashboard, used in reset and verification links.
+    appUrl: (env.APP_URL || "http://localhost:5173").replace(/\/$/, ""),
+    resendApiKey: env.RESEND_API_KEY || "",
+    mailFrom: env.MAIL_FROM || "ShieldAuth <onboarding@resend.dev>",
   };
 }
 

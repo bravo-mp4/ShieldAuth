@@ -1,11 +1,13 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { auth } from "../services/api";
 import Toast from "../components/Toast";
 import { useToast } from "../hooks/useToast";
 
 export default function Login() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const justReset = searchParams.get("reset") === "1";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -84,6 +86,12 @@ export default function Login() {
           </p>
         </div>
 
+        {justReset && !error && (
+          <div className="alertSuccess" style={{ marginBottom: 20 }}>
+            Password updated. Sign in with your new password.
+          </div>
+        )}
+
         {/* Error Alert */}
         {error && (
           <div className="alertError" style={{ marginBottom: 20 }}>
@@ -126,6 +134,15 @@ export default function Login() {
             {loading ? "Signing in..." : "Sign In"}
           </button>
         </form>
+
+        <div style={{ marginTop: 20, display: "flex", justifyContent: "space-between", fontSize: "0.9rem" }}>
+          <Link to="/forgot-password" style={{ color: "var(--primary)" }}>
+            Forgot password?
+          </Link>
+          <Link to="/signup" style={{ color: "var(--primary)" }}>
+            Create an account
+          </Link>
+        </div>
       </div>
     </div>
   );
