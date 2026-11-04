@@ -1,24 +1,21 @@
-# Use Node.js 20 Alpine for smaller image
-FROM node:20-alpine
+# ShieldAuth API image. Build from the repository root:
+#   docker build -t shieldauth-api .
 
-# Set working directory
-WORKDIR /app
-
-# Copy backend package files
-COPY backend/package*.json ./backend/
-
-# Install dependencies in backend directory
+FROM node:20-alpine AS build
 WORKDIR /app/backend
-RUN rm -f package-lock.json && npm install --production=false
-
-# Copy backend source code
+COPY backend/package*.json ./
+RUN npm ci
 COPY backend/ ./
+RUN npm run build && npm prune --omit=dev
 
-# Set environment to production
+FROM node:20-alpine
+WORKDIR /app/backend
 ENV NODE_ENV=production
-
-# Expose port
-EXPOSE 8080
-
-# Start the application
-CMD ["npm", "start"]
+COPY --from=build /app/backend/node_modules ./node_modules
+COPY --from=build /app/backend/dist ./dist
+COPY --from=build /app/backend/migrations ./migrations
+COPY backend/package.json ./
+USER node
+EXPOSE 3000
+# Apply any pending migrations, then start the API.
+CMD ["sh", "-c", "node dist/migrations/run.js && node dist/src/index.js"]

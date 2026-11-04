@@ -8,14 +8,25 @@
     "build": "tsc",
     "prepublishOnly": "npm run build"
   },
-  "keywords": ["license", "drm", "protection", "auth"],
-  "author": "ShieldAuth",
-  "license": "MIT",
+  "keywords": [
+    "license",
+    "drm",
+    "protection",
+    "auth"
+  ],
+  "author": "MF",
+  "license": "UNLICENSED",
   "dependencies": {
     "axios": "^1.6.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
     "typescript": "^5.0.0"
+  },
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bravo-mp4/ShieldAuth.git",
+    "directory": "sdk/nodejs"
   }
 }
