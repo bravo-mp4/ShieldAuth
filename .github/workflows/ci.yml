@@ -59,3 +59,51 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run build
+
+  sdk-node:
+    name: Node.js SDK
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sdk/nodejs
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci
+      - run: npm test
+
+  sdk-python:
+    name: Python SDK
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: sdk/python
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install .
+      - run: python -m unittest discover -s tests -v
+
+  sdk-csharp:
+    name: C# SDK
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+      - run: dotnet test sdk/csharp/ShieldAuth.Tests
+      - run: dotnet build sdk/csharp/examples/ConsoleApp
+
+  sdk-cpp:
+    name: C++ SDK (Windows)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: cmake -S sdk/cpp -B build
+      - run: cmake --build build --config Release
+      - run: ctest --test-dir build -C Release --output-on-failure

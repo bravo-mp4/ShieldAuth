@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.21)
 project(ShieldAuth CXX)
 
 if(NOT WIN32)
@@ -7,8 +7,12 @@ endif()
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-# Static runtime, so apps don't need the VC++ redistributable.
-set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+# Built on its own: static runtime, so the example and tests run without the
+# VC++ redistributable. Pulled in with add_subdirectory: follow the parent
+# project, or linking fails on a runtime-library mismatch.
+if(PROJECT_IS_TOP_LEVEL AND NOT DEFINED CMAKE_MSVC_RUNTIME_LIBRARY)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif()
 
 add_library(shieldauth STATIC
     src/shieldauth.cpp
@@ -23,6 +27,10 @@ target_compile_definitions(shieldauth PUBLIC _WIN32_WINNT=0x0A00 WIN32_LEAN_AND_
 target_link_libraries(shieldauth PUBLIC winhttp bcrypt advapi32)
 if(MSVC)
     target_compile_options(shieldauth PRIVATE /W4 /permissive-)
+endif()
+
+if(NOT PROJECT_IS_TOP_LEVEL)
+    return()
 endif()
 
 add_executable(shieldauth_example examples/example.cpp)
