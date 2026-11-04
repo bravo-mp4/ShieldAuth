@@ -1,65 +1,46 @@
-import { execSync } from 'child_process';
-import { createHash } from 'crypto';
-import * as os from 'os';
+import { execFileSync } from "child_process";
+import { createHash } from "crypto";
+import { readFileSync } from "fs";
+import * as os from "os";
 
+/**
+ * A stable per-machine ID: SHA-256 of the OS's machine identifier plus the
+ * CPU model. MAC addresses are left out on purpose; VPNs, Docker and USB
+ * adapters change them and would make a user's own machine look new.
+ */
 export function getHWID(): string {
-  const cpuId = getCPUID();
-  const macAddress = getMacAddress();
-  const machineId = getMachineId();
-  
-  const combined = cpuId + macAddress + machineId;
-  return createHash('sha256').update(combined).digest('hex');
+  const parts = [getMachineId(), os.cpus()[0]?.model ?? "", os.platform(), os.arch()];
+  return createHash("sha256").update(parts.join("|")).digest("hex");
 }
 
-function getCPUID(): string {
-  try {
-    const platform = os.platform();
-    
-    if (platform === 'win32') {
-      const output = execSync('wmic cpu get ProcessorId', { encoding: 'utf8' });
-      return output.split('\n')[1].trim();
-    } else if (platform === 'linux') {
-      const output = execSync('cat /proc/cpuinfo | grep Serial', { encoding: 'utf8' });
-      return output.split(':')[1]?.trim() || '';
-    } else if (platform === 'darwin') {
-      const output = execSync('sysctl -n machdep.cpu.brand_string', { encoding: 'utf8' });
-      return output.trim();
-    }
-  } catch {}
-  return '';
+function run(command: string, args: string[]): string {
+  // execFile with fixed arguments: no shell, nothing user-controlled.
+  return execFileSync(command, args, { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"], timeout: 5000 });
 }
 
-function getMacAddress(): string {
+export function getMachineId(): string {
   try {
-    const interfaces = os.networkInterfaces();
-    for (const name in interfaces) {
-      const iface = interfaces[name];
-      if (iface) {
-        for (const addr of iface) {
-          if (!addr.internal && addr.mac !== '00:00:00:00:00:00') {
-            return addr.mac;
+    switch (os.platform()) {
+      case "win32": {
+        // Set at Windows install time; wmic, which this used before, is deprecated.
+        const output = run("reg", ["query", "HKLM\\SOFTWARE\\Microsoft\\Cryptography", "/v", "MachineGuid"]);
+        return output.match(/MachineGuid\s+REG_SZ\s+(\S+)/)?.[1] ?? "";
+      }
+      case "darwin": {
+        const output = run("ioreg", ["-rd1", "-c", "IOPlatformExpertDevice"]);
+        return output.match(/"IOPlatformUUID" = "([^"]+)"/)?.[1] ?? "";
+      }
+      default:
+        for (const file of ["/etc/machine-id", "/var/lib/dbus/machine-id"]) {
+          try {
+            return readFileSync(file, "utf8").trim();
+          } catch {
+            // try the next location
           }
         }
-      }
     }
-  } catch {}
-  return '';
-}
-
-function getMachineId(): string {
-  try {
-    const platform = os.platform();
-    
-    if (platform === 'win32') {
-      const output = execSync('wmic csproduct get UUID', { encoding: 'utf8' });
-      return output.split('\n')[1].trim();
-    } else if (platform === 'linux') {
-      const output = execSync('cat /etc/machine-id', { encoding: 'utf8' });
-      return output.trim();
-    } else if (platform === 'darwin') {
-      const output = execSync('ioreg -rd1 -c IOPlatformExpertDevice | grep IOPlatformUUID', { encoding: 'utf8' });
-      return output.split('"')[3];
-    }
-  } catch {}
-  return '';
+  } catch {
+    // fall through to the hostname
+  }
+  return os.hostname();
 }

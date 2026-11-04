@@ -1,35 +1,27 @@
-const express = require('express');
-const { ShieldAuth } = require('shieldauth');
+// Starts an Express API only if this deployment is licensed, and shuts it
+// down if the license is revoked later.
+const express = require("express");
+const { ShieldAuth } = require("shieldauth");
 
-const app = express();
-app.use(express.json());
-
-const auth = new ShieldAuth('YOUR_APP_ID');
-
-// Validate on startup
-const LICENSE_KEY = process.env.LICENSE_KEY;
+const shield = new ShieldAuth(process.env.SHIELDAUTH_APP_ID, {
+  apiUrl: process.env.SHIELDAUTH_API_URL,
+  publicKey: process.env.SHIELDAUTH_PUBLIC_KEY,
+});
 
 (async () => {
-  const valid = await auth.validate(LICENSE_KEY);
-  
-  if (!valid) {
-    console.log('Invalid license! API will not start.');
+  if (!(await shield.validate(process.env.LICENSE_KEY))) {
+    console.error(`Not licensed: ${shield.lastMessage}`);
     process.exit(1);
   }
-  
-  console.log('License valid! Starting API...');
-  
-  // Heartbeat every 5 minutes
-  setInterval(async () => {
-    await auth.heartbeat();
-  }, 5 * 60 * 1000);
-  
-  // Your API routes
-  app.get('/api/data', (req, res) => {
-    res.json({ data: 'Your data here' });
-  });
-  
-  app.listen(3000, () => {
-    console.log('API running on port 3000');
+
+  const app = express();
+  app.get("/", (_req, res) => res.json({ ok: true }));
+  const server = app.listen(8080, () => console.log("Licensed API on :8080"));
+
+  shield.startHeartbeat({
+    onInvalid: (reason) => {
+      console.error(`License ended (${reason}); shutting down`);
+      server.close(() => process.exit(1));
+    },
   });
 })();

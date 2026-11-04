@@ -1,3 +1,3 @@
-export { ShieldAuth } from './client';
-export { getHWID } from './hwid';
-export * from './types';
+export { ShieldAuth, canonicalMessage, verifySignature } from "./client";
+export { getHWID, getMachineId } from "./hwid";
+export * from "./types";
