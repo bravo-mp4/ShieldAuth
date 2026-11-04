@@ -1,37 +1,32 @@
+"""A Discord bot that only runs while its license is valid."""
+import os
+import sys
+
 import discord
-from discord.ext import commands, tasks
+from discord.ext import commands
+
 from shieldauth import ShieldAuth
 
-# Initialize ShieldAuth
-auth = ShieldAuth("YOUR_APP_ID")
+shield = ShieldAuth(
+    os.environ["SHIELDAUTH_APP_ID"],
+    api_url=os.environ["SHIELDAUTH_API_URL"],
+    public_key=os.environ["SHIELDAUTH_PUBLIC_KEY"],
+)
+if not shield.validate(os.environ["LICENSE_KEY"]):
+    sys.exit(f"Not licensed: {shield.last_message}")
 
-# Validate license on startup
-LICENSE_KEY = "YOUR_LICENSE_KEY"  # Or load from config
-if not auth.validate(LICENSE_KEY):
-    print("Invalid license! Bot will not start.")
-    exit(1)
+bot = commands.Bot(command_prefix="!", intents=discord.Intents.default())
 
-print("License valid! Starting bot...")
-
-# Create bot
-bot = commands.Bot(command_prefix="!")
 
 @bot.event
 async def on_ready():
-    print(f"Bot ready as {bot.user}")
-    heartbeat_task.start()
+    print(f"Ready as {bot.user}")
 
-@tasks.loop(minutes=5)
-async def heartbeat_task():
-    """Send heartbeat every 5 minutes"""
-    if auth.heartbeat():
-        print("Heartbeat sent")
-    else:
-        print("Heartbeat failed! Shutting down...")
-        await bot.close()
 
 @bot.command()
 async def ping(ctx):
     await ctx.send("Pong!")
 
-bot.run("YOUR_DISCORD_TOKEN")
+
+shield.start_heartbeat()  # exits the process if the license is revoked
+bot.run(os.environ["DISCORD_TOKEN"])

@@ -1,11 +1,6 @@
 class ShieldAuthError(Exception):
-    """Base exception for ShieldAuth"""
-    pass
+    """Base class for ShieldAuth errors."""
 
-class ValidationError(ShieldAuthError):
-    """License validation failed"""
-    pass
 
-class InitializationError(ShieldAuthError):
-    """ShieldAuth not initialized"""
-    pass
+class ConfigurationError(ShieldAuthError):
+    """The client was set up without something it needs."""

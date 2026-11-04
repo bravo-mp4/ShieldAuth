@@ -1,31 +1,24 @@
+"""Asks for a license key, validates it, then keeps the session alive.
+
+    SHIELDAUTH_APP_ID=... SHIELDAUTH_API_URL=http://localhost:3000/api/v1 \
+    SHIELDAUTH_PUBLIC_KEY="$(cat signing-key.pem)" python examples/basic.py
+"""
+import os
+import sys
 import time
+
 from shieldauth import ShieldAuth
 
-# Initialize
-auth = ShieldAuth("YOUR_APP_ID")
+shield = ShieldAuth(
+    os.environ["SHIELDAUTH_APP_ID"],
+    api_url=os.environ["SHIELDAUTH_API_URL"],
+    public_key=os.environ["SHIELDAUTH_PUBLIC_KEY"],
+)
 
-# Get license from user
-license_key = input("Enter license key: ")
+if not shield.validate(input("License key: ").strip()):
+    sys.exit(f"Not licensed: {shield.last_message}")
 
-# Validate
-print("Validating license...")
-if not auth.validate(license_key):
-    print("Invalid license!")
-    exit(1)
-
-print("License valid!")
-print(f"Session ID: {auth.get_session_id()}")
-print(f"HWID: {ShieldAuth.get_hwid()}")
-
-# Your application runs here
-print("\nApplication running...")
-for i in range(60):
-    print(f"Running... {i}s")
-    time.sleep(1)
-    
-    # Heartbeat every 5 minutes
-    if i % 300 == 0 and i > 0:
-        if auth.heartbeat():
-            print("Heartbeat sent")
-        else:
-            print("Heartbeat failed")
+print("Licensed. Running...")
+shield.start_heartbeat()  # exits the process if the license is revoked
+while True:
+    time.sleep(60)  # stand-in for the real application

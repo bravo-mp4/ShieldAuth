@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "shieldauth"
+version = "2.0.0"
+description = "Python SDK for ShieldAuth: license validation with signed answers, HWID binding and heartbeats"
+authors = [{ name = "MF" }]
+requires-python = ">=3.9"
+dependencies = ["cryptography>=41"]
+
+[project.urls]
+Source = "https://github.com/bravo-mp4/ShieldAuth"
+
+[tool.setuptools]
+packages = ["shieldauth"]
