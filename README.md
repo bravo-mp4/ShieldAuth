@@ -55,7 +55,7 @@ sequenceDiagram
     participant DB as PostgreSQL
 
     App->>API: POST /validate {app_id, license_key, hwid, nonce}
-    API->>DB: BEGIN; SELECT license FOR UPDATE (scoped to app_id)
+    API->>DB: BEGIN, then SELECT license FOR UPDATE (scoped to app_id)
     alt unknown, banned, expired or blacklisted
         API-->>App: { valid: false } + signature
     else device already bound, or a slot is free
