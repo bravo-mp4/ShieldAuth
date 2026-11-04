@@ -1,33 +1,35 @@
-cmake_minimum_required(VERSION 3.10)
-project(ShieldAuth)
+cmake_minimum_required(VERSION 3.16)
+project(ShieldAuth CXX)
+
+if(NOT WIN32)
+    message(FATAL_ERROR "The ShieldAuth C++ SDK uses WinHTTP and CNG and builds on Windows only.")
+endif()
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-# Force exact settings to match VS2022 v143 /MT (static runtime for better compatibility)
-if(MSVC)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /std:c++17 /permissive- /EHsc")
-    set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /MT")
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /MTd")
-    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
-endif()
+# Static runtime, so apps don't need the VC++ redistributable.
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 
 add_library(shieldauth STATIC
     src/shieldauth.cpp
-    src/hwid.cpp
+    src/crypto.cpp
     src/http.cpp
+    src/hwid.cpp
+    src/json.cpp
 )
-
 target_include_directories(shieldauth PUBLIC include)
-
-# Ensure symbols are exported in static library
+# Windows 10+: CNG pseudo-handles and BCryptHash.
+target_compile_definitions(shieldauth PUBLIC _WIN32_WINNT=0x0A00 WIN32_LEAN_AND_MEAN NOMINMAX)
+target_link_libraries(shieldauth PUBLIC winhttp bcrypt advapi32)
 if(MSVC)
-    target_compile_options(shieldauth PRIVATE /W3)
-    set_target_properties(shieldauth PROPERTIES
-        STATIC_LIBRARY_FLAGS "/LTCG:OFF"
-    )
+    target_compile_options(shieldauth PRIVATE /W4 /permissive-)
 endif()
 
-if(WIN32)
-    target_link_libraries(shieldauth winhttp iphlpapi)
-endif()
+add_executable(shieldauth_example examples/example.cpp)
+target_link_libraries(shieldauth_example PRIVATE shieldauth)
+
+enable_testing()
+add_executable(shieldauth_tests tests/test_main.cpp)
+target_link_libraries(shieldauth_tests PRIVATE shieldauth)
+add_test(NAME shieldauth_tests
+         COMMAND shieldauth_tests ${CMAKE_CURRENT_SOURCE_DIR}/../test-vectors.json)
