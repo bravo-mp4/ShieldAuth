@@ -1,16 +1,10 @@
 import { useState, useEffect } from "react";
 import { Package } from "lucide-react";
-// @ts-expect-error - JS module
 import { applications } from "../services/api";
-// @ts-expect-error - JSX component
 import AppCard from "../components/AppCard";
-// @ts-expect-error - JSX component
 import Modal from "../components/Modal";
-// @ts-expect-error - JSX component
 import TopBar from "../components/TopBar";
-// @ts-expect-error - JSX component
 import Loader from "../components/Loader";
-// @ts-expect-error - JSX component
 import EmptyState from "../components/EmptyState";
 
 interface Application {

@@ -43,10 +43,10 @@ export default function AdminBlog() {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/api/v1/blog`,
+        `/api/v1/public/blog?limit=50`,
         { headers: { Authorization: `Bearer ${token}` }}
       );
-      setPosts(response.data);
+      setPosts(response.data.posts || []);
       setLoading(false);
     } catch (err) {
       console.error('[ERR_BLOG_001] Failed to fetch posts:', err);
@@ -59,8 +59,8 @@ export default function AdminBlog() {
     try {
       const token = localStorage.getItem('token');
       const url = editingPost
-        ? `${import.meta.env.VITE_API_BASE_URL}/api/v1/admin/blog/${editingPost.post_id}`
-        : `${import.meta.env.VITE_API_BASE_URL}/api/v1/admin/blog`;
+        ? `/api/v1/admin/blog/${editingPost.post_id}`
+        : `/api/v1/admin/blog`;
       
       const method = editingPost ? 'put' : 'post';
       
@@ -90,7 +90,7 @@ export default function AdminBlog() {
     try {
       const token = localStorage.getItem('token');
       await axios.delete(
-        `${import.meta.env.VITE_API_BASE_URL}/api/v1/admin/blog/${postId}`,
+        `/api/v1/admin/blog/${postId}`,
         { headers: { Authorization: `Bearer ${token}` }}
       );
       fetchPosts();

@@ -8,7 +8,7 @@ export default function OnboardingWizard({ onComplete }) {
 
   const steps = [
     {
-      title: "Welcome to ShieldLabs!",
+      title: "Welcome to ShieldAuth!",
       subtitle: "Let's get your first app protected in 5 minutes",
       content: (
         <div style={{ textAlign: "center", padding: "40px 20px" }}>
@@ -310,13 +310,13 @@ export default function OnboardingWizard({ onComplete }) {
                 fontFamily: "'Fira Code', monospace",
               }}
             >
-              {`#include "shieldlabs.h"
+              {`#include "shieldauth.h"
 
-ShieldLabs::Client client("your_api_key_here");
+ShieldAuth::Client client("your_api_key_here");
 
 auto result = client.validate({
     .license_key = "XXXX-XXXX-XXXX-XXXX",
-    .hwid = ShieldLabs::getHWID()
+    .hwid = ShieldAuth::getHWID()
 });
 
 if (result.valid) {

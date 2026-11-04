@@ -1,3 +1,4 @@
+import { Zap } from "lucide-react";
 import PublicNav from "../components/PublicNav";
 import PublicFooter from "../components/PublicFooter";
 import APIPlayground from "../components/APIPlayground";
@@ -189,9 +190,9 @@ export default function APIDemo() {
             {[
               {
                 lang: "C++",
-                code: `#include "shieldlabs.h"
+                code: `#include "shieldauth.h"
 
-bool validate = ShieldLabs::Validate(
+bool validate = ShieldAuth::Validate(
   "YOUR-LICENSE-KEY",
   GetHWID()
 );
@@ -202,7 +203,7 @@ if (validate) {
               },
               {
                 lang: "Python",
-                code: `from shieldlabs import validate
+                code: `from shieldauth import validate
 
 result = validate(
   license_key="YOUR-LICENSE-KEY",
@@ -272,7 +273,7 @@ if result.valid:
               margin: "0 auto 32px",
             }}
           >
-            Join thousands of developers using ShieldLabs to secure their
+            Join thousands of developers using ShieldAuth to secure their
             applications.
           </p>
           <div

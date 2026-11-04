@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-// @ts-expect-error - JS module
+import { BarChart3, Package } from "lucide-react";
 import { applications } from "../services/api";
-// @ts-expect-error - JSX component
 import TopBar from "../components/TopBar";
 
 export default function ApplicationDetail() {
@@ -19,20 +18,10 @@ export default function ApplicationDetail() {
   const loadApp = async () => {
     try {
       setLoading(true);
-      // const response = await applications.get(id);
-      // Mock data for now
-      setApp({
-        id,
-        name: "GameCheat Pro",
-        version: "2.1.0",
-        status: "active",
-        users: 1247,
-        validations: 45231,
-        created: "2025-11-15",
-        secret: "sk_live_abc123def456ghi789jkl012mno345pqr678",
-      });
-    } catch (err) {
-      console.error(err);
+      const response = await applications.get(id);
+      setApp(response.data);
+    } catch {
+      setApp(null);
     } finally {
       setLoading(false);
     }
@@ -62,7 +51,7 @@ export default function ApplicationDetail() {
           <div className="cardTitle" style={{ marginBottom: 16 }}>
             Application not found
           </div>
-          <Link to="/apps" className="btn btnPrimary">
+          <Link to="/applications" className="btn btnPrimary">
             Back to Applications
           </Link>
         </div>

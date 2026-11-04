@@ -1,14 +1,11 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Rocket, Zap, Lightbulb, Circle, Wrench, Webhook } from "lucide-react";
-// @ts-expect-error - JSX component
 import PublicNav from "../components/PublicNav";
-// @ts-expect-error - JSX component
 import PublicFooter from "../components/PublicFooter";
 
 export default function Documentation() {
   const [activeSection, setActiveSection] = useState("getting-started");
-  const [activeSdk, setActiveSdk] = useState("cpp");
 
   const sections = [
     { id: "getting-started", title: "Getting Started", icon: <Rocket size={20} /> },
@@ -130,7 +127,7 @@ export default function Documentation() {
                   <ol style={{ margin: 0, paddingLeft: 20, lineHeight: 2 }}>
                     <li>
                       Navigate to the{" "}
-                      <Link to="/apps" style={{ color: "var(--primary)" }}>
+                      <Link to="/applications" style={{ color: "var(--primary)" }}>
                         Applications
                       </Link>{" "}
                       page

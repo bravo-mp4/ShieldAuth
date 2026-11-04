@@ -1,32 +1,44 @@
 {
   "name": "shieldauth-frontend",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "description": "ShieldAuth developer dashboard and customer license portal (React + Vite)",
+  "license": "UNLICENSED",
+  "author": "MF",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bravo-mp4/ShieldAuth.git",
+    "directory": "frontend"
+  },
   "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "lint": "eslint ."
   },
   "dependencies": {
-    "@tanstack/react-table": "^8.11.0",
-    "axios": "^1.6.0",
-    "cmdk": "^0.2.0",
+    "axios": "^1.21.0",
     "lucide-react": "^0.312.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-hook-form": "^7.49.0",
-    "react-markdown": "^9.0.1",
-    "react-router-dom": "^6.22.3",
-    "recharts": "^2.10.0",
-    "zod": "^3.22.4"
+    "react-router-dom": "^7.18.5"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "@vitejs/plugin-react": "^4.2.0",
+    "eslint": "^10.14.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.7",
+    "globals": "^17.14.0",
     "typescript": "^5.3.0",
+    "typescript-eslint": "^8.72.1",
     "vite": "^7.3.1"
   }
 }

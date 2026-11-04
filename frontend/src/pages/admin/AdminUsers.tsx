@@ -28,7 +28,7 @@ export default function AdminUsers() {
   const fetchUsers = async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/v1/admin/users`, {
+      const response = await axios.get(`/api/v1/platform/users`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setUsers(response.data);
@@ -47,7 +47,7 @@ export default function AdminUsers() {
     try {
       const token = localStorage.getItem('token');
       await axios.put(
-        `${import.meta.env.VITE_API_BASE_URL}/api/v1/admin/users/${userId}/ban`,
+        `/api/v1/platform/users/${userId}/ban`,
         { is_banned: !currentStatus },
         { headers: { Authorization: `Bearer ${token}` }}
       );
@@ -61,7 +61,7 @@ export default function AdminUsers() {
     try {
       const token = localStorage.getItem('token');
       await axios.put(
-        `${import.meta.env.VITE_API_BASE_URL}/api/v1/admin/users/${userId}/role`,
+        `/api/v1/platform/users/${userId}/role`,
         { role: newRole },
         { headers: { Authorization: `Bearer ${token}` }}
       );

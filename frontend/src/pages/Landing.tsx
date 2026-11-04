@@ -1,14 +1,11 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { Shield, Zap, Lock, BarChart3 } from "lucide-react";
-// @ts-expect-error - JSX component
 import PublicNav from "../components/PublicNav";
-// @ts-expect-error - JSX component
 import PublicFooter from "../components/PublicFooter";
 
 export default function Landing() {
-  const navigate = useNavigate();
   const [liveValidations, setLiveValidations] = useState(0);
   const [totalLicenses, setTotalLicenses] = useState(0);
   const [activeLicenses, setActiveLicenses] = useState(0);
@@ -24,23 +21,12 @@ export default function Landing() {
         setActiveLicenses(response.data.active_licenses);
         setLoading(false);
       } catch (err) {
-        console.error("Failed to fetch stats:", err);
-        // Use fallback values
-        setLiveValidations(47923);
-        setTotalLicenses(12450);
-        setActiveLicenses(8732);
+        // Show zeros rather than invented numbers if the API is unreachable.
         setLoading(false);
       }
     };
 
     fetchStats();
-
-    // Update validations count every 5 seconds
-    const interval = setInterval(() => {
-      setLiveValidations((prev) => prev + Math.floor(Math.random() * 5));
-    }, 5000);
-
-    return () => clearInterval(interval);
   }, []);
   return (
     <>
@@ -80,7 +66,7 @@ export default function Landing() {
           style={{ marginBottom: "24px", maxWidth: "900px", margin: "0 auto" }}
         >
           Protect Your Software with{" "}
-          <span className="heroAccent">ShieldLabs</span>
+          <span className="heroAccent">ShieldAuth</span>
         </h1>
         <p
           className="heroDesc"
@@ -166,7 +152,7 @@ export default function Landing() {
                 color: "var(--text-muted)",
               }}
             >
-              ShieldLabs Dashboard
+              ShieldAuth Dashboard
             </div>
           </div>
           <div
@@ -284,21 +270,21 @@ export default function Landing() {
         <div className="heroStats">
           <div className="stat">
             <div className="statValue">
-              {loading ? "..." : (totalLicenses / 1000).toFixed(1) + "K+"}
+              {loading ? "..." : totalLicenses.toLocaleString()}
             </div>
             <div className="statLabel">Total Licenses</div>
           </div>
           <div className="stat">
             <div className="statValue">
-              {loading
-                ? "..."
-                : Math.floor(totalLicenses / 5).toLocaleString() + "+"}
+              {loading ? "..." : activeLicenses.toLocaleString()}
             </div>
-            <div className="statLabel">Developers</div>
+            <div className="statLabel">Active Licenses</div>
           </div>
           <div className="stat">
-            <div className="statValue">99.9%</div>
-            <div className="statLabel">Uptime</div>
+            <div className="statValue">
+              {loading ? "..." : liveValidations.toLocaleString()}
+            </div>
+            <div className="statLabel">Validations Today</div>
           </div>
         </div>
 
@@ -312,7 +298,7 @@ export default function Landing() {
               fontWeight: 500,
             }}
           >
-            TRUSTED BY DEVELOPERS AT
+            BUILT FOR
           </div>
           <div
             style={{
@@ -353,7 +339,7 @@ export default function Landing() {
 
       <div className="section" style={{ padding: "100px 40px" }}>
         <div className="sectionTitle" style={{ marginBottom: "64px" }}>
-          Why ShieldLabs?
+          Why ShieldAuth?
         </div>
         <div className="grid3" style={{ gap: "24px" }}>
           <div
@@ -403,11 +389,11 @@ export default function Landing() {
               className="cardTitle"
               style={{ marginBottom: "12px", fontSize: "1.2rem" }}
             >
-              Battle-Tested
+              Checked Server-Side
             </div>
             <div className="muted" style={{ lineHeight: "1.7" }}>
-              Used by thousands of developers worldwide. Proven protection
-              against crackers, reverse engineering, and unauthorized access.
+              Every validation is checked on the server, scoped to your app,
+              and logged, so shared or leaked keys show up in your dashboard.
             </div>
           </div>
           <div

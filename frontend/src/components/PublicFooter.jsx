@@ -137,7 +137,7 @@ export default function PublicFooter() {
           }}
         >
           <div className="muted" style={{ fontSize: "0.9rem" }}>
-            © 2026 ShieldLabs. All rights reserved.
+            © 2026 ShieldAuth. All rights reserved.
           </div>
         </div>
       </div>

@@ -40,7 +40,7 @@ export default function AdminChangelog() {
 
   const fetchEntries = async () => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/v1/changelog`);
+      const response = await axios.get(`/api/v1/public/changelog`);
       setEntries(response.data);
       setLoading(false);
     } catch (err) {
@@ -54,7 +54,7 @@ export default function AdminChangelog() {
     try {
       const token = localStorage.getItem('token');
       await axios.post(
-        `${import.meta.env.VITE_API_BASE_URL}/api/v1/admin/changelog`,
+        `/api/v1/admin/changelog`,
         formData,
         { headers: { Authorization: `Bearer ${token}` }}
       );

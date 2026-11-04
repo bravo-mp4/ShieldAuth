@@ -1,9 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import axios from "axios";
-// @ts-expect-error - JSX component
 import PublicNav from "../components/PublicNav";
-// @ts-expect-error - JSX component
 import PublicFooter from "../components/PublicFooter";
 
 interface BlogPost {

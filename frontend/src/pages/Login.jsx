@@ -1,9 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../services/api";
-// @ts-expect-error - JSX component
 import Toast from "../components/Toast";
-// @ts-expect-error - JS module
 import { useToast } from "../hooks/useToast";
 
 export default function Login() {
@@ -12,7 +10,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const { toast, showSuccess, showError, hideToast } = useToast();
+  const { toast, showSuccess, hideToast } = useToast();
 
   const handleSubmit = async (e) => {
     e.preventDefault(); // Don't refresh page
@@ -79,7 +77,7 @@ export default function Login() {
               marginBottom: 8,
             }}
           >
-            ShieldLabs
+            ShieldAuth
           </h1>
           <p className="muted" style={{ fontSize: "0.9rem" }}>
             Sign in to your account

@@ -2,54 +2,31 @@ import { useEffect } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import Layout from "./components/Layout";
 import { CommandPalette } from "./components/ui/CommandPalette";
-// @ts-expect-error - JSX component
 import ProtectedRoute from "./components/ProtectedRoute";
 import Landing from "./pages/Landing";
-// @ts-expect-error - JSX component
 import Login from "./pages/Login";
-// @ts-expect-error - JSX component
 import Signup from "./pages/Signup";
-// @ts-expect-error - JSX component
 import ForgotPassword from "./pages/ForgotPassword";
-// @ts-expect-error - JSX component
 import ResetPassword from "./pages/ResetPassword";
-// @ts-expect-error - JSX component
 import Features from "./pages/Features";
-// @ts-expect-error - JSX component
 import Pricing from "./pages/Pricing";
 import Status from "./pages/Status";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
-// @ts-expect-error - JSX component
 import About from "./pages/About";
-// @ts-expect-error - JSX component
 import Contact from "./pages/Contact";
-// @ts-expect-error - JSX component
 import Terms from "./pages/Terms";
-// @ts-expect-error - JSX component
 import Privacy from "./pages/Privacy";
 import Changelog from "./pages/Changelog";
-// @ts-expect-error - JSX component
 import Documentation from "./pages/Documentation";
-// @ts-expect-error - JSX component
 import UseCases from "./pages/UseCases";
-// @ts-expect-error - JSX component
 import SecurityPage from "./pages/SecurityPage";
-// @ts-expect-error - JSX component
 import APIDemo from "./pages/APIDemo";
 import Dashboard from "./pages/NewDashboard";
 import Applications from "./pages/Applications";
-// @ts-expect-error - JSX component
 import ApplicationDetail from "./pages/ApplicationDetail";
-// @ts-expect-error - JSX component
 import Analytics from "./pages/Analytics";
-// @ts-expect-error - JSX component
-import APIKeys from "./pages/APIKeys";
-// @ts-expect-error - JSX component
-import Webhooks from "./pages/Webhooks";
-// @ts-expect-error - JSX component
 import Downloads from "./pages/Downloads";
-// @ts-expect-error - JSX component
 import Support from "./pages/Support";
 import Users from "./pages/Users";
 import Logs from "./pages/Logs";

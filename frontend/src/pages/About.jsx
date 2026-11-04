@@ -1,22 +1,14 @@
-// @ts-expect-error - JSX component
 import PublicNav from "../components/PublicNav";
-// @ts-expect-error - JSX component
 import PublicFooter from "../components/PublicFooter";
 
 export default function About() {
-  const team = [
-    { name: "John Smith", role: "Founder & CEO", emoji: "👨‍💼" },
-    { name: "Sarah Johnson", role: "CTO", emoji: "👩‍💻" },
-    { name: "Mike Chen", role: "Lead Engineer", emoji: "👨‍🔧" },
-    { name: "Emily Davis", role: "Product Designer", emoji: "👩‍🎨" },
-  ];
+  // ShieldAuth is a solo portfolio project, so this page says so.
+  const team = [{ name: "MF", role: "Solo developer", emoji: "👨‍💻" }];
 
   const milestones = [
-    { year: "2024", event: "ShieldAuth founded" },
-    { year: "2024", event: "First 100 customers" },
-    { year: "2025", event: "Launched VM protection" },
-    { year: "2025", event: "10,000+ licenses protected" },
-    { year: "2026", event: "Series A funding" },
+    { year: "2026", event: "Started as a project to learn licensing and auth" },
+    { year: "2026", event: "1.0: license keys, HWID binding, customer portal, SDKs" },
+    { year: "2026", event: "Security review, test suite and CI" },
   ];
 
   return (
@@ -37,7 +29,7 @@ export default function About() {
               WebkitTextFillColor: "transparent",
             }}
           >
-            About ShieldLabs
+            About ShieldAuth
           </h1>
           <p
             style={{

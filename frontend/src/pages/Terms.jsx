@@ -1,6 +1,4 @@
-// @ts-expect-error - JSX component
 import PublicNav from "../components/PublicNav";
-// @ts-expect-error - JSX component
 import PublicFooter from "../components/PublicFooter";
 
 export default function Terms() {

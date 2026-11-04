@@ -1,9 +1,7 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { Shield, Zap, BarChart3 } from "lucide-react";
-// @ts-expect-error - JSX component
 import PublicNav from "../components/PublicNav";
-// @ts-expect-error - JSX component
 import PublicFooter from "../components/PublicFooter";
 
 export default function Features() {
@@ -42,13 +40,13 @@ export default function Features() {
         { name: "Unlimited Keys", desc: "Generate as many keys as you need" },
       ],
       codeExample: `// Validate license with C++ SDK
-#include "shieldlabs.h"
+#include "shieldauth.h"
 
-ShieldLabs::Client client("your_api_key");
+ShieldAuth::Client client("your_api_key");
 
 auto result = client.validate({
     .license_key = "XXXX-XXXX-XXXX-XXXX",
-    .hwid = ShieldLabs::getHWID()
+    .hwid = ShieldAuth::getHWID()
 });
 
 if (result.valid) {
@@ -76,7 +74,7 @@ if (result.valid) {
         { name: "Import Hiding", desc: "Obfuscate API calls" },
       ],
       codeExample: `// Protect your binary
-shieldlabs protect \\
+shieldauth protect \\
   --input myapp.exe \\
   --output myapp_protected.exe \\
   --obfuscation high \\
@@ -102,7 +100,7 @@ shieldlabs protect \\
         { name: "Node.js SDK", desc: "For Electron and web apps" },
       ],
       codeExample: `// Python SDK example
-from shieldlabs import Client
+from shieldauth import Client
 
 client = Client(api_key="your_key")
 
@@ -147,81 +145,6 @@ else:
       demo: "Real-time webhooks deliver in <200ms",
     },
   };
-
-  const features = [
-    {
-      category: "License Management",
-      icon: "🔑",
-      items: [
-        "Unlimited license key generation",
-        "HWID locking (1-10 slots per key)",
-        "Expiration dates (days/months/lifetime)",
-        "Remote license revocation",
-        "Usage tracking",
-        "Concurrent session limits",
-      ],
-    },
-    {
-      category: "Binary Protection",
-      icon: "🛡️",
-      items: [
-        "Code obfuscation (control flow flattening)",
-        "String encryption",
-        "Import hiding",
-        "Anti-debug (10+ techniques)",
-        "Anti-tamper checks",
-        "VM execution (optional)",
-      ],
-    },
-    {
-      category: "Developer Tools",
-      icon: "⚡",
-      items: [
-        "RESTful API",
-        "Webhooks",
-        "C++ SDK",
-        "C# SDK",
-        "Python SDK",
-        "Node.js SDK",
-      ],
-    },
-    {
-      category: "Dashboard & Analytics",
-      icon: "📊",
-      items: [
-        "Real-time usage monitoring",
-        "License analytics",
-        "Geographic data",
-        "User management",
-        "Event logs",
-        "Export reports",
-      ],
-    },
-    {
-      category: "Security",
-      icon: "🔒",
-      items: [
-        "Encrypted API communication",
-        "Rate limiting",
-        "IP whitelisting",
-        "Two-factor authentication",
-        "Audit logs",
-        "Session management",
-      ],
-    },
-    {
-      category: "Integration",
-      icon: "🔌",
-      items: [
-        "5-minute integration",
-        "Example projects",
-        "Comprehensive documentation",
-        "Video tutorials",
-        "Discord support",
-        "Active community",
-      ],
-    },
-  ];
 
   return (
     <>
@@ -469,7 +392,7 @@ else:
                       color: "var(--primary)",
                     }}
                   >
-                    ShieldLabs
+                    ShieldAuth
                   </th>
                   <th
                     style={{

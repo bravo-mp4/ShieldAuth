@@ -1,9 +1,9 @@
 import axios from "axios";
 
-// Use relative path for API calls - Vercel will proxy /api/v1/* to Railway backend
+// Relative path: Vite proxies /api to the backend in development, and the
+// host (e.g. a Vercel rewrite) does the same in production.
 const API_BASE = "/api/v1";
 
-// Create axios instance with default config
 const api = axios.create({
   baseURL: API_BASE,
   headers: {
@@ -11,7 +11,6 @@ const api = axios.create({
   },
 });
 
-// Add auth token to requests if it exists
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
   if (token) {
@@ -20,7 +19,21 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Authentication endpoints
+// An expired or revoked session sends the user back to sign in rather than
+// leaving every dashboard page showing errors.
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const isAuthCall = error.config?.url?.startsWith("/auth/");
+    if (error.response?.status === 401 && !isAuthCall) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      window.location.assign("/login");
+    }
+    return Promise.reject(error);
+  }
+);
+
 export const auth = {
   login: (email, password) => api.post("/auth/login", { email, password }),
 
@@ -29,54 +42,27 @@ export const auth = {
 
   logout: () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("user");
     return Promise.resolve();
   },
 };
 
-// Applications endpoints
 export const applications = {
   list: () => api.get("/admin/applications"),
 
   create: (data) => api.post("/admin/app/create", data),
 
   get: (appId) => api.get(`/admin/app/${appId}`),
-
-  update: (appId, data) => api.put(`/admin/app/${appId}`, data),
-
-  delete: (appId) => api.delete(`/admin/app/${appId}`),
-
-  stats: (appId) => api.get(`/admin/app/${appId}/stats`),
 };
 
-// Users/Licenses endpoints
 export const users = {
   list: () => api.get("/users"),
 
-  create: (data) => api.post("/users", data),
-
-  get: (userId) => api.get(`/users/${userId}`),
-
   delete: (userId) => api.delete(`/users/${userId}`),
-
-  checkHWID: (hwid) => api.post("/check-hwid", { hwid }),
 };
 
-// Logs endpoints
 export const logs = {
   list: (filters = {}) => api.get("/admin/logs", { params: filters }),
-
-  export: (filters = {}) => api.get("/admin/logs/export", { params: filters }),
-};
-
-// Settings endpoints
-export const settings = {
-  get: () => api.get("/admin/settings"),
-
-  update: (data) => api.put("/admin/settings", data),
-
-  generateAPIKey: () => api.post("/admin/api-keys/generate"),
-
-  revokeAPIKey: (keyId) => api.delete(`/admin/api-keys/${keyId}`),
 };
 
 export default api;

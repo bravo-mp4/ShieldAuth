@@ -1,10 +1,7 @@
 import { useState, useEffect } from "react";
 import { api, User } from "../api";
-// @ts-expect-error - JSX component
 import Loader from "../components/Loader";
-// @ts-expect-error - JSX component
 import EmptyState from "../components/EmptyState";
-// @ts-expect-error - JSX component
 import { StatusBadge } from "../components/Badge";
 
 export default function Users() {
@@ -43,7 +40,7 @@ export default function Users() {
     user.username.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleDeleteUser = async (id: number) => {
+  const handleDeleteUser = async (id: string) => {
     if (!confirm("Are you sure you want to delete this user?")) return;
 
     try {

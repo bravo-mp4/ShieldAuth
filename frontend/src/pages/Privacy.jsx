@@ -1,6 +1,4 @@
-// @ts-expect-error - JSX component
 import PublicNav from "../components/PublicNav";
-// @ts-expect-error - JSX component
 import PublicFooter from "../components/PublicFooter";
 
 export default function Privacy() {
@@ -183,7 +181,7 @@ export default function Privacy() {
             </h2>
             <p style={{ lineHeight: 1.8, color: "var(--text-secondary)" }}>
               If you have any questions about this Privacy Policy, please
-              contact us at privacy@shieldlabs.com
+              contact us at privacy@example.com
             </p>
           </section>
         </div>

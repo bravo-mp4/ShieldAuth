@@ -45,17 +45,10 @@ export const CommandPalette: React.FC = () => {
       keywords: ['licenses', 'keys', 'activation']
     },
     {
-      id: 'api-keys',
-      label: 'API Keys',
-      icon: <Key size={16} />,
-      action: () => navigate('/api-keys'),
-      keywords: ['api', 'keys', 'tokens', 'authentication']
-    },
-    {
       id: 'docs',
       label: 'Documentation',
       icon: <Book size={16} />,
-      action: () => navigate('/documentation'),
+      action: () => navigate('/docs'),
       keywords: ['docs', 'documentation', 'help', 'guide']
     },
     {

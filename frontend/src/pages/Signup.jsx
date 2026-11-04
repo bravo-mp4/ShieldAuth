@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-// @ts-expect-error - JS module
 import { auth } from "../services/api";
 
 export default function Signup() {

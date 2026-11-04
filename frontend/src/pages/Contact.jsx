@@ -1,12 +1,10 @@
 import { useState } from "react";
 import axios from "axios";
-// @ts-expect-error - JSX component
 import PublicNav from "../components/PublicNav";
-// @ts-expect-error - JSX component
 import PublicFooter from "../components/PublicFooter";
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+  import.meta.env.VITE_API_BASE_URL || "";
 
 export default function Contact() {
   const [name, setName] = useState("");
@@ -195,10 +193,10 @@ export default function Contact() {
                     Email
                   </div>
                   <a
-                    href="mailto:hello@shieldlabs.com"
+                    href="mailto:hello@example.com"
                     style={{ color: "var(--primary)", fontWeight: 600 }}
                   >
-                    hello@shieldlabs.com
+                    hello@example.com
                   </a>
                 </div>
                 <div>

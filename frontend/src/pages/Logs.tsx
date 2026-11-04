@@ -1,13 +1,8 @@
 import { useState, useEffect } from "react";
-// @ts-expect-error - JS module
 import { logs as logsApi } from "../services/api";
-// @ts-expect-error - JSX component
 import TopBar from "../components/TopBar";
-// @ts-expect-error - JSX component
 import StatCard from "../components/StatCard";
-// @ts-expect-error - JSX component
 import Loader from "../components/Loader";
-// @ts-expect-error - JSX component
 import EmptyState from "../components/EmptyState";
 
 interface LogEntry {
@@ -17,6 +12,37 @@ interface LogEntry {
   message: string;
   username?: string;
   ip?: string;
+}
+
+// The API returns raw validation attempts; map each to a row for this page.
+const RESULT_LABELS: Record<string, string> = {
+  success: "License validated",
+  invalid: "Unknown license key",
+  banned: "Banned license or device",
+  expired: "Expired license",
+  hwid_limit: "Device limit reached",
+};
+
+function toLogEntry(row: any): LogEntry {
+  return {
+    id: String(row.id),
+    timestamp: row.created_at,
+    type: row.result === "success" ? "auth" : row.result === "hwid_limit" ? "warning" : "error",
+    message: RESULT_LABELS[row.result] || row.error_message || row.result,
+    username: row.license_key,
+    ip: row.ip_address,
+  };
+}
+
+function downloadCsv(entries: LogEntry[]) {
+  const quote = (value: unknown) => `"${String(value ?? "").replace(/"/g, '""')}"`;
+  const rows = [["Time", "Type", "Event", "License", "IP"], ...entries.map((e) => [e.timestamp, e.type, e.message, e.username, e.ip])];
+  const blob = new Blob([rows.map((r) => r.map(quote).join(",")).join("\n")], { type: "text/csv" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "validation-logs.csv";
+  link.click();
+  URL.revokeObjectURL(link.href);
 }
 
 export default function Logs() {
@@ -29,9 +55,8 @@ export default function Logs() {
   const loadLogs = async () => {
     try {
       setLoading(true);
-      const filters = filterType !== "all" ? { type: filterType } : {};
-      const response = await logsApi.list(filters);
-      setLogs(response.data);
+      const response = await logsApi.list({ limit: 200 });
+      setLogs((response.data.logs || []).map(toLogEntry));
       setError("");
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to load logs");
@@ -43,7 +68,7 @@ export default function Logs() {
   // Reload when filter changes
   useEffect(() => {
     loadLogs();
-  }, [filterType]);
+  }, []);
 
   const filteredLogs =
     filterType === "all" ? logs : logs.filter((log) => log.type === filterType);
@@ -85,7 +110,7 @@ export default function Logs() {
         title="Activity Logs"
         subtitle="Monitor all system events"
         actions={
-          <button className="btn btnGhost" onClick={() => logsApi.export()}>
+          <button className="btn btnGhost" onClick={() => downloadCsv(filteredLogs)}>
             Export Logs
           </button>
         }

@@ -1,23 +1,18 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
-import { Shield } from "lucide-react";
-// @ts-expect-error - JSX component
 import PublicNav from "../components/PublicNav";
-// @ts-expect-error - JSX component
 import PublicFooter from "../components/PublicFooter";
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+  import.meta.env.VITE_API_BASE_URL || "";
 
 export default function Pricing() {
   const [billingInterval, setBillingInterval] = useState("monthly");
   const [testimonials, setTestimonials] = useState([]);
-  const [faqs, setFaqs] = useState([]);
 
   useEffect(() => {
     loadTestimonials();
-    loadFaqs();
   }, []);
 
   const loadTestimonials = async () => {
@@ -31,16 +26,6 @@ export default function Pricing() {
     }
   };
 
-  const loadFaqs = async () => {
-    try {
-      const response = await axios.get(
-        `${API_BASE_URL}/api/v1/public/faqs?category=Billing & Pricing&limit=10`
-      );
-      setFaqs(response.data);
-    } catch (error) {
-      console.error("Failed to load FAQs:", error);
-    }
-  };
 
   const plans = [
     {
@@ -527,7 +512,8 @@ export default function Pricing() {
           ))}
         </div>
 
-        {/* Testimonials */}
+        {/* Testimonials: only shown once real ones exist */}
+        {testimonials.length > 0 && (
         <div style={{ marginBottom: 80 }}>
           <h2
             style={{
@@ -595,6 +581,7 @@ export default function Pricing() {
             )}
           </div>
         </div>
+        )}
 
         {/* FAQ Section */}
         <div

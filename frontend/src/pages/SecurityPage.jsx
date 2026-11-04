@@ -1,8 +1,6 @@
 import { Link } from "react-router-dom";
-import { Shield, Lock, Zap, Server, CheckCircle2, AlertTriangle } from "lucide-react";
-// @ts-expect-error - JSX component
+import { Shield, Lock, Zap, Server } from "lucide-react";
 import PublicNav from "../components/PublicNav";
-// @ts-expect-error - JSX component
 import PublicFooter from "../components/PublicFooter";
 
 export default function Security() {
@@ -195,7 +193,7 @@ export default function Security() {
         {/* Compliance */}
         <div className="card" style={{ padding: 48, marginBottom: 40 }}>
           <h2 style={{ fontSize: "2rem", fontWeight: 700, marginBottom: 32 }}>
-            📋 Compliance & Certifications
+            📋 Security Controls in Place
           </h2>
           <div
             style={{
@@ -205,10 +203,10 @@ export default function Security() {
             }}
           >
             {[
-              { name: "GDPR Compliant", icon: "🇪🇺", status: "Certified" },
-              { name: "SOC 2 Type II", icon: "📜", status: "In Progress" },
-              { name: "ISO 27001", icon: "🔒", status: "Planned 2026" },
-              { name: "CCPA Compliant", icon: "🇺🇸", status: "Certified" },
+              { name: "bcrypt password hashing", icon: "🔑", status: "In place" },
+              { name: "Per-tenant data isolation", icon: "🧱", status: "In place" },
+              { name: "HMAC-signed webhooks", icon: "✍️", status: "In place" },
+              { name: "Rate-limited auth and validation", icon: "⏱️", status: "In place" },
             ].map((item, idx) => (
               <div
                 key={idx}
@@ -231,11 +229,11 @@ export default function Security() {
                     fontSize: "0.8rem",
                     padding: "4px 8px",
                     background:
-                      item.status === "Certified"
+                      item.status === "In place"
                         ? "var(--success-bg)"
                         : "var(--warning-bg)",
                     color:
-                      item.status === "Certified"
+                      item.status === "In place"
                         ? "var(--success)"
                         : "var(--warning)",
                     borderRadius: 4,
@@ -376,7 +374,7 @@ export default function Security() {
               Security Documentation
             </Link>
             <a
-              href="mailto:security@shieldlabs.io"
+              href="mailto:security@example.com"
               className="btn btnGhost"
               style={{ padding: "12px 24px" }}
             >

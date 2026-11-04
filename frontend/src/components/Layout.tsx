@@ -1,5 +1,4 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-// @ts-expect-error - JSX component
 import MobileMenu from "./MobileMenu";
 
 export default function Layout() {
@@ -34,8 +33,6 @@ export default function Layout() {
     { to: "/licenses", label: "Licenses", icon: "🎫" },
     { to: "/analytics", label: "Analytics", icon: "📈" },
     { to: "/logs", label: "Logs", icon: "📋" },
-    { to: "/api-keys", label: "API Keys", icon: "🔑" },
-    { to: "/webhooks", label: "Webhooks", icon: "🔗" },
     { to: "/settings", label: "Settings", icon: "⚙️" },
     { to: "/support", label: "Support", icon: "💬" },
   ];
@@ -60,7 +57,7 @@ export default function Layout() {
         {/* Brand */}
         <div style={{ marginBottom: "32px", paddingLeft: "12px" }}>
           <div className="brandName" style={{ fontSize: "1.3rem" }}>
-            ShieldLabs
+            ShieldAuth
           </div>
           <div
             style={{
@@ -155,7 +152,7 @@ export default function Layout() {
           }}
         >
           <div style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>
-            Welcome back, Admin
+            Welcome back, {user.name || user.email?.split("@")[0] || "there"}
           </div>
           <MobileMenu links={navLinks} onLogout={handleLogout} />
         </header>

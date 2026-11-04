@@ -1,7 +1,5 @@
 import { Link } from "react-router-dom";
-// @ts-expect-error - JSX component
 import PublicNav from "../components/PublicNav";
-// @ts-expect-error - JSX component
 import PublicFooter from "../components/PublicFooter";
 
 export default function UseCases() {
@@ -134,7 +132,7 @@ export default function UseCases() {
             className="muted"
             style={{ fontSize: "1.2rem", maxWidth: 700, margin: "0 auto" }}
           >
-            See how developers across different industries use ShieldLabs to
+            See how developers across different industries use ShieldAuth to
             protect their work and grow revenue
           </p>
         </div>
@@ -278,7 +276,7 @@ export default function UseCases() {
                         color: "var(--success)",
                       }}
                     >
-                      ✓ ShieldLabs Solution
+                      ✓ ShieldAuth Solution
                     </h3>
                     <div
                       style={{
@@ -385,7 +383,7 @@ export default function UseCases() {
               margin: "0 auto 32px",
             }}
           >
-            Join 2,500+ developers protecting their work with ShieldLabs
+            Join 2,500+ developers protecting their work with ShieldAuth
           </p>
           <div
             style={{

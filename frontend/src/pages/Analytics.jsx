@@ -1,12 +1,8 @@
 import { useState, useEffect } from "react";
-import { BarChart3, Download } from "lucide-react";
 import axios from "axios";
-// @ts-expect-error - JSX component
 import TopBar from "../components/TopBar";
 
 export default function Analytics() {
-  const [dateRange, setDateRange] = useState("7d");
-  const [selectedApp, setSelectedApp] = useState("all");
   const [loading, setLoading] = useState(true);
   const [analytics, setAnalytics] = useState({
     totalValidations: 0,
@@ -81,92 +77,11 @@ export default function Analytics() {
           },
         ];
 
-  const topCountries = [
-    { country: "United States", count: 4521, flag: "🇺🇸" },
-    { country: "Germany", count: 3124, flag: "🇩🇪" },
-    { country: "United Kingdom", count: 2890, flag: "🇬🇧" },
-    { country: "France", count: 2345, flag: "🇫🇷" },
-    { country: "Canada", count: 1987, flag: "🇨🇦" },
-  ];
-
-  const topApplications = [
-    {
-      name: "GameCheat Pro",
-      validations: 5432,
-      color: "var(--primary)",
-      bg: "var(--primary-bg)",
-    },
-    {
-      name: "ProTools",
-      validations: 3210,
-      color: "var(--info)",
-      bg: "var(--info-bg)",
-    },
-    {
-      name: "CodeProtect",
-      validations: 2891,
-      color: "var(--warning)",
-      bg: "var(--warning-bg)",
-    },
-    {
-      name: "SafeGuard",
-      validations: 1015,
-      color: "var(--success)",
-      bg: "var(--success-bg)",
-    },
-  ];
-
-  const recentFailed = [
-    {
-      time: "2025-01-31 14:32:15",
-      reason: "Invalid key",
-      ip: "192.168.1.1",
-      app: "GameCheat Pro",
-    },
-    {
-      time: "2025-01-31 14:28:42",
-      reason: "Expired",
-      ip: "10.0.0.15",
-      app: "ProTools",
-    },
-    {
-      time: "2025-01-31 14:25:01",
-      reason: "HWID mismatch",
-      ip: "172.16.0.5",
-      app: "GameCheat Pro",
-    },
-    {
-      time: "2025-01-31 14:19:33",
-      reason: "Invalid key",
-      ip: "192.168.100.50",
-      app: "CodeProtect",
-    },
-  ];
-
   return (
     <div className="page">
       <TopBar
         title="Analytics"
-        subtitle="Comprehensive license validation analytics"
-        actions={
-          <>
-            <select
-              value={dateRange}
-              onChange={(e) => setDateRange(e.target.value)}
-              style={{ marginRight: 12 }}
-            >
-              <option value="24h">Last 24 Hours</option>
-              <option value="7d">Last 7 Days</option>
-              <option value="30d">Last 30 Days</option>
-              <option value="90d">Last 90 Days</option>
-              <option value="1y">Last Year</option>
-            </select>
-            <button className="btn btnPrimary" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <Download size={16} />
-              Export Report
-            </button>
-          </>
-        }
+        subtitle="License validations across your applications, last 7 days"
       />
 
       {/* Summary Cards */}
@@ -195,7 +110,7 @@ export default function Analytics() {
             {loading ? "..." : analytics.successRate}%
           </div>
           <div className="metricChange metricGreen">
-            All validations successful
+            {(100 - (analytics.successRate || 0)).toFixed(1)}% failed
           </div>
         </div>
         <div className="card" style={{ padding: 24 }}>
@@ -203,7 +118,7 @@ export default function Analytics() {
           <div className="metricValue metricRed">
             {loading ? "..." : analytics.failedAttempts}
           </div>
-          <div className="metricChange">No failed attempts tracked</div>
+          <div className="metricChange">Unknown, banned, expired or over the device limit</div>
         </div>
         <div className="card" style={{ padding: 24 }}>
           <div className="cardTitle">Unique HWIDs</div>
@@ -232,43 +147,37 @@ export default function Analytics() {
             }}
           >
             {validationData.map((day) => {
-              const maxVal = Math.max(
-                ...validationData.map((d) => d.successful)
-              );
-              const height = (day.successful / maxVal) * 100;
+              // Pixel heights: percentages need a sized parent, which the
+              // flex column doesn't have.
+              const maxTotal = Math.max(1, ...validationData.map((d) => d.successful + d.failed));
+              const scale = 180 / maxTotal;
               return (
-                <div
-                  key={day.date}
-                  style={{ flex: 1, minWidth: 80, textAlign: "center" }}
-                >
-                  <div
-                    style={{
-                      background: "var(--primary)",
-                      height: `${height}%`,
-                      borderRadius: "8px 8px 0 0",
-                      position: "relative",
-                      minHeight: 20,
-                      display: "flex",
-                      alignItems: "flex-start",
-                      justifyContent: "center",
-                      paddingTop: 8,
-                    }}
-                  >
-                    <span style={{ fontSize: "0.85rem", fontWeight: 600 }}>
-                      {day.successful}
-                    </span>
+                <div key={day.date} style={{ flex: 1, minWidth: 80, textAlign: "center" }}>
+                  <div style={{ display: "flex", flexDirection: "column", justifyContent: "flex-end", height: 190 }}>
+                    {day.failed > 0 && (
+                      <div
+                        title={`${day.failed} failed`}
+                        style={{ background: "var(--error)", height: day.failed * scale, borderRadius: "8px 8px 0 0" }}
+                      />
+                    )}
+                    <div
+                      title={`${day.successful} successful`}
+                      style={{
+                        background: "var(--primary)",
+                        height: Math.max(day.successful * scale, 2),
+                        borderRadius: day.failed > 0 ? 0 : "8px 8px 0 0",
+                        display: "flex",
+                        justifyContent: "center",
+                        paddingTop: 6,
+                        fontSize: "0.85rem",
+                        fontWeight: 600,
+                      }}
+                    >
+                      {day.successful + day.failed}
+                    </div>
                   </div>
-                  <div
-                    style={{
-                      marginTop: 8,
-                      fontSize: "0.8rem",
-                      color: "var(--text-secondary)",
-                    }}
-                  >
-                    {new Date(day.date).toLocaleDateString("en-US", {
-                      month: "short",
-                      day: "numeric",
-                    })}
+                  <div style={{ marginTop: 8, fontSize: "0.8rem", color: "var(--text-secondary)" }}>
+                    {new Date(day.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                   </div>
                 </div>
               );

@@ -5,7 +5,7 @@ export default function PublicNav() {
     <header className="topBar">
       <div className="topBarContent">
         <Link to="/" className="brandLogo">
-          <div className="brandName">ShieldLabs</div>
+          <div className="brandName">ShieldAuth</div>
         </Link>
         <nav className="floatingNav">
           <NavLink

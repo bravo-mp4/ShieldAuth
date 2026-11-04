@@ -2,11 +2,8 @@ import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { Shield } from "lucide-react";
 import axios from "axios";
-// @ts-expect-error - JSX component
 import PublicNav from "../components/PublicNav";
-// @ts-expect-error - JSX component
 import PublicFooter from "../components/PublicFooter";
-// @ts-expect-error - JSX component
 import Loader from "../components/Loader";
 
 export default function LicensePortal() {
@@ -113,7 +110,7 @@ export default function LicensePortal() {
       <PublicNav />
 
       <div style={{ paddingTop: 100, paddingBottom: 80 }}>
-        <div className="container" style={{ maxWidth: 900 }}>
+        <div className="container" style={{ maxWidth: 900, margin: "0 auto" }}>
           {/* Header */}
           <div style={{ textAlign: "center", marginBottom: 48 }}>
             <div className="kicker" style={{ marginBottom: 16, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>

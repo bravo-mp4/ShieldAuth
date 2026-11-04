@@ -2,11 +2,8 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Zap, BarChart3 } from "lucide-react";
 import axios from "axios";
-// @ts-expect-error - JSX component
 import TopBar from "../components/TopBar";
-// @ts-expect-error - JSX component
 import StatCard from "../components/StatCard";
-// @ts-expect-error - JSX component
 import OnboardingWizard from "../components/OnboardingWizard";
 
 interface DashboardStats {
@@ -478,7 +475,7 @@ export default function Dashboard() {
           }}
         >
           <a
-            href="/apps"
+            href="/applications"
             className="btn btnPrimary"
             style={{ textDecoration: "none" }}
           >

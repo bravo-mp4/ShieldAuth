@@ -46,7 +46,7 @@ export default function Settings() {
             <form className="form">
               <div className="field">
                 <label>Email Address</label>
-                <input type="email" defaultValue="admin@shieldlabs.com" />
+                <input type="email" defaultValue="admin@example.com" />
               </div>
               <div className="field">
                 <label>Username</label>
@@ -224,7 +224,7 @@ export default function Settings() {
                     fontFamily: "monospace",
                   }}
                 >
-                  sk_live_abc123def456ghi789jkl012mno345
+                  sk_••••••••••••••••••••
                 </code>
                 <button
                   className="btn btnGhost"

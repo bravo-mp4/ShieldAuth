@@ -1,12 +1,10 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-// @ts-expect-error - JSX component
 import PublicNav from "../components/PublicNav";
-// @ts-expect-error - JSX component
 import PublicFooter from "../components/PublicFooter";
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:3000";
+  import.meta.env.VITE_API_BASE_URL || "";
 
 interface ChangelogEntry {
   version: string;

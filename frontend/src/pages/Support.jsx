@@ -1,6 +1,4 @@
 import { useState } from "react";
-import { BarChart3 } from "lucide-react";
-// @ts-expect-error - JSX component
 import TopBar from "../components/TopBar";
 
 export default function Support() {
@@ -507,10 +505,10 @@ export default function Support() {
           <div>
             <div style={{ fontWeight: 600, marginBottom: 8 }}>Email</div>
             <a
-              href="mailto:support@shieldvm.com"
+              href="mailto:support@example.com"
               style={{ color: "var(--primary)" }}
             >
-              support@shieldvm.com
+              support@example.com
             </a>
             <div
               className="muted"

@@ -1,10 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-// @ts-expect-error - JSX component
 import TopBar from "../components/TopBar";
-// @ts-expect-error - JSX component
 import Modal from "../components/Modal";
-// @ts-expect-error - JSX component
 import Loader from "../components/Loader";
 
 interface License {
@@ -15,8 +12,11 @@ interface License {
   is_banned: boolean;
   created_at: string;
   hwid_count: number;
-  app_owner: string;
+  notes?: string | null;
 }
+
+const isActive = (l: License) =>
+  !l.is_banned && (!l.expires_at || new Date(l.expires_at) > new Date());
 
 interface Application {
   id: string;
@@ -191,16 +191,14 @@ export default function Licenses() {
         <div className="card" style={{ padding: 24 }}>
           <div className="cardTitle">Active Licenses</div>
           <div className="metricValue metricGreen">
-            {licenses.filter((l) => l.is_active).length}
+            {licenses.filter(isActive).length}
           </div>
         </div>
         <div className="card" style={{ padding: 24 }}>
           <div className="cardTitle">Expired</div>
           <div className="metricValue metricRed">
             {
-              licenses.filter(
-                (l) => !l.is_active || new Date(l.expires_at) < new Date()
-              ).length
+              licenses.filter((l) => !l.is_banned && !isActive(l)).length
             }
           </div>
         </div>

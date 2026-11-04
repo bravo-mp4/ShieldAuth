@@ -1,5 +1,4 @@
-import { useState } from "react";
-// @ts-expect-error - JSX component
+import { Zap } from "lucide-react";
 import TopBar from "../components/TopBar";
 
 export default function Downloads() {
